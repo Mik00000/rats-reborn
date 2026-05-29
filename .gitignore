@@ -1,0 +1,27 @@
+# Сборка NeoForge / Gradle
+Rats-1.20/build/
+Rats-1.20/.gradle/
+Rats-1.20/run/
+Rats-1.20/run-data/
+
+# IDE
+Rats-1.20/.idea/
+Rats-1.20/out/
+Rats-1.20/*.iml
+Rats-1.20/.vscode/launch.json
+
+# Логи компиляции и архивы в корне
+compile*.txt
+compile-check.txt
+Rats-1.20-source.zip
+
+# Секреты
+secrets.properties
+**/secrets.properties
+
+# Временные папки разработки (модели, черновики)
+_nf_src/
+
+# Локальный JDK / тяжёлые утилиты (не для GitHub)
+tools/
+*.zip

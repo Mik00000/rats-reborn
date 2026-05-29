@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "building",
+  "ingredients": [
+    {
+      "tag": "rats:rat_houses"
+    },
+    {
+      "item": "minecraft:magenta_dye"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "rats:rat_house_magenta"
+  },
+  "show_notification": true
+}

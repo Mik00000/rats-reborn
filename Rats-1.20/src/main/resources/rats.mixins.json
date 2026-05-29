@@ -1,0 +1,10 @@
+{
+  "required": true,
+  "package": "com.github.alexthe666.rats.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "PiglinAiMixin",
+    "WardenMixin"
+  ],
+  "minVersion": "0.8"
+}

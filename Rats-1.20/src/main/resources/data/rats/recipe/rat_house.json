@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "key": {
+    "W": {
+      "tag": "minecraft:wool"
+    }
+  },
+  "pattern": [
+    "WWW",
+    "W W",
+    "WWW"
+  ],
+  "result": {
+    "count": 1,
+    "id": "rats:rat_house"
+  },
+  "show_notification": true
+}

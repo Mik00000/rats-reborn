@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "I": {
+      "item": "rats:oratchalcum_ingot"
+    },
+    "S": {
+      "item": "minecraft:string"
+    }
+  },
+  "pattern": [
+    " IS",
+    "I S",
+    " IS"
+  ],
+  "result": {
+    "id": "rats:ratlantis_bow"
+  },
+  "show_notification": true
+}

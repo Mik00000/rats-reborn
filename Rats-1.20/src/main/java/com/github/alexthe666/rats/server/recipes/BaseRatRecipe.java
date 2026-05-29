@@ -1,0 +1,23 @@
+package com.github.alexthe666.rats.server.recipes;
+
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.SingleItemRecipe;
+
+public abstract class BaseRatRecipe extends SingleItemRecipe {
+
+	public BaseRatRecipe(RecipeType<?> type, RecipeSerializer<?> serializer, ResourceLocation id, String group, Ingredient input, ItemStack output) {
+		super(type, serializer, group, input, output);
+	}
+
+	public Ingredient getInputIngredient() {
+		return this.ingredient;
+	}
+
+	public ItemStack getResultStack() {
+		return this.result;
+	}
+}

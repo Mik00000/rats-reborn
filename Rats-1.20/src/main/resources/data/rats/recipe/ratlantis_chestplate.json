@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "I": {
+      "item": "rats:oratchalcum_ingot"
+    }
+  },
+  "pattern": [
+    "I I",
+    "III",
+    "III"
+  ],
+  "result": {
+    "id": "rats:ratlantis_chestplate"
+  },
+  "show_notification": true
+}

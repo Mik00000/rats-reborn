@@ -1,0 +1,7 @@
+{
+  "parent": "rats:block/rat_house",
+  "textures": {
+    "0": "rats:block/rat_house_orange",
+    "particle": "rats:block/rat_house_orange"
+  }
+}

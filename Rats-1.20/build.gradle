@@ -1,0 +1,329 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'net.neoforged.moddev' version '2.0.141'
+    id 'eclipse'
+    id 'idea'
+}
+
+def secrets = new Properties()
+def secretsFile = file('secrets.properties')
+if (secretsFile.exists()) {
+    secretsFile.withInputStream {
+        stream -> secrets.load(stream)
+    }
+
+    fileTree("secrets").matching {
+        include "**/*.properties"
+    }.each {
+        File file ->
+            file.withInputStream {
+                stream -> secrets.load(stream)
+            }
+    }
+}
+
+version = "${project.minecraft_version}-${project.mod_version}"
+group = project.mod_group_id
+
+base {
+    archivesName = mod_name
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+compileJava.options.compilerArgs << "-Xlint:all,-classfile,-processing,-deprecation,-this-escape"
+
+neoForge {
+    version = project.neo_version
+
+    parchment {
+        mappingsVersion = project.parchment_mappings_version
+        minecraftVersion = project.parchment_minecraft_version
+    }
+
+    runs {
+        configureEach {
+            gameDirectory = project.file('run')
+            systemProperty 'forge.logging.markers', 'REGISTRIES'
+            systemProperty 'forge.logging.console.level', 'debug'
+            systemProperty 'fml.earlyprogresswindow', 'false'
+            systemProperty 'mixin.env.disableRefMap', 'true'
+            programArgument '-mixin.config=citadel.mixins.json'
+            programArgument '-mixin.config=rats.mixins.json'
+            logLevel = org.slf4j.event.Level.DEBUG
+        }
+
+        client {
+            client()
+            systemProperty 'neoforge.enabledGameTestNamespaces', mod_id
+            programArguments.addAll '--username', secrets.getProperty("username") ?: 'Dev', secrets.getProperty("uuid") ? '--uuid' : '', secrets.getProperty("uuid") ?: ''
+        }
+
+        server {
+            server()
+            systemProperty 'neoforge.enabledGameTestNamespaces', mod_id
+            programArgument '--nogui'
+        }
+
+       gameTestServer {
+            type = "gameTestServer"
+            systemProperty 'neoforge.enabledGameTestNamespaces', mod_id
+        }
+
+        data {
+            data()
+            gameDirectory = project.file('run-data')
+            programArguments.addAll '--mod', mod_id, '--all', '--output', file('src/generated/resources/').absolutePath, '--existing', file('src/main/resources/').absolutePath
+        }
+    }
+
+    mods {
+        "${mod_id}" {
+            sourceSet(sourceSets.main)
+            accessTransformers {
+                file('src/main/resources/META-INF/accesstransformer.cfg')
+            }
+        }
+    }
+}
+
+sourceSets.main.resources { srcDir 'src/generated/resources' }
+
+sourceSets.main.java {
+    // datagen: порт провайдеров на API 1.21 — отдельная задача; рантайм использует src/generated/resources
+    exclude 'com/github/alexthe666/rats/data/*.java'
+    exclude 'com/github/alexthe666/rats/data/loot/**'
+    exclude 'com/github/alexthe666/rats/data/ratlantis/*.java'
+    exclude 'com/github/alexthe666/rats/data/ratlantis/loot/**'
+}
+
+repositories {
+    maven {
+        name = 'NeoForged'
+        url = 'https://maven.neoforged.net/releases'
+    }
+    maven {
+        name 'Curseforge Maven'
+        url "https://www.cursemaven.com"
+        content {
+            includeGroup "curse.maven"
+        }
+    }
+    maven {
+        name 'Jared\'s Maven' // JEI
+        url 'https://maven.blamejared.com/'
+    }
+    maven {
+        name = "ModMaven"
+        url = "https://modmaven.dev"
+    }
+}
+
+configurations {
+    runtimeClasspath.extendsFrom localRuntime
+}
+
+def farmersDelightClientJar = file("${System.getProperty('user.home')}/AppData/Roaming/PrismLauncher/instances/1.21.1/minecraft/mods/FarmersDelight-1.21.1-1.3.1.jar")
+def farmersDelightDependency = farmersDelightClientJar.exists() ? files(farmersDelightClientJar) : "curse.maven:farmers-delight-398521:8007613"
+
+dependencies {
+    compileOnly "mezz.jei:jei-${project.minecraft_version}-neoforge-api:${project.jei_version}"
+    localRuntime "mezz.jei:jei-${project.minecraft_version}-neoforge:${project.jei_version}"
+    compileOnly farmersDelightDependency
+    localRuntime farmersDelightDependency
+
+    implementation "curse.maven:citadel-331936:${project.citadel_curse_file_id}"
+    compileOnly "curse.maven:jade-324717:${project.jade_curse_file_id}"
+    localRuntime "curse.maven:jade-324717:${project.jade_curse_file_id}"
+
+    localRuntime "curse.maven:spark-361579:4738952"
+	localRuntime "curse.maven:debug-utils-783008:4644077"
+	localRuntime "curse.maven:armorpoints-396094:4613606"
+
+    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+}
+
+tasks.named('jar', Jar).configure {
+    manifest {
+        attributes([
+                'Specification-Title'     : mod_id,
+                'Specification-Vendor'    : "AlexThe666",
+                'Specification-Version'   : "1",
+                'Implementation-Title'    : project.name,
+                'Implementation-Version'  : project.jar.archiveVersion,
+                'Implementation-Vendor'   : "AlexThe666",
+                'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+        ])
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    // Временно: без annotation processing (Mixin AP) — refmap не генерируется, в рантайме mixin.env.disableRefMap
+    options.compilerArgs += ['-proc:none', '-Xmaxerrs', '500']
+}
+
+tasks.withType(ProcessResources).configureEach {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    def replaceProperties = [
+            minecraft_version      : minecraft_version,
+            minecraft_version_range: minecraft_version_range,
+            neo_version            : neo_version,
+            loader_version_range   : loader_version_range,
+            mod_id                 : mod_id,
+            mod_name               : mod_name,
+            mod_license            : mod_license,
+            mod_version            : mod_version
+    ]
+    inputs.properties replaceProperties
+
+    filesMatching(['META-INF/mods.toml', 'META-INF/neoforge.mods.toml']) {
+        expand replaceProperties
+    }
+}
+
+import java.nio.charset.StandardCharsets
+
+ext.textEncodingExtensions = [
+        'java', 'json', 'mcmeta', 'toml', 'cfg', 'properties', 'txt', 'md', 'gradle', 'yml', 'yaml'
+] as Set
+
+// Defines whether a file must be checked as text; accepts a File and returns boolean.
+def isTextEncodingTarget = { File candidate ->
+    try {
+        def name = candidate.name
+        if (!candidate.isFile()) {
+            return false
+        }
+        if (name == '.editorconfig' || name == '.gitattributes') {
+            return true
+        }
+        def dot = name.lastIndexOf('.')
+        if (dot < 0) {
+            return false
+        }
+        return project.ext.textEncodingExtensions.contains(name.substring(dot + 1).toLowerCase(Locale.ROOT))
+    } catch (RuntimeException exception) {
+        throw new GradleException("Cannot decide text encoding target for ${candidate}: ${exception.message}", exception)
+    }
+}
+
+// Detects UTF-16/UTF-8-BOM encoding; accepts file bytes and returns charset name or null for plain UTF-8.
+def detectNonUtf8TextEncoding = { byte[] bytes ->
+    try {
+        if (bytes.length >= 2 && (bytes[0] & 0xFF) == 0xFF && (bytes[1] & 0xFF) == 0xFE) {
+            return 'UTF-16LE'
+        }
+        if (bytes.length >= 2 && (bytes[0] & 0xFF) == 0xFE && (bytes[1] & 0xFF) == 0xFF) {
+            return 'UTF-16BE'
+        }
+        if (bytes.length >= 3 && (bytes[0] & 0xFF) == 0xEF && (bytes[1] & 0xFF) == 0xBB && (bytes[2] & 0xFF) == 0xBF) {
+            return 'UTF-8-BOM'
+        }
+        int evenNulls = 0
+        int oddNulls = 0
+        int limit = Math.min(bytes.length, 4096)
+        for (int i = 0; i < limit; i++) {
+            if (bytes[i] == 0) {
+                if ((i & 1) == 0) {
+                    evenNulls++
+                } else {
+                    oddNulls++
+                }
+            }
+        }
+        if (oddNulls > 0 && oddNulls >= evenNulls * 4) {
+            return 'UTF-16LE'
+        }
+        if (evenNulls > 0 && evenNulls >= oddNulls * 4) {
+            return 'UTF-16BE'
+        }
+        return null
+    } catch (RuntimeException exception) {
+        throw new GradleException("Cannot detect text encoding: ${exception.message}", exception)
+    }
+}
+
+// Converts one text file to UTF-8 without BOM; accepts a File and returns true when file was changed.
+def normalizeTextFileToUtf8 = { File target ->
+    try {
+        byte[] bytes = target.bytes
+        def detected = detectNonUtf8TextEncoding(bytes)
+        if (detected == null) {
+            return false
+        }
+        String text
+        if (detected == 'UTF-16LE') {
+            int offset = bytes.length >= 2 && (bytes[0] & 0xFF) == 0xFF && (bytes[1] & 0xFF) == 0xFE ? 2 : 0
+            text = new String(bytes, offset, bytes.length - offset, StandardCharsets.UTF_16LE)
+        } else if (detected == 'UTF-16BE') {
+            int offset = bytes.length >= 2 && (bytes[0] & 0xFF) == 0xFE && (bytes[1] & 0xFF) == 0xFF ? 2 : 0
+            text = new String(bytes, offset, bytes.length - offset, StandardCharsets.UTF_16BE)
+        } else if (detected == 'UTF-8-BOM') {
+            text = new String(bytes, 3, bytes.length - 3, StandardCharsets.UTF_8)
+        } else {
+            throw new GradleException("Unsupported text encoding ${detected} in ${target}")
+        }
+        target.setBytes(text.getBytes(StandardCharsets.UTF_8))
+        logger.lifecycle("Normalized ${target} from ${detected} to UTF-8")
+        return true
+    } catch (RuntimeException exception) {
+        throw new GradleException("Cannot normalize ${target} to UTF-8: ${exception.message}", exception)
+    }
+}
+
+tasks.register('normalizeTextEncoding') {
+    group = 'verification'
+    description = 'Converts UTF-16/UTF-8-BOM project text files to UTF-8 before build.'
+
+    doLast {
+        // Scans source/resources/docs before build; accepts no parameters and throws explicit GradleException on invalid text bytes.
+        try {
+            def roots = [
+                    file('src/main/java'),
+                    file('src/main/resources'),
+                    file('src/generated/resources'),
+                    file('../документация'),
+                    file('.'),
+                    file('..')
+            ]
+            def excludedParts = [File.separator + 'build' + File.separator, File.separator + '.gradle' + File.separator, File.separator + 'run' + File.separator, File.separator + 'run-data' + File.separator]
+            def visited = [] as Set
+            int normalized = 0
+            roots.findAll { it.exists() }.each { root ->
+                fileTree(root).visit { details ->
+                    if (details.directory) {
+                        return
+                    }
+                    File candidate = details.file
+                    String absolute = candidate.absolutePath
+                    if (visited.contains(absolute)) {
+                        return
+                    }
+                    visited.add(absolute)
+                    if (excludedParts.any { absolute.contains(it) }) {
+                        return
+                    }
+                    if (!isTextEncodingTarget(candidate)) {
+                        return
+                    }
+                    if (normalizeTextFileToUtf8(candidate)) {
+                        normalized++
+                    }
+                    byte[] checked = candidate.bytes
+                    if (checked.any { it == 0 }) {
+                        throw new GradleException("Text file still contains zero bytes after UTF-8 normalization: ${candidate}")
+                    }
+                }
+            }
+            logger.lifecycle("UTF-8 normalization completed, files changed: ${normalized}")
+        } catch (RuntimeException exception) {
+            throw new GradleException("UTF-8 normalization failed: ${exception.message}", exception)
+        }
+    }
+}
+
+compileJava.dependsOn tasks.named('normalizeTextEncoding')
+processResources.dependsOn tasks.named('normalizeTextEncoding')
+

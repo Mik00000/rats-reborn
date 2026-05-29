@@ -1,0 +1,33 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": {
+      "tag": "c:cheese"
+    },
+    "G": {
+      "item": "create:cogwheel"
+    },
+    "S": {
+      "item": "create:wrench"
+    },
+    "U": {
+      "item": "rats:rat_upgrade_basic"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "create"
+    }
+  ],
+  "pattern": [
+    "CGC",
+    "GUG",
+    "CSC"
+  ],
+  "result": {
+    "id": "rats:rat_upgrade_worker"
+  },
+  "show_notification": true
+}

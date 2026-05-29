@@ -1,0 +1,37 @@
+{
+  "replace": false,
+  "values": [
+    {
+      "id": "create:hand_crank",
+      "required": false
+    },
+    {
+      "id": "create:valve_handle",
+      "required": false
+    },
+    {
+      "id": "create:stockpile_switch",
+      "required": false
+    },
+    {
+      "id": "create:factory_gauge",
+      "required": false
+    },
+    {
+      "id": "create:analog_lever",
+      "required": false
+    },
+    {
+      "id": "create:sequenced_gearshift",
+      "required": false
+    },
+    {
+      "id": "create:gearshift",
+      "required": false
+    },
+    {
+      "id": "create:clutch",
+      "required": false
+    }
+  ]
+}

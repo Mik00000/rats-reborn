@@ -1,0 +1,10 @@
+{
+    "variants":  {
+                     "has_cheese=false":  {
+                                              "model":  "rats:block/rat_cheese_feeder_empty"
+                                          },
+                     "has_cheese=true":  {
+                                             "model":  "rats:block/rat_cheese_feeder"
+                                         }
+                 }
+}

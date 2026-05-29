@@ -1,0 +1,487 @@
+{
+    "credit":  "Made with Blockbench",
+    "texture_size":  [
+                         32,
+                         32
+                     ],
+    "textures":  {
+                     "0":  "rats:block/rat_cheese_feeder",
+                     "1":  "rats:block/rat_cheese_feeder_borders",
+                     "particle":  "rats:block/rat_cheese_feeder",
+                     "2":  "rats:block/rat_cheese_feeder_cheese"
+                 },
+    "elements":  [
+                     {
+                         "name":  "plate",
+                         "from":  [
+                                      0,
+                                      0,
+                                      2
+                                  ],
+                         "to":  [
+                                    2,
+                                    2,
+                                    16
+                                ],
+                         "rotation":  {
+                                          "angle":  0,
+                                          "axis":  "y",
+                                          "origin":  [
+                                                         0,
+                                                         0,
+                                                         16
+                                                     ]
+                                      },
+                         "faces":  {
+                                       "north":  {
+                                                     "uv":  [
+                                                                2,
+                                                                2,
+                                                                3,
+                                                                3
+                                                            ],
+                                                     "texture":  "#1"
+                                                 },
+                                       "east":  {
+                                                    "uv":  [
+                                                               0,
+                                                               0,
+                                                               7,
+                                                               1
+                                                           ],
+                                                    "texture":  "#1"
+                                                },
+                                       "south":  {
+                                                     "uv":  [
+                                                                2,
+                                                                3,
+                                                                3,
+                                                                4
+                                                            ],
+                                                     "texture":  "#1"
+                                                 },
+                                       "west":  {
+                                                    "uv":  [
+                                                               0,
+                                                               1,
+                                                               7,
+                                                               2
+                                                           ],
+                                                    "texture":  "#1"
+                                                },
+                                       "up":  {
+                                                  "uv":  [
+                                                             1,
+                                                             9,
+                                                             0,
+                                                             2
+                                                         ],
+                                                  "texture":  "#1"
+                                              },
+                                       "down":  {
+                                                    "uv":  [
+                                                               2,
+                                                               2,
+                                                               1,
+                                                               9
+                                                           ],
+                                                    "texture":  "#1"
+                                                }
+                                   }
+                     },
+                     {
+                         "name":  "plate",
+                         "from":  [
+                                      14,
+                                      0,
+                                      0
+                                  ],
+                         "to":  [
+                                    16,
+                                    2,
+                                    14
+                                ],
+                         "rotation":  {
+                                          "angle":  0,
+                                          "axis":  "y",
+                                          "origin":  [
+                                                         14,
+                                                         0,
+                                                         14
+                                                     ]
+                                      },
+                         "faces":  {
+                                       "north":  {
+                                                     "uv":  [
+                                                                2,
+                                                                2,
+                                                                3,
+                                                                3
+                                                            ],
+                                                     "texture":  "#1"
+                                                 },
+                                       "east":  {
+                                                    "uv":  [
+                                                               0,
+                                                               0,
+                                                               7,
+                                                               1
+                                                           ],
+                                                    "texture":  "#1"
+                                                },
+                                       "south":  {
+                                                     "uv":  [
+                                                                2,
+                                                                3,
+                                                                3,
+                                                                4
+                                                            ],
+                                                     "texture":  "#1"
+                                                 },
+                                       "west":  {
+                                                    "uv":  [
+                                                               0,
+                                                               1,
+                                                               7,
+                                                               2
+                                                           ],
+                                                    "texture":  "#1"
+                                                },
+                                       "up":  {
+                                                  "uv":  [
+                                                             1,
+                                                             9,
+                                                             0,
+                                                             2
+                                                         ],
+                                                  "texture":  "#1"
+                                              },
+                                       "down":  {
+                                                    "uv":  [
+                                                               2,
+                                                               2,
+                                                               1,
+                                                               9
+                                                           ],
+                                                    "texture":  "#1"
+                                                }
+                                   }
+                     },
+                     {
+                         "name":  "plate",
+                         "from":  [
+                                      0,
+                                      0,
+                                      0
+                                  ],
+                         "to":  [
+                                    14,
+                                    2,
+                                    2
+                                ],
+                         "rotation":  {
+                                          "angle":  0,
+                                          "axis":  "y",
+                                          "origin":  [
+                                                         14,
+                                                         0,
+                                                         2
+                                                     ]
+                                      },
+                         "faces":  {
+                                       "north":  {
+                                                     "uv":  [
+                                                                0,
+                                                                0,
+                                                                7,
+                                                                1
+                                                            ],
+                                                     "texture":  "#1"
+                                                 },
+                                       "east":  {
+                                                    "uv":  [
+                                                               2,
+                                                               3,
+                                                               3,
+                                                               4
+                                                           ],
+                                                    "texture":  "#1"
+                                                },
+                                       "south":  {
+                                                     "uv":  [
+                                                                0,
+                                                                1,
+                                                                7,
+                                                                2
+                                                            ],
+                                                     "texture":  "#1"
+                                                 },
+                                       "west":  {
+                                                    "uv":  [
+                                                               2,
+                                                               2,
+                                                               3,
+                                                               3
+                                                           ],
+                                                    "texture":  "#1"
+                                                },
+                                       "up":  {
+                                                  "uv":  [
+                                                             1,
+                                                             9,
+                                                             0,
+                                                             2
+                                                         ],
+                                                  "rotation":  270,
+                                                  "texture":  "#1"
+                                              },
+                                       "down":  {
+                                                    "uv":  [
+                                                               2,
+                                                               2,
+                                                               1,
+                                                               9
+                                                           ],
+                                                    "rotation":  90,
+                                                    "texture":  "#1"
+                                                }
+                                   }
+                     },
+                     {
+                         "name":  "plate",
+                         "from":  [
+                                      2,
+                                      0,
+                                      14
+                                  ],
+                         "to":  [
+                                    16,
+                                    2,
+                                    16
+                                ],
+                         "rotation":  {
+                                          "angle":  0,
+                                          "axis":  "y",
+                                          "origin":  [
+                                                         16,
+                                                         0,
+                                                         16
+                                                     ]
+                                      },
+                         "faces":  {
+                                       "north":  {
+                                                     "uv":  [
+                                                                0,
+                                                                0,
+                                                                7,
+                                                                1
+                                                            ],
+                                                     "texture":  "#1"
+                                                 },
+                                       "east":  {
+                                                    "uv":  [
+                                                               2,
+                                                               3,
+                                                               3,
+                                                               4
+                                                           ],
+                                                    "texture":  "#1"
+                                                },
+                                       "south":  {
+                                                     "uv":  [
+                                                                0,
+                                                                1,
+                                                                7,
+                                                                2
+                                                            ],
+                                                     "texture":  "#1"
+                                                 },
+                                       "west":  {
+                                                    "uv":  [
+                                                               2,
+                                                               2,
+                                                               3,
+                                                               3
+                                                           ],
+                                                    "texture":  "#1"
+                                                },
+                                       "up":  {
+                                                  "uv":  [
+                                                             1,
+                                                             9,
+                                                             0,
+                                                             2
+                                                         ],
+                                                  "rotation":  270,
+                                                  "texture":  "#1"
+                                              },
+                                       "down":  {
+                                                    "uv":  [
+                                                               2,
+                                                               2,
+                                                               1,
+                                                               9
+                                                           ],
+                                                    "rotation":  90,
+                                                    "texture":  "#1"
+                                                }
+                                   }
+                     },
+                     {
+                         "name":  "plate",
+                         "from":  [
+                                      2,
+                                      0,
+                                      2
+                                  ],
+                         "to":  [
+                                    14,
+                                    1,
+                                    14
+                                ],
+                         "rotation":  {
+                                          "angle":  0,
+                                          "axis":  "y",
+                                          "origin":  [
+                                                         2,
+                                                         0,
+                                                         16
+                                                     ]
+                                      },
+                         "faces":  {
+                                       "north":  {
+                                                     "uv":  [
+                                                                6,
+                                                                0,
+                                                                12,
+                                                                0.5
+                                                            ],
+                                                     "texture":  "#0"
+                                                 },
+                                       "east":  {
+                                                    "uv":  [
+                                                               6,
+                                                               0.5,
+                                                               12,
+                                                               1
+                                                           ],
+                                                    "texture":  "#0"
+                                                },
+                                       "south":  {
+                                                     "uv":  [
+                                                                6,
+                                                                1,
+                                                                12,
+                                                                1.5
+                                                            ],
+                                                     "texture":  "#0"
+                                                 },
+                                       "west":  {
+                                                    "uv":  [
+                                                               6,
+                                                               1.5,
+                                                               12,
+                                                               2
+                                                           ],
+                                                    "texture":  "#0"
+                                                },
+                                       "up":  {
+                                                  "uv":  [
+                                                             6,
+                                                             6,
+                                                             0,
+                                                             0
+                                                         ],
+                                                  "texture":  "#0"
+                                              },
+                                       "down":  {
+                                                    "uv":  [
+                                                               6,
+                                                               6,
+                                                               0,
+                                                               12
+                                                           ],
+                                                    "texture":  "#0"
+                                                }
+                                   }
+                     },
+                     {
+                         "name":  "cheese",
+                         "from":  [
+                                      3,
+                                      0,
+                                      3
+                                  ],
+                         "to":  [
+                                    13,
+                                    2,
+                                    13
+                                ],
+                         "rotation":  {
+                                          "angle":  0,
+                                          "axis":  "y",
+                                          "origin":  [
+                                                         3,
+                                                         0,
+                                                         3
+                                                     ]
+                                      },
+                         "faces":  {
+                                       "north":  {
+                                                     "uv":  [
+                                                                5,
+                                                                0,
+                                                                10,
+                                                                1
+                                                            ],
+                                                     "texture":  "#2"
+                                                 },
+                                       "east":  {
+                                                    "uv":  [
+                                                               5,
+                                                               1,
+                                                               10,
+                                                               2
+                                                           ],
+                                                    "texture":  "#2"
+                                                },
+                                       "south":  {
+                                                     "uv":  [
+                                                                5,
+                                                                2,
+                                                                10,
+                                                                3
+                                                            ],
+                                                     "texture":  "#2"
+                                                 },
+                                       "west":  {
+                                                    "uv":  [
+                                                               5,
+                                                               3,
+                                                               10,
+                                                               4
+                                                           ],
+                                                    "texture":  "#2"
+                                                },
+                                       "up":  {
+                                                  "uv":  [
+                                                             5,
+                                                             5,
+                                                             0,
+                                                             0
+                                                         ],
+                                                  "texture":  "#2"
+                                              },
+                                       "down":  {
+                                                    "uv":  [
+                                                               5,
+                                                               5,
+                                                               0,
+                                                               10
+                                                           ],
+                                                    "texture":  "#2"
+                                                }
+                                   }
+                     }
+                 ]
+}

@@ -1,0 +1,13 @@
+* text=auto working-tree-encoding=UTF-8
+
+*.java text working-tree-encoding=UTF-8 eol=lf
+*.json text working-tree-encoding=UTF-8 eol=lf
+*.mcmeta text working-tree-encoding=UTF-8 eol=lf
+*.toml text working-tree-encoding=UTF-8 eol=lf
+*.cfg text working-tree-encoding=UTF-8 eol=lf
+*.properties text working-tree-encoding=UTF-8 eol=lf
+*.gradle text working-tree-encoding=UTF-8 eol=lf
+*.md text working-tree-encoding=UTF-8 eol=lf
+*.txt text working-tree-encoding=UTF-8 eol=lf
+*.png binary
+*.jar binary

@@ -1,0 +1,46 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_house": {
+      "conditions": {
+        "items": [
+          {
+            "tag": "rats:rat_houses"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_dye": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "minecraft:magenta_dye"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "rats:rat_houses/rat_house_magenta"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_house",
+      "has_dye",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "rats:rat_houses/rat_house_magenta"
+    ]
+  },
+  "sends_telemetry_event": false
+}

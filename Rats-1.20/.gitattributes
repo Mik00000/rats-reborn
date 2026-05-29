@@ -1,0 +1,16 @@
+# Text files must stay UTF-8. Generated JSON keeps LF to avoid noisy diffs.
+* text=auto working-tree-encoding=UTF-8
+
+src/generated/**/.cache/cache text eol=lf working-tree-encoding=UTF-8
+src/generated/**/*.json text eol=lf working-tree-encoding=UTF-8
+*.java text eol=lf working-tree-encoding=UTF-8
+*.json text eol=lf working-tree-encoding=UTF-8
+*.mcmeta text eol=lf working-tree-encoding=UTF-8
+*.toml text eol=lf working-tree-encoding=UTF-8
+*.cfg text eol=lf working-tree-encoding=UTF-8
+*.properties text eol=lf working-tree-encoding=UTF-8
+*.gradle text eol=lf working-tree-encoding=UTF-8
+*.md text eol=lf working-tree-encoding=UTF-8
+*.txt text eol=lf working-tree-encoding=UTF-8
+*.png binary
+*.jar binary

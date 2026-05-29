@@ -1,0 +1,41 @@
+modLoader = "javafml"
+loaderVersion = "${loader_version_range}"
+license = "${mod_license}"
+issueTrackerURL = "https://github.com/usuqmadiq/Rats-Reborn/issues"
+
+[[mods]]
+modId = "${mod_id}"
+version = "${mod_version}"
+displayName = "${mod_name}"
+itemIcon = "rats:cheese"
+displayURL = "https://www.curseforge.com/minecraft/mc-mods/rats"
+logoFile = "rats_logo.png"
+authors = "AlexThe666, GizmoTheMoonPig"
+description = '''What are we going to do today Pinky?'''
+
+[[mixins]]
+config = "rats.mixins.json"
+
+[[dependencies.rats]]
+modId = "neoforge"
+type = "required"
+versionRange = "[${neo_version},)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.rats]]
+modId = "citadel"
+type = "required"
+versionRange = "[2.7,)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies.rats]]
+modId = "minecraft"
+type = "required"
+versionRange = "${minecraft_version_range}"
+ordering = "NONE"
+side = "BOTH"
+
+[modproperties.rats]
+configuredBackground = "rats:textures/block/marbled_cheese.png"

@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "I": {
+      "item": "rats:oratchalcum_ingot"
+    },
+    "P": {
+      "item": "minecraft:phantom_membrane"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    },
+    "U": {
+      "item": "rats:rat_upgrade_basic_mount"
+    },
+    "C": {
+      "item": "minecraft:minecart"
+    }
+  },
+  "pattern": [
+    "IPI",
+    "RUR",
+    "ICI"
+  ],
+  "result": {
+    "id": "rats:rat_upgrade_biplane_mount"
+  },
+  "show_notification": true
+}

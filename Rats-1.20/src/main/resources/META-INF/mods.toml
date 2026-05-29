@@ -1,0 +1,38 @@
+modLoader = "javafml"
+loaderVersion = "${loader_version_range}"
+issueTrackerURL = "https://github.com/Alex-the-666/Rats/issues"
+license = "${mod_license}"
+
+[[mods]]
+modId = "${mod_id}"
+version = "${mod_version}"
+displayName = "${mod_name}"
+itemIcon = "rats:cheese"
+displayURL = "https://www.curseforge.com/minecraft/mc-mods/rats"
+logoFile = "rats_logo.png"
+authors = "AlexThe666, GizmoTheMoonPig"
+description = '''What are we going to do today Pinky?'''
+
+[[dependencies.rats]]
+    modId = "neoforge"
+    mandatory = true
+    versionRange = "[${neo_version},)"
+    ordering = "BEFORE"
+    side = "BOTH"
+
+[[dependencies.rats]]
+    modId = "citadel"
+    mandatory = true
+    versionRange = "[2.7,)"
+    ordering = "AFTER"
+    side = "BOTH"
+
+[[dependencies.rats]]
+    modId = "minecraft"
+    mandatory = true
+    versionRange = "${minecraft_version_range}"
+    ordering = "NONE"
+    side = "BOTH"
+
+[modproperties.rats]
+    configuredBackground = "rats:textures/block/marbled_cheese.png"
