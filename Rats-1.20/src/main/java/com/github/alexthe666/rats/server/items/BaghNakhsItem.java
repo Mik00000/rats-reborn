@@ -5,8 +5,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.SwordItem;
 
 public class BaghNakhsItem extends SwordItem {
-
-	public BaghNakhsItem(Item.Properties properties) {
-		super(RatsToolMaterialRegistry.BAGHNAKHS, properties);
-	}
+    public BaghNakhsItem(Item.Properties properties) {
+        super(RatsToolMaterialRegistry.BAGHNAKHS, properties.attributes(SwordItem.createAttributes(RatsToolMaterialRegistry.BAGHNAKHS, 3, -1.8F)));
+    }
 }

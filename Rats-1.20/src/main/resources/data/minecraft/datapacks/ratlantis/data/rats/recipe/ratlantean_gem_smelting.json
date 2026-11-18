@@ -6,5 +6,7 @@
   "ingredient": {
     "item": "rats:ratlantean_gem_ore"
   },
-  "result": "rats:gem_of_ratlantis"
+  "result": {
+    "id": "rats:gem_of_ratlantis"
+  }
 }

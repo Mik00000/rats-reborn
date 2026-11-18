@@ -4,5 +4,7 @@
   "ingredient": {
     "item": "minecraft:netherite_ingot"
   },
-  "result": "rats:oratchalcum_ingot"
+  "result": {
+    "id": "rats:oratchalcum_ingot"
+  }
 }

@@ -1,38 +1,48 @@
-# Rats Reborn
+# Rats Reborn (Community Edition / Remastered)
 
-Чилловый пересмотр мода [Rats](https://github.com/AlexModGuy/Rats) (AlexThe666) — порт на **Minecraft 1.21.1** (**NeoForge**) с упором на уютное крысиное поселение и автоматизацию милыми питомцами.
+A refined port and expansion of the classic **Rats** mod by **AlexThe666** to **Minecraft 1.21.1 (NeoForge)**.
 
-## Требования
+---
 
-| Компонент | Версия |
-|-----------|--------|
-| Minecraft | 1.21.1 |
-| NeoForge | 21.1.228+ |
-| Java | 21 |
-| Citadel | обязательно (2.7+) |
+## 🌟 What's New in this Edition
 
-Рекомендуется: JEI, Jade, Create, Farmer's Delight.
+- **Squirrel Rat Upgrade:** Allows trained rats to scale tree trunks, navigate complex forest canopies in 3D, and harvest wild berries, fruits, bushes, and vineyard crops. Synergizes with Platter (up to 64 items) and Flight upgrades, granting fall, suffocation, and thorn immunity.
+- **AI & Pathfinding Fixes:** Completely resolved rat freezing, stuttering, erratic jumping, and container deposit pathfinding bugs.
+- **Hunger & Diet Balance:** Fixed cheese feeding reserve consumption schedule, GUI state synchronization, and nutrition stats.
+- **Restored Content:** Re-implemented missing recipes, structures, loot tables, and Ratlantis integration for 1.21.1 NeoForge.
+- **Full Localization:** Includes complete English and Ukrainian (`uk_ua`) translations.
 
-## Сборка
+---
 
-```powershell
-$env:JAVA_HOME = "C:\Program Files\Zulu\zulu-21"
-cd Rats-1.20
-.\gradlew.bat build
+## 📦 Requirements
+
+| Dependency | Version |
+|---|---|
+| **Minecraft** | `1.21.1` |
+| **NeoForge** | `21.1.228+` |
+| **Java** | `21` |
+| **Citadel** | `2.7+` (Required) |
+
+Recommended companions: *JEI, Jade, Create, Farmer's Delight*.
+
+---
+
+## 🔨 Building from Source
+
+```bash
+git clone https://github.com/Mik00000/rats-reborn.git
+cd rats-reborn/Rats-1.20
+chmod +x gradlew
+./gradlew build
 ```
 
-JAR: `Rats-1.20/build/libs/`
+Compiled JAR will be in `Rats-1.20/build/libs/`.
 
-## Документация
+---
 
-Подробное описание механик: [документация/](документация/) (оглавление — [README](документация/README.md)).
+## 📜 Credits & License
 
-## Лицензия
-
-Проект основан на **Rats** и распространяется под **LGPL-3.0** — см. [Rats-1.20/LICENSE](Rats-1.20/LICENSE).
-
-Изменения в Rats Reborn — порт и доработки сообщества; оригинальный мод — © AlexThe666.
-
-## Обратная связь
-
-- [Issues](https://github.com/usuqmadiq/Rats-Reborn/issues) — баги и предложения
+- Original mod **Rats** © [AlexThe666](https://github.com/AlexModGuy/Rats)
+- 1.21.1 Reborn Port by [Cheddar_Piper / usuqmadiq](https://github.com/usuqmadiq/Rats-Reborn)
+- Community Edition fixes, squirrel expansion & maintainer: **Mik00000**
+- Distributed under the **GNU Lesser General Public License v3.0 (LGPL-3.0)**.

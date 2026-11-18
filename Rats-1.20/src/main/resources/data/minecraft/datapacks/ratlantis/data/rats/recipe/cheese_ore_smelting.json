@@ -6,5 +6,7 @@
   "ingredient": {
     "item": "rats:cheese_ore"
   },
-  "result": "rats:cheese"
+  "result": {
+    "id": "rats:cheese"
+  }
 }

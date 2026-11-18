@@ -14,89 +14,97 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 public final class HatModels {
+    private static final Map<HatItem, HumanoidModel<?>> MODEL_CACHE = new ConcurrentHashMap<>();
 
-	private HatModels() {
-	}
+    private HatModels() {}
 
-	// Создаёт 3D-модель шляпы по предмету; принимает HatItem, отдаёт HumanoidModel или null.
-	public static HumanoidModel<?> createModel(HatItem hat) {
-		try {
-			ModelLayerLocation layer = resolveLayer(hat);
-			if (layer == null) {
-				return null;
-			}
-			ModelPart root = Minecraft.getInstance().getEntityModels().bakeLayer(layer);
-			return switch (BuiltInRegistries.ITEM.getKey(hat).getPath()) {
-				case "chef_toque" -> new ChefToqueModel(root);
-				case "piper_hat" -> new PiperHatModel(root);
-				case "archeologist_hat" -> new ArcheologistHatModel(root);
-				case "farmer_hat", "fisherman_hat" -> new FarmerHatModel(root);
-				case "rat_fez" -> new RatFezModel(root);
-				case "top_hat" -> new TopHatModel(root);
-				case "santa_hat" -> new SantaHatModel(root);
-				case "halo_hat" -> new HaloHatModel(root);
-				case "pirat_hat" -> new PiratHatModel(root);
-				case "rat_king_crown" -> new CrownModel(root);
-				case "plague_doctor_mask", "black_death_mask" -> new PlagueDoctorMaskModel(root);
-				case "exterminator_hat" -> new ExterminatorHatModel(root);
-				case "aviator_hat" -> new AviatorHatModel(root);
-				case "ghost_pirat_hat" -> new GhostPiratHatModel(root);
-				case "military_hat" -> new MilitaryHatModel(root);
-				default -> null;
-			};
-		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось создать модель шляпы {}: {}", BuiltInRegistries.ITEM.getKey(hat), exception.getMessage(), exception);
-			throw exception;
-		}
-	}
+    public static HumanoidModel<?> createModel(HatItem hat) {
+        if (hat == null) {
+            return null;
+        }
+        return MODEL_CACHE.computeIfAbsent(hat, HatModels::buildModelInternal);
+    }
 
-	// Рисует на крысе только головную часть модели шляпы; принимает модель, матрицу, буфер, свет и оверлей.
-	public static void renderOnRat(HumanoidModel<?> model, PoseStack stack, VertexConsumer consumer, int light, int overlay) {
-		try {
-			model.setAllVisible(false);
-			model.head.visible = true;
-			model.head.render(stack, consumer, light, overlay);
-		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Ошибка рендера шляпы на крысе: {}", exception.getMessage(), exception);
-			throw exception;
-		}
-	}
+    private static HumanoidModel<?> buildModelInternal(HatItem hat) {
+        try {
+            ModelLayerLocation layer = resolveLayer(hat);
+            if (layer == null) {
+                return null;
+            }
+            ModelPart part = Minecraft.getInstance().getEntityModels().bakeLayer(layer);
+            String path = BuiltInRegistries.ITEM.getKey(hat).getPath();
+            return switch (path) {
+                case "chef_toque" -> new ChefToqueModel(part);
+                case "piper_hat" -> new PiperHatModel(part);
+                case "archeologist_hat" -> new ArcheologistHatModel(part);
+                case "farmer_hat", "fisherman_hat" -> new FarmerHatModel(part);
+                case "rat_fez" -> new RatFezModel(part);
+                case "top_hat" -> new TopHatModel(part);
+                case "santa_hat" -> new SantaHatModel(part);
+                case "halo_hat" -> new HaloHatModel(part);
+                case "pirat_hat" -> new PiratHatModel(part);
+                case "rat_king_crown" -> new CrownModel(part);
+                case "plague_doctor_mask", "black_death_mask" -> new PlagueDoctorMaskModel(part);
+                case "exterminator_hat" -> new ExterminatorHatModel(part);
+                case "aviator_hat" -> new AviatorHatModel(part);
+                case "ghost_pirat_hat" -> new GhostPiratHatModel(part);
+                case "military_hat" -> new MilitaryHatModel(part);
+                default -> null;
+            };
+        } catch (Throwable e) {
+            RatsMod.LOGGER.error("Не удалось создать модель шляпы {}: {}", BuiltInRegistries.ITEM.getKey(hat), e.getMessage());
+            return null;
+        }
+    }
 
-	// Рисует шляпу на гуманоиде; принимает модель, матрицу, буфер, свет и оверлей.
-	public static void renderOnPlayer(HumanoidModel<?> model, PoseStack stack, VertexConsumer consumer, int light, int overlay) {
-		renderOnRat(model, stack, consumer, light, overlay);
-	}
+    public static void renderOnRat(HumanoidModel<?> model, PoseStack poseStack, VertexConsumer buffer, int packedLight, int packedOverlay) {
+        if (model == null) return;
+        try {
+            model.setAllVisible(false);
+            model.head.visible = true;
+            model.head.render(poseStack, buffer, packedLight, packedOverlay);
+        } catch (Throwable e) {
+            RatsMod.LOGGER.error("Ошибка рендера шляпы на крысе: {}", e.getMessage());
+        }
+    }
 
-	// Возвращает путь к текстуре шляпы; принимает предмет, отдаёт ResourceLocation.
-	public static ResourceLocation getTexture(Item item) {
-		try {
-			ResourceLocation id = BuiltInRegistries.ITEM.getKey(item);
-			return ResourceLocation.fromNamespaceAndPath(id.getNamespace(), "textures/model/hat/" + id.getPath() + ".png");
-		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось получить текстуру шляпы {}: {}", item, exception.getMessage(), exception);
-			throw exception;
-		}
-	}
+    public static void renderOnPlayer(HumanoidModel<?> model, PoseStack poseStack, VertexConsumer buffer, int packedLight, int packedOverlay) {
+        renderOnRat(model, poseStack, buffer, packedLight, packedOverlay);
+    }
 
-	private static ModelLayerLocation resolveLayer(HatItem hat) {
-		return switch (BuiltInRegistries.ITEM.getKey(hat).getPath()) {
-			case "chef_toque" -> RatsModelLayers.CHEF_TOQUE;
-			case "piper_hat" -> RatsModelLayers.PIPER_HAT;
-			case "archeologist_hat" -> RatsModelLayers.ARCHEOLOGIST_HAT;
-			case "farmer_hat", "fisherman_hat" -> RatsModelLayers.FARMER_HAT;
-			case "rat_fez" -> RatsModelLayers.FEZ;
-			case "top_hat" -> RatsModelLayers.TOP_HAT;
-			case "santa_hat" -> RatsModelLayers.SANTA_HAT;
-			case "halo_hat" -> RatsModelLayers.HALO;
-			case "pirat_hat" -> RatsModelLayers.PIRATE_HAT;
-			case "rat_king_crown" -> RatsModelLayers.CROWN;
-			case "plague_doctor_mask", "black_death_mask" -> RatsModelLayers.PLAGUE_DOCTOR_MASK;
-			case "exterminator_hat" -> RatsModelLayers.EXTERMINATOR_HAT;
-			case "aviator_hat" -> RatsModelLayers.AVIATOR_HAT;
-			case "ghost_pirat_hat" -> RatsModelLayers.PIRATE_HAT;
-			case "military_hat" -> RatsModelLayers.OFFICER_HAT;
-			default -> null;
-		};
-	}
+    public static ResourceLocation getTexture(Item item) {
+        try {
+            ResourceLocation key = BuiltInRegistries.ITEM.getKey(item);
+            return ResourceLocation.fromNamespaceAndPath(key.getNamespace(), "textures/model/hat/" + key.getPath() + ".png");
+        } catch (Throwable e) {
+            RatsMod.LOGGER.error("Не удалось получить текстуру шляпы {}: {}", item, e.getMessage());
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static ModelLayerLocation resolveLayer(HatItem hat) {
+        String path = BuiltInRegistries.ITEM.getKey(hat).getPath();
+        return switch (path) {
+            case "chef_toque" -> RatsModelLayers.CHEF_TOQUE;
+            case "piper_hat" -> RatsModelLayers.PIPER_HAT;
+            case "archeologist_hat" -> RatsModelLayers.ARCHEOLOGIST_HAT;
+            case "farmer_hat", "fisherman_hat" -> RatsModelLayers.FARMER_HAT;
+            case "rat_fez" -> RatsModelLayers.FEZ;
+            case "top_hat" -> RatsModelLayers.TOP_HAT;
+            case "santa_hat" -> RatsModelLayers.SANTA_HAT;
+            case "halo_hat" -> RatsModelLayers.HALO;
+            case "pirat_hat" -> RatsModelLayers.PIRATE_HAT;
+            case "rat_king_crown" -> RatsModelLayers.CROWN;
+            case "plague_doctor_mask", "black_death_mask" -> RatsModelLayers.PLAGUE_DOCTOR_MASK;
+            case "exterminator_hat" -> RatsModelLayers.EXTERMINATOR_HAT;
+            case "aviator_hat" -> RatsModelLayers.AVIATOR_HAT;
+            case "ghost_pirat_hat" -> RatsModelLayers.PIRATE_HAT;
+            case "military_hat" -> RatsModelLayers.OFFICER_HAT;
+            default -> null;
+        };
+    }
 }

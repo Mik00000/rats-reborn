@@ -4,5 +4,7 @@
   "ingredient": {
     "item": "minecraft:iron_sword"
   },
-  "result": "rats:pirat_cutlass"
+  "result": {
+    "id": "rats:pirat_cutlass"
+  }
 }

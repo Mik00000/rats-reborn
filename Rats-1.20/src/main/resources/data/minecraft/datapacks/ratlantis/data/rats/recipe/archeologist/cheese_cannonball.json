@@ -4,5 +4,7 @@
   "ingredient": {
     "item": "minecraft:fire_charge"
   },
-  "result": "rats:cheese_cannonball"
+  "result": {
+    "id": "rats:cheese_cannonball"
+  }
 }

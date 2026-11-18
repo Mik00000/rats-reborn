@@ -4,5 +4,7 @@
   "ingredient": {
     "item": "minecraft:rabbit_foot"
   },
-  "result": "rats:feral_rat_claw"
+  "result": {
+    "id": "rats:feral_rat_claw"
+  }
 }

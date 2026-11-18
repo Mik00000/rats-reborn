@@ -8,9 +8,14 @@
     "I": {
       "item": "rats:oratchalcum_ingot"
     },
-    "S": {
-      "tag": "c:rods/wood"
-    }
+    "S": [
+      {
+        "item": "minecraft:stick"
+      },
+      {
+        "tag": "c:rods/wooden"
+      }
+    ]
   },
   "pattern": [
     " S ",

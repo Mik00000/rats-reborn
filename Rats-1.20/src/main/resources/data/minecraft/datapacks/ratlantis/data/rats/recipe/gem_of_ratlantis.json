@@ -2,9 +2,14 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "E": {
-      "tag": "c:gems/emerald"
-    },
+    "E": [
+      {
+        "item": "minecraft:emerald"
+      },
+      {
+        "tag": "c:gems/emerald"
+      }
+    ],
     "P": {
       "item": "rats:ratglove_petals"
     }

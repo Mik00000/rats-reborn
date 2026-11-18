@@ -1,0 +1,4 @@
+{
+  "summary": "Allow wild rats to raid chests in claimed chunks by removing canEntityGrief and isBlockProtected checks",
+  "updatedAt": "2026-09-18T19:49:24.453596219Z"
+}

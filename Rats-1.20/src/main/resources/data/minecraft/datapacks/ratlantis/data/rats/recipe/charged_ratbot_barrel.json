@@ -5,9 +5,14 @@
     "B": {
       "item": "rats:ratbot_barrel"
     },
-    "R": {
-      "tag": "c:storage_blocks/redstone"
-    }
+    "R": [
+      {
+        "item": "minecraft:redstone_block"
+      },
+      {
+        "tag": "c:storage_blocks/redstone"
+      }
+    ]
   },
   "pattern": [
     "RRR",

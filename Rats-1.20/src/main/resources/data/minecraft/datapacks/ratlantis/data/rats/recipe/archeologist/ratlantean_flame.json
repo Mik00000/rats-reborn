@@ -4,5 +4,7 @@
   "ingredient": {
     "item": "minecraft:blaze_powder"
   },
-  "result": "rats:ratlantean_flame"
+  "result": {
+    "id": "rats:ratlantean_flame"
+  }
 }

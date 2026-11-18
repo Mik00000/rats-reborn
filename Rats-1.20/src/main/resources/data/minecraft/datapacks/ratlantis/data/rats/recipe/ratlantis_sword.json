@@ -5,14 +5,14 @@
     "I": {
       "item": "rats:oratchalcum_ingot"
     },
-    "S": {
-      "item": "minecraft:stick"
+    "T": {
+      "item": "minecraft:netherite_sword"
     }
   },
   "pattern": [
-    "I",
-    "I",
-    "S"
+    " I ",
+    "ITI",
+    " I "
   ],
   "result": {
     "id": "rats:ratlantis_sword"

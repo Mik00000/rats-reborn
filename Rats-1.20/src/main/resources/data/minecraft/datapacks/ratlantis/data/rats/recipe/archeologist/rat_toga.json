@@ -4,5 +4,7 @@
   "ingredient": {
     "item": "minecraft:leather_chestplate"
   },
-  "result": "rats:rat_toga"
+  "result": {
+    "id": "rats:rat_toga"
+  }
 }

@@ -6,5 +6,7 @@
   "ingredient": {
     "item": "rats:marbled_cheese"
   },
-  "result": "rats:marbled_cheese_brick_cracked"
+  "result": {
+    "id": "rats:marbled_cheese_brick_cracked"
+  }
 }

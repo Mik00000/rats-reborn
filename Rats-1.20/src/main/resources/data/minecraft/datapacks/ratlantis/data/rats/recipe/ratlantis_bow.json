@@ -2,16 +2,22 @@
   "type": "minecraft:crafting_shaped",
   "category": "equipment",
   "key": {
+    "A": {
+      "item": "rats:arcane_technology"
+    },
+    "B": {
+      "item": "minecraft:bow"
+    },
     "I": {
       "item": "rats:oratchalcum_ingot"
     },
     "S": {
-      "item": "minecraft:string"
+      "item": "rats:ratlantean_flame"
     }
   },
   "pattern": [
     " IS",
-    "I S",
+    "ABS",
     " IS"
   ],
   "result": {

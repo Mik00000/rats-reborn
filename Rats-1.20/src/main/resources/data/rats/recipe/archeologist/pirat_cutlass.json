@@ -1,0 +1,10 @@
+{
+  "type": "rats:archeologist",
+  "ingredient": {
+    "item": "minecraft:iron_sword"
+  },
+  "result": {
+    "id": "rats:pirat_cutlass",
+    "count": 1
+  }
+}

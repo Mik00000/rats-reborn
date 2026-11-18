@@ -4,5 +4,7 @@
   "ingredient": {
     "item": "minecraft:tropical_fish"
   },
-  "result": "rats:ratfish"
+  "result": {
+    "id": "rats:ratfish"
+  }
 }

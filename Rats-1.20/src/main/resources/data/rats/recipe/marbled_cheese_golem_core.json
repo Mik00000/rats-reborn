@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "key": {
+    "G": {
+      "item": "rats:gem_of_ratlantis"
+    },
+    "M": {
+      "tag": "rats:marbled_cheese"
+    }
+  },
+  "pattern": [
+    "MMM",
+    "MGM",
+    "MMM"
+  ],
+  "result": {
+    "id": "rats:marbled_cheese_golem_core"
+  },
+  "show_notification": true
+}

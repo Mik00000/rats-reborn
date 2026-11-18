@@ -5,9 +5,14 @@
     "P": {
       "item": "rats:pirat_planks"
     },
-    "S": {
-      "tag": "c:rods/wood"
-    }
+    "S": [
+      {
+        "item": "minecraft:stick"
+      },
+      {
+        "tag": "c:rods/wooden"
+      }
+    ]
   },
   "pattern": [
     "SPS",

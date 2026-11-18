@@ -18,7 +18,8 @@
     "BFB"
   ],
   "result": {
-    "id": "rats:rat_upgrade_aquatic"
+    "id": "rats:rat_upgrade_aquatic",
+    "count": 1
   },
   "show_notification": true
 }

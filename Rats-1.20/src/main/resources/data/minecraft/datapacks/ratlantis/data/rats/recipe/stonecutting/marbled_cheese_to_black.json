@@ -4,5 +4,7 @@
   "ingredient": {
     "item": "rats:marbled_cheese"
   },
-  "result": "rats:black_marbled_cheese"
+  "result": {
+    "id": "rats:black_marbled_cheese"
+  }
 }

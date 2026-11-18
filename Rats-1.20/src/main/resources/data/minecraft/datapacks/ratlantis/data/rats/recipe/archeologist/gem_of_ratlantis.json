@@ -4,5 +4,7 @@
   "ingredient": {
     "item": "minecraft:emerald"
   },
-  "result": "rats:gem_of_ratlantis"
+  "result": {
+    "id": "rats:gem_of_ratlantis"
+  }
 }

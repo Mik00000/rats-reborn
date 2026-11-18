@@ -6,5 +6,7 @@
   "ingredient": {
     "item": "rats:marbled_cheese_raw"
   },
-  "result": "rats:marbled_cheese"
+  "result": {
+    "id": "rats:marbled_cheese"
+  }
 }

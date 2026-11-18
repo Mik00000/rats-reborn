@@ -1,0 +1,158 @@
+{
+  "elements": [
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "rats:marble_palace",
+        "processors": "rats:ruin_ruins",
+        "projection": "terrain_matching"
+      },
+      "weight": 2
+    },
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "rats:marble_temple",
+        "processors": "rats:ruin_ruins",
+        "projection": "terrain_matching"
+      },
+      "weight": 3
+    },
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "rats:marble_forum",
+        "processors": "rats:ruin_ruins",
+        "projection": "terrain_matching"
+      },
+      "weight": 3
+    },
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "rats:marble_tower",
+        "processors": "rats:ruin_ruins",
+        "projection": "terrain_matching"
+      },
+      "weight": 4
+    },
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "rats:marble_hut",
+        "processors": "rats:ruin_ruins",
+        "projection": "terrain_matching"
+      },
+      "weight": 5
+    },
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "rats:marble_rat_colossus",
+        "processors": "rats:ruin_ruins",
+        "projection": "terrain_matching"
+      },
+      "weight": 2
+    },
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "rats:marble_rat_sphinx",
+        "processors": "rats:ruin_ruins",
+        "projection": "terrain_matching"
+      },
+      "weight": 2
+    },
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "rats:marble_giant_cheese",
+        "processors": "rats:ruin_ruins",
+        "projection": "terrain_matching"
+      },
+      "weight": 3
+    },
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "rats:marble_rat_head",
+        "processors": "rats:ruin_ruins",
+        "projection": "terrain_matching"
+      },
+      "weight": 4
+    },
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "rats:marble_rat_lincoln",
+        "processors": "rats:ruin_ruins",
+        "projection": "terrain_matching"
+      },
+      "weight": 3
+    },
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "rats:cheese_statuette",
+        "processors": "rats:ruin_ruins",
+        "projection": "terrain_matching"
+      },
+      "weight": 5
+    },
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "rats:marble_pillar_collection",
+        "processors": "rats:ruin_ruins",
+        "projection": "terrain_matching"
+      },
+      "weight": 5
+    },
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "rats:marble_pillar_leaning",
+        "processors": "rats:ruin_ruins",
+        "projection": "terrain_matching"
+      },
+      "weight": 5
+    },
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "rats:marble_small_aquaduct",
+        "processors": "rats:ruin_ruins",
+        "projection": "terrain_matching"
+      },
+      "weight": 5
+    },
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "rats:marble_large_aquaduct",
+        "processors": "rats:ruin_ruins",
+        "projection": "terrain_matching"
+      },
+      "weight": 4
+    },
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "rats:marble_pillar",
+        "processors": "rats:ruin_ruins",
+        "projection": "terrain_matching"
+      },
+      "weight": 5
+    },
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "rats:marble_thin_pillar",
+        "processors": "rats:ruin_ruins",
+        "projection": "terrain_matching"
+      },
+      "weight": 5
+    }
+  ],
+  "fallback": "minecraft:empty"
+}

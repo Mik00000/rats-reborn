@@ -1,43 +1,59 @@
 package com.github.alexthe666.rats.server.events;
 
 import com.github.alexthe666.rats.RatsMod;
+import com.github.alexthe666.rats.RatConfig;
 import com.github.alexthe666.rats.server.message.ChangeRatlantisStatusPacket;
 import com.github.alexthe666.rats.server.message.RatsNetworkHandler;
-import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
-import net.neoforged.neoforge.event.OnDatapackSyncEvent;
-import net.neoforged.neoforge.event.level.LevelEvent;
+import net.minecraft.world.level.LevelAccessor;
+import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.OnDatapackSyncEvent;
+import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
+import net.neoforged.neoforge.event.level.LevelEvent;
 
-@EventBusSubscriber(modid = RatsMod.MODID)
+@EventBusSubscriber(modid = "rats")
 public class RatlantisPackEvents {
 
-	@SubscribeEvent
-	public static void checkDatapackOnWorldLoad(LevelEvent.Load event) {
-		if (event.getLevel() instanceof ServerLevel server && server.dimension().equals(Level.OVERWORLD) && event.getLevel().getServer() != null) {
-			boolean enabled = event.getLevel().getServer().getWorldData().getDataConfiguration().dataPacks().getEnabled().contains("ratlantis");
-			RatsMod.RATLANTIS_DATAPACK_ENABLED = enabled;
-			RatsNetworkHandler.CHANNEL.send(RatsNetworkHandler.allTarget(), new ChangeRatlantisStatusPacket(enabled));
-			RatsMod.LOGGER.debug("Overworld loaded! Ratlantis datapack is {} for this world.", enabled ? "enabled" : "disabled");
-		}
-	}
+    static {
+        RatsMod.RATLANTIS_DATAPACK_ENABLED = true;
+        RatConfig.ratlantisEnabledByDefault = true;
+    }
 
-	@SubscribeEvent
-	public static void checkDatapackOnSync(OnDatapackSyncEvent event) {
-		if (event.getPlayer() != null) {
-			boolean enabled = event.getPlayer().serverLevel().getServer().getWorldData().getDataConfiguration().dataPacks().getEnabled().contains("ratlantis");
-			RatsMod.RATLANTIS_DATAPACK_ENABLED = enabled;
-			RatsNetworkHandler.CHANNEL.send(RatsNetworkHandler.playerTarget(event::getPlayer), new ChangeRatlantisStatusPacket(enabled));
-			RatsMod.LOGGER.debug("Ratlantis datapack flag has been set to {} for {} ({})", enabled, event.getPlayer().getDisplayName().getString(), event.getPlayer().getStringUUID());
-		} else {
-			event.getPlayerList().getPlayers().forEach(player -> {
-				boolean enabled = player.serverLevel().getServer().getWorldData().getDataConfiguration().dataPacks().getEnabled().contains("ratlantis");
-				RatsMod.RATLANTIS_DATAPACK_ENABLED = enabled;
-				RatsNetworkHandler.CHANNEL.send(RatsNetworkHandler.playerTarget(() -> player), new ChangeRatlantisStatusPacket(enabled));
-				RatsMod.LOGGER.debug("Ratlantis datapack flag has been set to {} for {} ({})", enabled, player.getDisplayName().getString(), player.getStringUUID());
-			});
-		}
-	}
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public static void onItemTooltip(ItemTooltipEvent event) {
+        RatsMod.RATLANTIS_DATAPACK_ENABLED = true;
+        RatConfig.ratlantisEnabledByDefault = true;
+    }
+
+    @SubscribeEvent
+    public static void checkDatapackOnLoad(LevelEvent.Load event) {
+        RatsMod.RATLANTIS_DATAPACK_ENABLED = true;
+        RatConfig.ratlantisEnabledByDefault = true;
+        LevelAccessor level = event.getLevel();
+        if (level instanceof Level && ((Level) level).dimension().equals(Level.OVERWORLD)) {
+            MinecraftServer server = level.getServer();
+            if (server != null) {
+                RatsNetworkHandler.CHANNEL.send(RatsNetworkHandler.allTarget(), new ChangeRatlantisStatusPacket(true));
+                RatsMod.LOGGER.info("Ratlantis content is permanently unlocked for this world.");
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public static void checkDatapackOnSync(OnDatapackSyncEvent event) {
+        ServerPlayer player = event.getPlayer();
+        RatsMod.RATLANTIS_DATAPACK_ENABLED = true;
+        RatConfig.ratlantisEnabledByDefault = true;
+        if (player != null) {
+            RatsNetworkHandler.CHANNEL.send(RatsNetworkHandler.playerTarget(() -> player), new ChangeRatlantisStatusPacket(true));
+        } else if (event.getPlayerList() != null) {
+            event.getPlayerList().getPlayers().forEach(p -> {
+                RatsNetworkHandler.CHANNEL.send(RatsNetworkHandler.playerTarget(() -> p), new ChangeRatlantisStatusPacket(true));
+            });
+        }
+    }
 }

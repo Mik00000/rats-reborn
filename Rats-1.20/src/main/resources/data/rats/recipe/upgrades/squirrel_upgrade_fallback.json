@@ -1,0 +1,36 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:tag_empty",
+      "tag": "c:storage_blocks/apple"
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": {
+      "item": "minecraft:golden_apple"
+    },
+    "F": {
+      "tag": "c:fruits"
+    },
+    "U": [
+      {
+        "item": "rats:rat_upgrade_farmer"
+      },
+      {
+        "item": "rats:rat_upgrade_replanter"
+      }
+    ]
+  },
+  "pattern": [
+    "AFA",
+    "FUF",
+    "AFA"
+  ],
+  "result": {
+    "count": 1,
+    "id": "rats:rat_upgrade_squirrel"
+  },
+  "show_notification": true
+}

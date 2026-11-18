@@ -1,41 +1,5 @@
 {
-  "replace": false,
   "values": [
-    {
-      "id": "create:depot",
-      "required": false
-    },
-    {
-      "id": "create:weighted_ejector",
-      "required": false
-    },
-    {
-      "id": "create:basin",
-      "required": false
-    },
-    {
-      "id": "create:mechanical_crafter",
-      "required": false
-    },
-    {
-      "id": "create:deployer",
-      "required": false
-    },
-    {
-      "id": "create:mechanical_press",
-      "required": false
-    },
-    {
-      "id": "create:mechanical_mixer",
-      "required": false
-    },
-    {
-      "id": "create:mechanical_saw",
-      "required": false
-    },
-    {
-      "id": "create:mechanical_drill",
-      "required": false
-    }
+    "#c:crafting_tables"
   ]
 }

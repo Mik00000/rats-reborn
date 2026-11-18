@@ -6,5 +6,7 @@
   "ingredient": {
     "item": "rats:oratchalcum_ore"
   },
-  "result": "rats:oratchalcum_ingot"
+  "result": {
+    "id": "rats:oratchalcum_ingot"
+  }
 }

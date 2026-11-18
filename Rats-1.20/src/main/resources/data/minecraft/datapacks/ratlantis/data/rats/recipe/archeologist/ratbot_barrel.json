@@ -4,5 +4,7 @@
   "ingredient": {
     "item": "minecraft:dispenser"
   },
-  "result": "rats:ratbot_barrel"
+  "result": {
+    "id": "rats:ratbot_barrel"
+  }
 }

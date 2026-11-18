@@ -2,13 +2,20 @@
   "type": "minecraft:crafting_shaped",
   "category": "equipment",
   "key": {
+    "A": {
+      "item": "minecraft:netherite_boots"
+    },
     "I": {
       "item": "rats:oratchalcum_ingot"
+    },
+    "W": {
+      "item": "rats:dutchrat_wheel"
     }
   },
   "pattern": [
-    "I I",
-    "I I"
+    "IWI",
+    "IAI",
+    "III"
   ],
   "result": {
     "id": "rats:ratlantis_boots"

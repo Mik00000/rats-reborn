@@ -2,18 +2,33 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "B": {
-      "tag": "c:storage_blocks/iron"
-    },
+    "B": [
+      {
+        "item": "minecraft:iron_block"
+      },
+      {
+        "tag": "c:storage_blocks/iron"
+      }
+    ],
     "C": {
       "item": "rats:charged_ratbot_barrel"
     },
-    "I": {
-      "tag": "c:ingots/iron"
-    },
-    "S": {
-      "tag": "c:rods/wood"
-    }
+    "I": [
+      {
+        "item": "minecraft:iron_ingot"
+      },
+      {
+        "tag": "c:ingots/iron"
+      }
+    ],
+    "S": [
+      {
+        "item": "minecraft:stick"
+      },
+      {
+        "tag": "c:rods/wooden"
+      }
+    ]
   },
   "pattern": [
     "I  ",

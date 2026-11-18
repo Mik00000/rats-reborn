@@ -1,0 +1,19 @@
+{
+  "placement": {
+    "type": "minecraft:random_spread",
+    "exclusion_zone": {
+      "chunk_count": 8,
+      "other_set": "rats:baron_runway"
+    },
+    "salt": 41289547,
+    "separation": 15,
+    "spacing": 36,
+    "spread_type": "triangular"
+  },
+  "structures": [
+    {
+      "structure": "rats:dutchrat_ship",
+      "weight": 1
+    }
+  ]
+}

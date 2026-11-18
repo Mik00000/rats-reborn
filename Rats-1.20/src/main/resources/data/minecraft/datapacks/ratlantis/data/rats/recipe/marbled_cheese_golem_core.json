@@ -3,7 +3,7 @@
   "category": "building",
   "key": {
     "G": {
-      "tag": "c:ingots/ratlantis_gem"
+      "item": "rats:gem_of_ratlantis"
     },
     "M": {
       "tag": "rats:marbled_cheese"

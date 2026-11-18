@@ -1,0 +1,10 @@
+{
+  "type": "rats:archeologist",
+  "ingredient": {
+    "item": "rats:rat_upgrade_basic"
+  },
+  "result": {
+    "id": "rats:rat_upgrade_basic_ratlantean",
+    "count": 1
+  }
+}

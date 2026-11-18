@@ -1,0 +1,15 @@
+{
+  "placement": {
+    "type": "minecraft:random_spread",
+    "salt": 78129482,
+    "separation": 10,
+    "spacing": 30,
+    "spread_type": "triangular"
+  },
+  "structures": [
+    {
+      "structure": "rats:pet_shop",
+      "weight": 1
+    }
+  ]
+}

@@ -6,7 +6,6 @@ import com.github.alexthe666.rats.server.block.entity.RatHouseBlockEntity;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import snownee.jade.api.BlockAccessor;
 import snownee.jade.api.IBlockComponentProvider;
 import snownee.jade.api.IServerDataProvider;
@@ -19,89 +18,77 @@ import snownee.jade.api.config.IPluginConfig;
 
 @WailaPlugin
 public class RatsJadePlugin implements IWailaPlugin {
-	private static final RatHouseProvider RAT_HOUSE_PROVIDER = new RatHouseProvider();
+   private static final RatHouseProvider RAT_HOUSE_PROVIDER = new RatHouseProvider();
 
-	// Регистрирует серверные данные Jade; принимает общий регистратор, ничего не отдаёт.
-	@Override
-	public void register(IWailaCommonRegistration registration) {
-		try {
-			registration.registerBlockDataProvider(RAT_HOUSE_PROVIDER, RatHouseBlockEntity.class);
-		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось зарегистрировать серверные данные Jade для домика крысы", exception);
-			throw exception;
-		}
-	}
+   @Override
+   public void register(IWailaCommonRegistration registration) {
+      try {
+         registration.registerBlockDataProvider(RAT_HOUSE_PROVIDER, RatHouseBlockEntity.class);
+      } catch (Throwable t) {
+         RatsMod.LOGGER.error("Failed to register Jade server data", t);
+      }
+   }
 
-	// Регистрирует клиентскую строку Jade; принимает клиентский регистратор, ничего не отдаёт.
-	@Override
-	public void registerClient(IWailaClientRegistration registration) {
-		try {
-			registration.addConfig(RatHouseProvider.UID, true);
-			registration.registerBlockComponent(RAT_HOUSE_PROVIDER, RatHouseBlock.class);
-		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось зарегистрировать клиентский компонент Jade для домика крысы", exception);
-			throw exception;
-		}
-	}
+   @Override
+   public void registerClient(IWailaClientRegistration registration) {
+      try {
+         registration.registerBlockComponent(RAT_HOUSE_PROVIDER, RatHouseBlock.class);
+      } catch (Throwable t) {
+         RatsMod.LOGGER.error("Failed to register Jade client component", t);
+      }
+   }
 
-	private static class RatHouseProvider implements IBlockComponentProvider, IServerDataProvider<BlockAccessor> {
-		private static final ResourceLocation UID = ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "rat_house");
-		private static final String COUNT_KEY = "RatHouseRatCount";
-		private static final String NAME_KEY = "RatHouseRatName";
-		private static final String RESPAWN_KEY = "RatHouseRespawnTicks";
+   private static class RatHouseProvider implements IBlockComponentProvider, IServerDataProvider<BlockAccessor> {
+      private static final ResourceLocation UID = ResourceLocation.fromNamespaceAndPath("rats", "rat_house");
 
-		// Возвращает идентификатор провайдера Jade; параметров нет, отдаёт ResourceLocation.
-		@Override
-		public ResourceLocation getUid() {
-			return UID;
-		}
+      @Override
+      public ResourceLocation getUid() {
+         return UID;
+      }
 
-		// Передаёт Jade данные домика с сервера; принимает NBT и доступ к блоку, ничего не отдаёт.
-		@Override
-		public void appendServerData(CompoundTag data, BlockAccessor accessor) {
-			try {
-				BlockEntity blockEntity = accessor.getBlockEntity();
-				if (blockEntity instanceof RatHouseBlockEntity house) {
-					data.putInt(COUNT_KEY, house.getStoredRatCount());
-					data.putString(NAME_KEY, house.getStoredRatName());
-					data.putInt(RESPAWN_KEY, house.getPendingRespawnTicks());
-				}
-			} catch (RuntimeException exception) {
-				RatsMod.LOGGER.error("Не удалось собрать данные Jade для домика крысы в {}", accessor.getPosition(), exception);
-				throw exception;
-			}
-		}
+      @Override
+      public void appendServerData(CompoundTag tag, BlockAccessor accessor) {
+         try {
+            if (accessor.getBlockEntity() instanceof RatHouseBlockEntity house) {
+               tag.putInt("RatHouseRatCount", house.getStoredRatCount());
+               String name = house.getStoredRatName();
+               if (name != null) {
+                  tag.putString("RatHouseRatName", name);
+               }
+               tag.putInt("RatHouseRespawnTicks", house.getPendingRespawnTicks());
+            }
+         } catch (Throwable t) {
+            RatsMod.LOGGER.error("Failed to append Jade server data for rat house", t);
+         }
+      }
 
-		// Добавляет строки в подсказку Jade; принимает подсказку, доступ к блоку и конфиг, ничего не отдаёт.
-		@Override
-		public void appendTooltip(ITooltip tooltip, BlockAccessor accessor, IPluginConfig config) {
-			try {
-				CompoundTag data = accessor.getServerData();
-				int count = data.getInt(COUNT_KEY);
-				String name = data.getString(NAME_KEY);
-				int respawnTicks = data.getInt(RESPAWN_KEY);
-				if (!data.contains(COUNT_KEY) && accessor.getBlockEntity() instanceof RatHouseBlockEntity house) {
-					count = house.getStoredRatCount();
-					name = house.getStoredRatName();
-					respawnTicks = house.getPendingRespawnTicks();
-				}
-				if (respawnTicks > 0) {
-					tooltip.add(Component.translatable("jade.rats.rat_house.respawn", Math.max(1, (respawnTicks + 19) / 20)));
-					return;
-				}
-				if (count <= 0) {
-					tooltip.add(Component.translatable("jade.rats.rat_house.empty"));
-					return;
-				}
-				if (name.isBlank()) {
-					tooltip.add(Component.translatable("jade.rats.rat_house.occupied", count, 1));
-					return;
-				}
-				tooltip.add(Component.translatable("jade.rats.rat_house.rat", name));
-			} catch (RuntimeException exception) {
-				RatsMod.LOGGER.error("Не удалось вывести подсказку Jade для домика крысы в {}", accessor.getPosition(), exception);
-				throw exception;
-			}
-		}
-	}
+      @Override
+      public void appendTooltip(ITooltip tooltip, BlockAccessor accessor, IPluginConfig config) {
+         try {
+            CompoundTag tag = accessor.getServerData();
+            int count = tag.getInt("RatHouseRatCount");
+            String name = tag.getString("RatHouseRatName");
+            int respawn = tag.getInt("RatHouseRespawnTicks");
+
+            if (!tag.contains("RatHouseRatCount") && accessor.getBlockEntity() instanceof RatHouseBlockEntity house) {
+               count = house.getStoredRatCount();
+               name = house.getStoredRatName();
+               respawn = house.getPendingRespawnTicks();
+            }
+
+            if (respawn > 0) {
+               int seconds = Math.max(1, (respawn + 19) / 20);
+               tooltip.add(Component.translatable("jade.rats.rat_house.respawn", seconds));
+            } else if (count <= 0) {
+               tooltip.add(Component.translatable("jade.rats.rat_house.empty"));
+            } else if (name == null || name.isBlank()) {
+               tooltip.add(Component.translatable("jade.rats.rat_house.occupied", count, 1));
+            } else {
+               tooltip.add(Component.translatable("jade.rats.rat_house.rat", name));
+            }
+         } catch (Throwable t) {
+            RatsMod.LOGGER.error("Failed to append Jade tooltip for rat house at {}", accessor.getPosition(), t);
+         }
+      }
+   }
 }

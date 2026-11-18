@@ -4,5 +4,7 @@
   "ingredient": {
     "item": "rats:piper_hat"
   },
-  "result": "rats:pirat_hat"
+  "result": {
+    "id": "rats:pirat_hat"
+  }
 }

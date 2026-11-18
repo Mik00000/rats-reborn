@@ -1,274 +1,216 @@
 package com.github.alexthe666.rats.server.misc;
 
 import com.github.alexthe666.citadel.client.model.basic.BasicModelPart;
-import net.minecraft.client.Minecraft;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 
-@SuppressWarnings("unused")
 public class PlaneRotationUtil {
-	private int yawTimer;
-	private float yawVariation;
-	private int pitchTimer;
-	private float pitchVariation;
-	private float prevYawVariation;
-	private float prevPitchVariation;
+   private int yawTimer;
+   private float yawVariation;
+   private int pitchTimer;
+   private float pitchVariation;
+   private float prevYawVariation;
+   private float prevPitchVariation;
 
-	/**
-	 * Resets this ChainBuffer's rotations.
-	 */
-	public void resetRotations() {
-		this.yawVariation = 0.0F;
-		this.pitchVariation = 0.0F;
-		this.prevYawVariation = 0.0F;
-		this.prevPitchVariation = 0.0F;
-	}
+   public void resetRotations() {
+      this.yawVariation = 0.0F;
+      this.pitchVariation = 0.0F;
+      this.prevYawVariation = 0.0F;
+      this.prevPitchVariation = 0.0F;
+   }
 
-	private boolean compareDouble(double a, double b) {
-		double c = a - b;
-		return Math.abs(c - 1.0) <= 3D;
-	}
+   private boolean compareDouble(double a, double b) {
+      double c = a - b;
+      return Math.abs(c - 1.0) <= 3.0;
+   }
 
-	/**
-	 * Calculates the swing amounts for the given entity (Y axis)
-	 *
-	 * @param maxAngle       the furthest this ChainBuffer can swing
-	 * @param bufferTime     the time it takes to swing this buffer in ticks
-	 * @param angleDecrement the angle to decrement by for each model piece
-	 * @param divisor        the amount to divide the swing amount by
-	 * @param entity         the entity with this ChainBuffer
-	 */
-	public void calculateChainSwingBuffer(float maxAngle, int bufferTime, float angleDecrement, float divisor, LivingEntity entity) {
-		this.prevYawVariation = this.yawVariation;
-		if (!compareDouble(entity.yBodyRot, entity.yBodyRotO) && Mth.abs(this.yawVariation) < maxAngle) {
-			this.yawVariation += Mth.clamp((entity.yBodyRotO - entity.yBodyRot) / divisor, -maxAngle, maxAngle);
-		}
-		if (this.yawVariation > angleDecrement) {
-			if (this.yawTimer > bufferTime) {
-				this.yawVariation -= angleDecrement;
-				if (Mth.abs(this.yawVariation) < angleDecrement) {
-					this.yawVariation = angleDecrement;
-					this.yawTimer = 0;
-				}
-			} else {
-				this.yawTimer++;
-			}
-		} else if (this.yawVariation < -angleDecrement) {
-			if (this.yawTimer > bufferTime) {
-				this.yawVariation += angleDecrement;
-				if (Mth.abs(this.yawVariation) < angleDecrement) {
-					this.yawVariation = angleDecrement;
-					this.yawTimer = 0;
-				}
-			} else {
-				this.yawTimer++;
-			}
-		}
-	}
+   public void calculateChainSwingBuffer(float maxAngle, int bufferTime, float angleDecrement, float divisor, LivingEntity entity) {
+      this.prevYawVariation = this.yawVariation;
+      if (!this.compareDouble((double)entity.yBodyRot, (double)entity.yBodyRotO) && Mth.abs(this.yawVariation) < maxAngle) {
+         this.yawVariation = this.yawVariation + Mth.clamp((entity.yBodyRotO - entity.yBodyRot) / divisor, -maxAngle, maxAngle);
+      }
 
-	public void calculateChainPitchBuffer(float maxAngle, int bufferTime, float angleDecrement, float divisor, LivingEntity entity) {
-		this.prevPitchVariation = this.pitchVariation;
-		if (!compareDouble(entity.getXRot(), entity.xRotO) && Mth.abs(this.pitchVariation) < maxAngle) {
-			this.pitchVariation += Mth.clamp((entity.xRotO - entity.getXRot()) / divisor, -maxAngle, maxAngle);
-		}
-		if (this.pitchVariation > angleDecrement) {
-			if (this.pitchTimer > bufferTime) {
-				this.pitchVariation -= angleDecrement;
-				if (Mth.abs(this.pitchVariation) < angleDecrement) {
-					this.pitchVariation = angleDecrement;
-					this.pitchTimer = 0;
-				}
-			} else {
-				this.pitchTimer++;
-			}
-		} else if (this.pitchVariation < -angleDecrement) {
-			if (this.pitchTimer > bufferTime) {
-				this.pitchVariation += angleDecrement;
-				if (Mth.abs(this.pitchVariation) < angleDecrement) {
-					this.pitchVariation = angleDecrement;
-					this.pitchTimer = 0;
-				}
-			} else {
-				this.pitchTimer++;
-			}
-		}
-	}
+      if (this.yawVariation > angleDecrement) {
+         if (this.yawTimer > bufferTime) {
+            this.yawVariation -= angleDecrement;
+            if (Mth.abs(this.yawVariation) < angleDecrement) {
+               this.yawVariation = angleDecrement;
+               this.yawTimer = 0;
+            }
+         } else {
+            this.yawTimer++;
+         }
+      } else if (this.yawVariation < -angleDecrement) {
+         if (this.yawTimer > bufferTime) {
+            this.yawVariation += angleDecrement;
+            if (Mth.abs(this.yawVariation) < angleDecrement) {
+               this.yawVariation = angleDecrement;
+               this.yawTimer = 0;
+            }
+         } else {
+            this.yawTimer++;
+         }
+      }
+   }
 
-	/**
-	 * Calculates the wave amounts for the given entity (X axis)
-	 *
-	 * @param maxAngle       the furthest this ChainBuffer can wave
-	 * @param bufferTime     the time it takes to wave this buffer in ticks
-	 * @param angleDecrement the angle to decrement by for each model piece
-	 * @param divisor        the amount to divide the wave amount by
-	 * @param entity         the entity with this ChainBuffer
-	 */
-	public void calculateChainWaveBuffer(float maxAngle, int bufferTime, float angleDecrement, float divisor, LivingEntity entity) {
-		this.prevPitchVariation = this.pitchVariation;
-		if (Math.abs(entity.getXRot()) > maxAngle) {
-			return;
-		}
-		if (!compareDouble(entity.getXRot(), entity.xRotO) && Mth.abs(this.pitchVariation) < maxAngle) {
-			this.pitchVariation += Mth.clamp((entity.xRotO - entity.getXRot()) / divisor, -maxAngle, maxAngle);
-		}
-		if (this.pitchVariation > angleDecrement) {
-			if (this.pitchTimer > bufferTime) {
-				this.pitchVariation -= angleDecrement;
-				if (Mth.abs(this.pitchVariation) < angleDecrement) {
-					this.pitchVariation = 0.0F;
-					this.pitchTimer = 0;
-				}
-			} else {
-				this.pitchTimer++;
-			}
-		} else if (this.pitchVariation < -angleDecrement) {
-			if (this.pitchTimer > bufferTime) {
-				this.pitchVariation += angleDecrement;
-				if (Mth.abs(this.pitchVariation) < angleDecrement) {
-					this.pitchVariation = 0.0F;
-					this.pitchTimer = 0;
-				}
-			} else {
-				this.pitchTimer++;
-			}
-		}
-	}
+   public void calculateChainPitchBuffer(float maxAngle, int bufferTime, float angleDecrement, float divisor, LivingEntity entity) {
+      this.prevPitchVariation = this.pitchVariation;
+      if (!this.compareDouble((double)entity.getXRot(), (double)entity.xRotO) && Mth.abs(this.pitchVariation) < maxAngle) {
+         this.pitchVariation = this.pitchVariation + Mth.clamp((entity.xRotO - entity.getXRot()) / divisor, -maxAngle, maxAngle);
+      }
 
+      if (this.pitchVariation > angleDecrement) {
+         if (this.pitchTimer > bufferTime) {
+            this.pitchVariation -= angleDecrement;
+            if (Mth.abs(this.pitchVariation) < angleDecrement) {
+               this.pitchVariation = angleDecrement;
+               this.pitchTimer = 0;
+            }
+         } else {
+            this.pitchTimer++;
+         }
+      } else if (this.pitchVariation < -angleDecrement) {
+         if (this.pitchTimer > bufferTime) {
+            this.pitchVariation += angleDecrement;
+            if (Mth.abs(this.pitchVariation) < angleDecrement) {
+               this.pitchVariation = angleDecrement;
+               this.pitchTimer = 0;
+            }
+         } else {
+            this.pitchTimer++;
+         }
+      }
+   }
 
-	/**
-	 * Calculates the flap amounts for the given entity (Z axis)
-	 *
-	 * @param maxAngle       the furthest this ChainBuffer can wave
-	 * @param bufferTime     the time it takes to wave this buffer in ticks
-	 * @param angleDecrement the angle to decrement by for each model piece
-	 * @param divisor        the amount to divide the wave amount by
-	 * @param entity         the entity with this ChainBuffer
-	 */
-	public void calculateChainFlapBuffer(float maxAngle, int bufferTime, float angleDecrement, float divisor, LivingEntity entity) {
-		this.prevYawVariation = this.yawVariation;
+   public void calculateChainWaveBuffer(float maxAngle, int bufferTime, float angleDecrement, float divisor, LivingEntity entity) {
+      this.prevPitchVariation = this.pitchVariation;
+      if (!(Math.abs(entity.getXRot()) > maxAngle)) {
+         if (!this.compareDouble((double)entity.getXRot(), (double)entity.xRotO) && Mth.abs(this.pitchVariation) < maxAngle) {
+            this.pitchVariation = this.pitchVariation + Mth.clamp((entity.xRotO - entity.getXRot()) / divisor, -maxAngle, maxAngle);
+         }
 
-		if (!compareDouble(entity.yBodyRot, entity.yBodyRotO) && Mth.abs(this.yawVariation) < maxAngle) {
-			this.yawVariation += Mth.clamp((entity.yBodyRotO - entity.yBodyRot) / divisor, -maxAngle, maxAngle);
-		}
-		if (this.yawVariation > angleDecrement) {
-			if (this.yawTimer > bufferTime) {
-				this.yawVariation -= angleDecrement;
-				if (Mth.abs(this.yawVariation) < angleDecrement) {
-					this.yawVariation = 0.0F;
-					this.yawTimer = 0;
-				}
-			} else {
-				this.yawTimer++;
-			}
-		} else if (this.yawVariation < -1F * angleDecrement) {
-			if (this.yawTimer > bufferTime) {
-				this.yawVariation += angleDecrement;
-				if (Mth.abs(this.yawVariation) < angleDecrement) {
-					this.yawVariation = 0.0F;
-					this.yawTimer = 0;
-				}
-			} else {
-				this.yawTimer++;
-			}
-		}
-	}
+         if (this.pitchVariation > angleDecrement) {
+            if (this.pitchTimer > bufferTime) {
+               this.pitchVariation -= angleDecrement;
+               if (Mth.abs(this.pitchVariation) < angleDecrement) {
+                  this.pitchVariation = 0.0F;
+                  this.pitchTimer = 0;
+               }
+            } else {
+               this.pitchTimer++;
+            }
+         } else if (this.pitchVariation < -angleDecrement) {
+            if (this.pitchTimer > bufferTime) {
+               this.pitchVariation += angleDecrement;
+               if (Mth.abs(this.pitchVariation) < angleDecrement) {
+                  this.pitchVariation = 0.0F;
+                  this.pitchTimer = 0;
+               }
+            } else {
+               this.pitchTimer++;
+            }
+         }
+      }
+   }
 
-	/**
-	 * Calculates the swing amounts for the given entity (Y axis)
-	 *
-	 * @param maxAngle       the furthest this ChainBuffer can swing
-	 * @param bufferTime     the time it takes to swing this buffer in ticks
-	 * @param angleDecrement the angle to decrement by for each model piece
-	 * @param entity         the entity with this ChainBuffer
-	 */
-	public void calculateChainSwingBuffer(float maxAngle, int bufferTime, float angleDecrement, LivingEntity entity) {
-		this.calculateChainSwingBuffer(maxAngle, bufferTime, angleDecrement, 1.0F, entity);
-	}
+   public void calculateChainFlapBuffer(float maxAngle, int bufferTime, float angleDecrement, float divisor, LivingEntity entity) {
+      this.prevYawVariation = this.yawVariation;
+      if (!this.compareDouble((double)entity.yBodyRot, (double)entity.yBodyRotO) && Mth.abs(this.yawVariation) < maxAngle) {
+         this.yawVariation = this.yawVariation + Mth.clamp((entity.yBodyRotO - entity.yBodyRot) / divisor, -maxAngle, maxAngle);
+      }
 
-	/**
-	 * Calculates the wave amounts for the given entity (X axis)
-	 *
-	 * @param maxAngle       the furthest this ChainBuffer can wave
-	 * @param bufferTime     the time it takes to wave this buffer in ticks
-	 * @param angleDecrement the angle to decrement by for each model piece
-	 * @param entity         the entity with this ChainBuffer
-	 */
-	public void calculateChainWaveBuffer(float maxAngle, int bufferTime, float angleDecrement, LivingEntity entity) {
-		this.calculateChainWaveBuffer(maxAngle, bufferTime, angleDecrement, 1.0F, entity);
-	}
+      if (this.yawVariation > angleDecrement) {
+         if (this.yawTimer > bufferTime) {
+            this.yawVariation -= angleDecrement;
+            if (Mth.abs(this.yawVariation) < angleDecrement) {
+               this.yawVariation = 0.0F;
+               this.yawTimer = 0;
+            }
+         } else {
+            this.yawTimer++;
+         }
+      } else if (this.yawVariation < -1.0F * angleDecrement) {
+         if (this.yawTimer > bufferTime) {
+            this.yawVariation += angleDecrement;
+            if (Mth.abs(this.yawVariation) < angleDecrement) {
+               this.yawVariation = 0.0F;
+               this.yawTimer = 0;
+            }
+         } else {
+            this.yawTimer++;
+         }
+      }
+   }
 
-	/**
-	 * Calculates the flap amounts for the given entity (Z axis)
-	 *
-	 * @param maxAngle       the furthest this ChainBuffer can wave
-	 * @param bufferTime     the time it takes to wave this buffer in ticks
-	 * @param angleDecrement the angle to decrement by for each model piece
-	 * @param entity         the entity with this ChainBuffer
-	 */
-	public void calculateChainFlapBuffer(float maxAngle, int bufferTime, float angleDecrement, LivingEntity entity) {
-		this.calculateChainFlapBuffer(maxAngle, bufferTime, angleDecrement, 1.0F, entity);
-	}
+   public void calculateChainSwingBuffer(float maxAngle, int bufferTime, float angleDecrement, LivingEntity entity) {
+      this.calculateChainSwingBuffer(maxAngle, bufferTime, angleDecrement, 1.0F, entity);
+   }
 
-	/**
-	 * Applies this buffer on the Y axis to the given array of model boxes.
-	 *
-	 * @param boxes the box array
-	 */
-	public void applyChainSwingBuffer(BasicModelPart... boxes) {
-		float rotateAmount = 0.01745329251F * Mth.lerp(this.prevYawVariation, this.yawVariation, Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(false)) / boxes.length;
-		for (BasicModelPart box : boxes) {
-			box.rotateAngleY += rotateAmount;
-		}
-	}
+   public void calculateChainWaveBuffer(float maxAngle, int bufferTime, float angleDecrement, LivingEntity entity) {
+      this.calculateChainWaveBuffer(maxAngle, bufferTime, angleDecrement, 1.0F, entity);
+   }
 
-	/**
-	 * Applies this buffer on the X axis to the given array of model boxes.
-	 *
-	 * @param boxes the box array
-	 */
-	public void applyChainWaveBuffer(BasicModelPart... boxes) {
-		float rotateAmount = 0.01745329251F * Mth.lerp(this.prevPitchVariation, this.pitchVariation, Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(false)) / boxes.length;
-		for (BasicModelPart box : boxes) {
-			box.rotateAngleX += rotateAmount;
-		}
-	}
+   public void calculateChainFlapBuffer(float maxAngle, int bufferTime, float angleDecrement, LivingEntity entity) {
+      this.calculateChainFlapBuffer(maxAngle, bufferTime, angleDecrement, 1.0F, entity);
+   }
 
-	/**
-	 * Applies this buffer on the Z axis to the given array of model boxes.
-	 *
-	 * @param boxes the box array
-	 */
-	public void applyChainFlapBuffer(BasicModelPart... boxes) {
-		float rotateAmount = 0.01745329251F * Mth.lerp(Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(false), this.prevYawVariation, this.yawVariation) / boxes.length;
-		for (BasicModelPart box : boxes) {
-			box.rotateAngleZ += rotateAmount;
-		}
-	}
+   public void applyChainSwingBuffer(BasicModelPart... boxes) {
+      float rotateAmount = (float) (Math.PI / 180.0)
+         * Mth.lerp(this.prevYawVariation, this.yawVariation, com.github.alexthe666.rats.client.RatsClientHooks.getPartialTick())
+         / (float)boxes.length;
 
-	/**
-	 * Applies this buffer on the Z axis to the given array of model boxes. Reverses the calculation.
-	 *
-	 * @param boxes the box array
-	 */
-	public void applyChainFlapBufferReverse(BasicModelPart... boxes) {
-		float rotateAmount = 0.01745329251F * Mth.lerp(Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(false), this.prevYawVariation, this.yawVariation) / boxes.length;
-		for (BasicModelPart box : boxes) {
-			box.rotateAngleZ -= rotateAmount * 0.5F;
-		}
-	}
+      for (BasicModelPart box : boxes) {
+         box.rotateAngleY += rotateAmount;
+      }
+   }
 
-	public void applyChainSwingBufferReverse(BasicModelPart... boxes) {
-		float rotateAmount = 0.01745329251F * Mth.lerp(Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(false), this.prevYawVariation, this.yawVariation) / boxes.length;
-		for (BasicModelPart box : boxes) {
-			box.rotateAngleY -= rotateAmount;
-		}
-	}
+   public void applyChainWaveBuffer(BasicModelPart... boxes) {
+      float rotateAmount = (float) (Math.PI / 180.0)
+         * Mth.lerp(this.prevPitchVariation, this.pitchVariation, com.github.alexthe666.rats.client.RatsClientHooks.getPartialTick())
+         / (float)boxes.length;
 
-	public void applyChainWaveBufferReverse(BasicModelPart... boxes) {
-		float rotateAmount = 0.01745329251F * Mth.lerp(Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(false), this.prevPitchVariation, this.pitchVariation) / boxes.length;
-		for (BasicModelPart box : boxes) {
-			box.rotateAngleX -= rotateAmount;
-		}
-	}
+      for (BasicModelPart box : boxes) {
+         box.rotateAngleX += rotateAmount;
+      }
+   }
 
+   public void applyChainFlapBuffer(BasicModelPart... boxes) {
+      float rotateAmount = (float) (Math.PI / 180.0)
+         * Mth.lerp(com.github.alexthe666.rats.client.RatsClientHooks.getPartialTick(), this.prevYawVariation, this.yawVariation)
+         / (float)boxes.length;
+
+      for (BasicModelPart box : boxes) {
+         box.rotateAngleZ += rotateAmount;
+      }
+   }
+
+   public void applyChainFlapBufferReverse(BasicModelPart... boxes) {
+      float rotateAmount = (float) (Math.PI / 180.0)
+         * Mth.lerp(com.github.alexthe666.rats.client.RatsClientHooks.getPartialTick(), this.prevYawVariation, this.yawVariation)
+         / (float)boxes.length;
+
+      for (BasicModelPart box : boxes) {
+         box.rotateAngleZ -= rotateAmount * 0.5F;
+      }
+   }
+
+   public void applyChainSwingBufferReverse(BasicModelPart... boxes) {
+      float rotateAmount = (float) (Math.PI / 180.0)
+         * Mth.lerp(com.github.alexthe666.rats.client.RatsClientHooks.getPartialTick(), this.prevYawVariation, this.yawVariation)
+         / (float)boxes.length;
+
+      for (BasicModelPart box : boxes) {
+         box.rotateAngleY -= rotateAmount;
+      }
+   }
+
+   public void applyChainWaveBufferReverse(BasicModelPart... boxes) {
+      float rotateAmount = (float) (Math.PI / 180.0)
+         * Mth.lerp(com.github.alexthe666.rats.client.RatsClientHooks.getPartialTick(), this.prevPitchVariation, this.pitchVariation)
+         / (float)boxes.length;
+
+      for (BasicModelPart box : boxes) {
+         box.rotateAngleX -= rotateAmount;
+      }
+   }
 }

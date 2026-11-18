@@ -8,9 +8,14 @@
     "F": {
       "item": "minecraft:rotten_flesh"
     },
-    "S": {
-      "tag": "c:strings"
-    }
+    "S": [
+      {
+        "item": "minecraft:string"
+      },
+      {
+        "tag": "c:strings"
+      }
+    ]
   },
   "pattern": [
     " FC",

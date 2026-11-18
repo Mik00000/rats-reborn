@@ -4,5 +4,7 @@
   "ingredient": {
     "item": "minecraft:phantom_membrane"
   },
-  "result": "rats:ghost_pirat_ectoplasm"
+  "result": {
+    "id": "rats:ghost_pirat_ectoplasm"
+  }
 }

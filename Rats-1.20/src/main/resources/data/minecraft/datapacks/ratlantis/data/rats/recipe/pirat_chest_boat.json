@@ -7,6 +7,9 @@
       "item": "rats:pirat_boat"
     },
     {
+      "item": "minecraft:chest"
+    },
+    {
       "tag": "c:chests/wooden"
     }
   ],

@@ -1,0 +1,19 @@
+{
+  "placement": {
+    "type": "minecraft:random_spread",
+    "exclusion_zone": {
+      "chunk_count": 6,
+      "other_set": "rats:pet_shop"
+    },
+    "salt": 98124719,
+    "separation": 12,
+    "spacing": 34,
+    "spread_type": "triangular"
+  },
+  "structures": [
+    {
+      "structure": "rats:plague_doctor_hut",
+      "weight": 1
+    }
+  ]
+}

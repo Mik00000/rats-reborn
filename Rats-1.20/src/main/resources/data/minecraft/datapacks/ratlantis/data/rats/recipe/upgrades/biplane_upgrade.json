@@ -2,26 +2,31 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "I": {
-      "item": "rats:oratchalcum_ingot"
+    "A": {
+      "item": "rats:aviator_hat"
     },
-    "P": {
-      "item": "minecraft:phantom_membrane"
+    "B": {
+      "item": "rats:ratbot_barrel"
     },
-    "R": {
-      "item": "minecraft:redstone"
-    },
+    "I": [
+      {
+        "item": "minecraft:iron_block"
+      },
+      {
+        "tag": "c:storage_blocks/iron"
+      }
+    ],
     "U": {
       "item": "rats:rat_upgrade_basic_mount"
     },
-    "C": {
-      "item": "minecraft:minecart"
+    "W": {
+      "item": "rats:biplane_wing"
     }
   },
   "pattern": [
-    "IPI",
-    "RUR",
-    "ICI"
+    "IAI",
+    "BUB",
+    "IWI"
   ],
   "result": {
     "id": "rats:rat_upgrade_biplane_mount"

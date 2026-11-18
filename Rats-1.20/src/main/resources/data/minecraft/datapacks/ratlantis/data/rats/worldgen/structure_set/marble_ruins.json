@@ -1,0 +1,15 @@
+{
+  "placement": {
+    "type": "minecraft:random_spread",
+    "salt": 19284723,
+    "separation": 4,
+    "spacing": 10,
+    "spread_type": "triangular"
+  },
+  "structures": [
+    {
+      "structure": "rats:marble_ruins",
+      "weight": 1
+    }
+  ]
+}

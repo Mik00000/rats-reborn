@@ -1,0 +1,10 @@
+{
+  "type": "rats:archeologist",
+  "ingredient": {
+    "item": "minecraft:gravel"
+  },
+  "result": {
+    "id": "rats:oratchalcum_nugget",
+    "count": 2
+  }
+}
