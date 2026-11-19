@@ -61,7 +61,7 @@ public class LaserBeamRenderer extends EntityRenderer<LaserBeam> {
 		super.render(entity, entityYaw, partialTicks, stack, buffer, light);
 	}
 
-	// Добавляет вершину луча в буфер; принимает позицию, UV, нормаль, освещение и RGB, ничего не возвращает.
+	// Adds a beam vertex to the buffer; takes position, UV, normal, light and RGB, returns nothing.
 	public void addVertex(Matrix4f m4f, Matrix3f m3f, VertexConsumer consumer, int x, int y, int z, float u, float v, int normX, int normZ, int normY, int light, int red, int green, int blue) {
 		VertexRenderingUtil.addVertex(consumer, m4f, m3f, (float) x, (float) y, (float) z, red, green, blue, 255, u, v, OverlayTexture.NO_OVERLAY, light, (float) normX, (float) normY, (float) normZ);
 	}

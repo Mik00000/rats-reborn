@@ -10,19 +10,19 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
 
 /**
- * Чтение и запись пользовательских NBT-данных предмета через {@link DataComponents#CUSTOM_DATA} (API 1.21.1).
+ * Reads and writes custom item NBT data via {@link DataComponents#CUSTOM_DATA} (1.21.1 API).
  */
 public final class RatsItemStackData {
 
 	private RatsItemStackData() {
 	}
 
-	// Возвращает копию тега предмета или пустой тег, если данных нет.
+	// Returns a copy of the item tag or an empty tag if there is no data.
 	public static CompoundTag getTag(ItemStack stack) {
 		return stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
 	}
 
-	// Возвращает тег предмета для изменения; при отсутствии создаёт пустой тег на стеке.
+	// Returns the item tag for modification; creates an empty tag on the stack if missing.
 	public static CompoundTag getOrCreateTag(ItemStack stack) {
 		CustomData existing = stack.get(DataComponents.CUSTOM_DATA);
 		if (existing != null) {
@@ -33,19 +33,19 @@ public final class RatsItemStackData {
 		return tag;
 	}
 
-	// Записывает тег в компонент CUSTOM_DATA стека.
+	// Writes the tag into the stack's CUSTOM_DATA component.
 	public static void setTag(ItemStack stack, CompoundTag tag) {
 		stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
 	}
 
-	// true, если у стека есть ненулевой пользовательский тег.
+	// true if the stack has a non-empty custom tag.
 	public static boolean hasTag(ItemStack stack) {
 		return !getTag(stack).isEmpty();
 	}
 
 	/**
-	 * Десериализует предмет из NBT; пустой или битый тег даёт EMPTY без спама в лог Minecraft.
-	 * Параметры: provider реестров, тег NBT. Отдаёт стек или EMPTY.
+	 * Deserializes an item from NBT; an empty or broken tag gives EMPTY without spamming the Minecraft log.
+	 * Parameters: registry provider, NBT tag. Returns a stack or EMPTY.
 	 */
 	public static ItemStack parse(HolderLookup.Provider provider, CompoundTag tag) {
 		try {
@@ -54,13 +54,13 @@ public final class RatsItemStackData {
 			}
 			return ItemStack.parse(provider, tag).orElse(ItemStack.EMPTY);
 		} catch (Exception e) {
-			RatsMod.LOGGER.error("Не удалось разобрать ItemStack из NBT: {}", e.getMessage(), e);
+			RatsMod.LOGGER.error("Failed to parse ItemStack from NBT: {}", e.getMessage(), e);
 			return ItemStack.EMPTY;
 		}
 	}
 
 	/**
-	 * Сериализует предмет в NBT; пустой стек не записывается (избегаем Cannot encode empty ItemStack).
+	 * Serializes an item to NBT; an empty stack is not written (avoids Cannot encode empty ItemStack).
 	 */
 	public static CompoundTag save(HolderLookup.Provider provider, ItemStack stack) {
 		try {
@@ -70,20 +70,20 @@ public final class RatsItemStackData {
 			CompoundTag tag = new CompoundTag();
 			Tag encoded = stack.save(provider, tag);
 			if (!(encoded instanceof CompoundTag compoundTag)) {
-				throw new IllegalStateException("ItemStack.save вернул не CompoundTag: " + encoded.getClass().getSimpleName());
+				throw new IllegalStateException("ItemStack.save did not return a CompoundTag: " + encoded.getClass().getSimpleName());
 			}
 			if (!compoundTag.contains("id")) {
-				throw new IllegalStateException("ItemStack.save не записал id предмета: " + stack);
+				throw new IllegalStateException("ItemStack.save did not write the item id: " + stack);
 			}
 			return compoundTag;
 		} catch (Exception e) {
-			RatsMod.LOGGER.error("Не удалось сохранить ItemStack в NBT: {}", e.getMessage(), e);
-			throw new IllegalStateException("Ошибка сохранения ItemStack в NBT: " + e.getMessage(), e);
+			RatsMod.LOGGER.error("Failed to save ItemStack to NBT: {}", e.getMessage(), e);
+			throw new IllegalStateException("Error saving ItemStack to NBT: " + e.getMessage(), e);
 		}
 	}
 
 	/**
-	 * Реестры для загрузки предметов из NBT на сервере/клиенте; на клиенте без мира — EMPTY.
+	 * Registries for loading items from NBT on the server/client; on a client without a world - EMPTY.
 	 */
 	public static HolderLookup.Provider resolveProvider(HolderLookup.Provider preferred) {
 		if (preferred != null && preferred != RegistryAccess.EMPTY) {

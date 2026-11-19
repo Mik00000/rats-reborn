@@ -138,7 +138,7 @@ public class HatItem extends ArmorItem {
 		}
 	}
 
-	// Дополнительные трансформации шляпы на голове игрока и других гуманоидов; принимает PoseStack, ничего не возвращает.
+	// Extra hat transformations on the head of a player and other humanoids; takes a PoseStack, returns nothing.
 	public void transformOnHeadForPlayer(PoseStack stack) {
 		try {
 			if (this == RatsItemRegistry.CHEF_TOQUE.get()) {
@@ -198,12 +198,12 @@ public class HatItem extends ArmorItem {
 				stack.translate(0, -0.035F, 0.01F);
 			}
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Ошибка трансформации шляпы {} на игроке: {}", BuiltInRegistries.ITEM.getKey(this), exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Error transforming hat {} on the player: {}", BuiltInRegistries.ITEM.getKey(this), exception.getMessage(), exception);
 			throw exception;
 		}
 	}
 
-	// Дополнительный сдвиг шляпы по Y на голове крысы после transformOnHead; положительное значение опускает шляпу.
+	// Extra Y offset of the hat on the rat head after transformOnHead; a positive value lowers the hat.
 	public float getRatOffsetOnHead() {
 		if (this == RatsItemRegistry.FARMER_HAT.get()
 				|| this == RatsItemRegistry.FISHERMAN_HAT.get()
@@ -230,7 +230,7 @@ public class HatItem extends ArmorItem {
 
 			@Override
 			public @NotNull HumanoidModel<?> getHumanoidArmorModel(LivingEntity livingEntity, ItemStack itemStack, EquipmentSlot equipmentSlot, HumanoidModel<?> original) {
-				// 3D-шляпы рисует HatEquipmentLayer; подмена модели брони здесь отключает слой шлема в 1.21.1.
+				// 3D hats are drawn by HatEquipmentLayer; replacing the armor model here disables the helmet layer in 1.21.1.
 				if (equipmentSlot == EquipmentSlot.HEAD && itemStack.getItem() instanceof HatItem) {
 					return original;
 				}

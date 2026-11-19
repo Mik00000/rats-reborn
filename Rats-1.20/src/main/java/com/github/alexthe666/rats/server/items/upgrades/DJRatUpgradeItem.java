@@ -60,12 +60,12 @@ public class DJRatUpgradeItem extends BaseRatUpgradeItem implements HoldsItemUpg
 		}
 	}
 
-	// Проверяет, является ли предмет пластинкой для крысиного диджея; принимает ItemStack, отдаёт boolean.
+	// Checks whether the item is a music disc for the DJ rat; takes an ItemStack, returns a boolean.
 	private boolean isMusicDisc(ItemStack stack) {
 		try {
 			return stack.has(DataComponents.JUKEBOX_PLAYABLE) || stack.is(RatsItemRegistry.MUSIC_DISC_MICE_ON_VENUS.get()) || stack.is(RatsItemRegistry.MUSIC_DISC_LIVING_MICE.get());
 		} catch (RuntimeException exception) {
-			throw new IllegalStateException("Не удалось проверить музыкальную пластинку для крысы-диджея", exception);
+			throw new IllegalStateException("Failed to check the music disc for the DJ rat", exception);
 		}
 	}
 }

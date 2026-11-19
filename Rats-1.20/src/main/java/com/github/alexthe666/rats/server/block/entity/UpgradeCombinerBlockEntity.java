@@ -380,11 +380,11 @@ public class UpgradeCombinerBlockEntity extends BaseContainerBlockEntity impleme
 		return direction == Direction.DOWN && index == 1;
 	}
 
-	// Возвращает предметный обработчик комбинирователя улучшений; принимает сторону, отдаёт IItemHandler.
+	// Returns the upgrade combiner item handler; takes the side, returns an IItemHandler.
 	public IItemHandler getItemHandler(@Nullable Direction facing) {
 		try {
 			if (this.remove) {
-				throw new IllegalStateException("Нельзя получить item capability удалённого комбинирователя улучшений");
+				throw new IllegalStateException("Cannot get the item capability of a removed upgrade combiner");
 			}
 			if (facing == Direction.UP) {
 				return this.topItemHandler;
@@ -394,7 +394,7 @@ public class UpgradeCombinerBlockEntity extends BaseContainerBlockEntity impleme
 			}
 			return this.sideItemHandler;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось получить item capability комбинирователя улучшений на {}", this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to get the upgrade combiner item capability at {}", this.getBlockPos(), exception);
 			throw exception;
 		}
 	}

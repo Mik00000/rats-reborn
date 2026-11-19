@@ -17,34 +17,34 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import java.util.Optional;
 
 public class ChefRatUpgradeItem extends BaseRatUpgradeItem implements TickRatUpgrade {
-	// Создаёт улучшение шефа; принимает свойства предмета, ничего не отдаёт.
+	// Creates the chef upgrade; takes item properties, returns nothing.
 	public ChefRatUpgradeItem(Properties properties) {
 		super(properties, 2, 2);
 	}
 
-	// Сообщает, считается ли предмет в лапах едой; принимает крысу, отдаёт false для собственной логики готовки.
+	// Reports whether the item in the paws counts as food; takes the rat, returns false for the custom cooking logic.
 	@Override
 	public boolean isRatHoldingFood(TamedRat rat) {
 		try {
 			return false;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Крыса {} не смогла проверить предмет шефа в лапах", rat.getUUID(), exception);
+			RatsMod.LOGGER.error("Rat {} failed to check the chef item in its paws", rat.getUUID(), exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет, нужно ли сдавать предмет; принимает крысу и стек, отдаёт true если шеф не умеет его готовить.
+	// Checks whether the item should be delivered; takes the rat and stack, returns true if the chef cannot cook it.
 	@Override
 	public boolean shouldDepositItem(TamedRat rat, ItemStack stack) {
 		try {
 			return this.getCookingResultFor(rat, stack).isEmpty();
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Крыса {} не смогла проверить сдачу предмета шефа {}", rat.getUUID(), stack, exception);
+			RatsMod.LOGGER.error("Rat {} failed to check delivering chef item {}", rat.getUUID(), stack, exception);
 			throw exception;
 		}
 	}
 
-	// Выполняет тик улучшения шефа; принимает крысу, готовит предмет в лапах только вне рабочих блоков Farmer's Delight.
+	// Runs the chef upgrade tick; takes the rat, cooks the item in its paws only away from Farmer's Delight work blocks.
 	@Override
 	public void tick(TamedRat rat) {
 		try {
@@ -57,12 +57,12 @@ public class ChefRatUpgradeItem extends BaseRatUpgradeItem implements TickRatUpg
 				this.createFinishedParticles(rat, ParticleTypes.SMOKE, 3, ParticleTypes.FLAME, 0.125F);
 			}
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Крыса {} не смогла выполнить тик улучшения шефа", rat.getUUID(), exception);
+			RatsMod.LOGGER.error("Rat {} failed to run the chef upgrade tick", rat.getUUID(), exception);
 			throw exception;
 		}
 	}
 
-	// Готовит предмет в лапах; принимает крысу, заменяет или сдаёт результат при завершении прогресса.
+	// Cooks the item in the paws; takes the rat, replaces or delivers the result when progress completes.
 	private void tryCooking(TamedRat rat) {
 		try {
 			ItemStack heldItem = rat.getMainHandItem();
@@ -84,12 +84,12 @@ public class ChefRatUpgradeItem extends BaseRatUpgradeItem implements TickRatUpg
 				}
 			}
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Крыса {} не смогла приготовить предмет в лапах {}", rat.getUUID(), rat.getMainHandItem(), exception);
+			RatsMod.LOGGER.error("Rat {} failed to cook the item in its paws {}", rat.getUUID(), rat.getMainHandItem(), exception);
 			throw exception;
 		}
 	}
 
-	// Возвращает результат готовки в лапах; принимает крысу и стек, отдаёт готовый стек или пустой стек.
+	// Returns the in-paw cooking result; takes the rat and stack, returns the cooked stack or an empty stack.
 	private ItemStack getCookingResultFor(TamedRat rat, ItemStack stack) {
 		try {
 			if (this.shouldProtectToolFromHeldCooking(stack)) {
@@ -111,12 +111,12 @@ public class ChefRatUpgradeItem extends BaseRatUpgradeItem implements TickRatUpg
 			}
 			return ItemStack.EMPTY;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Крыса {} не смогла найти результат готовки шефа для {}", rat.getUUID(), stack, exception);
+			RatsMod.LOGGER.error("Rat {} failed to find the chef cooking result for {}", rat.getUUID(), stack, exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет, нужно ли остановить старую готовку в лапах ради FD-станции; принимает крысу, отдаёт true для активной FD-разметки.
+	// Checks whether old in-paw cooking should stop in favour of an FD station; takes the rat, returns true for an active FD setup.
 	private boolean shouldSkipHeldCookingForFarmersDelightWork(TamedRat rat) {
 		try {
 			if (!RatsMod.FARMERS_DELIGHT_LOADED || rat.getCommand() != RatCommand.HARVEST) {
@@ -129,17 +129,17 @@ public class ChefRatUpgradeItem extends BaseRatUpgradeItem implements TickRatUpg
 			BlockEntity blockEntity = rat.level().getBlockEntity(workPos.get().pos());
 			return blockEntity != null && FarmersDelightCompat.isSupportedWorkBlock(blockEntity);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Крыса {} не смогла проверить FD-разметку шефа", rat.getUUID(), exception);
+			RatsMod.LOGGER.error("Rat {} failed to check the chef FD setup", rat.getUUID(), exception);
 			throw exception;
 		}
 	}
 
-	// Защищает инструменты от плавки в лапах; принимает стек, отдаёт true для предметов с прочностью.
+	// Protects tools from in-paw smelting; takes the stack, returns true for items with durability.
 	private boolean shouldProtectToolFromHeldCooking(ItemStack stack) {
 		try {
 			return stack.isDamageableItem();
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить защиту инструмента шефа {}", stack, exception);
+			RatsMod.LOGGER.error("Failed to check chef tool protection {}", stack, exception);
 			throw exception;
 		}
 	}

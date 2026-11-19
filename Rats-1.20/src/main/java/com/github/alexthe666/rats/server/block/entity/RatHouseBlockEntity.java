@@ -34,13 +34,13 @@ public class RatHouseBlockEntity extends BlockEntity {
 	private CompoundTag pendingRespawnTag;
 	private int pendingRespawnTicks;
 
-	// Создаёт пустую сущность блока домика; принимает позицию и состояние блока.
+	// Creates an empty house block entity; takes the block position and state.
 	public RatHouseBlockEntity(BlockPos pos, BlockState state) {
 		super(RatsBlockEntityRegistry.RAT_HOUSE.get(), pos, state);
 	}
 
 
-	// Тикает домик: обновляет респавн и выпускает спящую крысу после окна сна; принимает мир, позицию, состояние и block entity.
+	// Ticks the house: updates respawn and releases a sleeping rat after the sleep window; takes the level, position, state and block entity.
 	public static void tick(Level level, BlockPos pos, BlockState state, RatHouseBlockEntity house) {
 		try {
 			if (level.isClientSide()) {
@@ -61,48 +61,48 @@ public class RatHouseBlockEntity extends BlockEntity {
 				house.releaseSleepingRatToWorld(entry.x, entry.y, entry.z);
 			}
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось обновить домик {}", pos, exception);
+			RatsMod.LOGGER.error("Failed to update house {}", pos, exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет, занята ли живая ячейка домика; параметров нет, отдаёт true если внутри сохранена крыса.
+	// Checks whether the house's live slot is occupied; no parameters, returns true if a rat is stored inside.
 	public boolean hasStoredRat() {
 		return this.storedRatTag != null;
 	}
 
-	// Возвращает количество крыс внутри домика; параметров нет, отдаёт 0 или 1 для Jade и визуальных проверок.
+	// Returns the number of rats inside the house; no parameters, returns 0 or 1 for Jade and visual checks.
 	public int getStoredRatCount() {
 		try {
 			return this.storedRatTag == null ? 0 : 1;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось получить число крыс в домике {}: {}", this.worldPosition, exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Failed to get the rat count of house {}: {}", this.worldPosition, exception.getMessage(), exception);
 			throw exception;
 		}
 	}
 
 
-	// Проверяет, ждёт ли домик респавна крысы; параметров нет, отдаёт true при активном таймере.
+	// Checks whether the house is waiting for a rat to respawn; no parameters, returns true while the timer is active.
 	public boolean hasPendingRespawn() {
 		try {
 			return this.pendingRespawnTag != null;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить ожидающий респавн домика {}", this.worldPosition, exception);
+			RatsMod.LOGGER.error("Failed to check the pending respawn of house {}", this.worldPosition, exception);
 			throw exception;
 		}
 	}
 
-	// Возвращает оставшееся время респавна; параметров нет, отдаёт число тиков.
+	// Returns the remaining respawn time; no parameters, returns a number of ticks.
 	public int getPendingRespawnTicks() {
 		try {
 			return this.pendingRespawnTicks;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось получить таймер респавна домика {}", this.worldPosition, exception);
+			RatsMod.LOGGER.error("Failed to get the respawn timer of house {}", this.worldPosition, exception);
 			throw exception;
 		}
 	}
 
-	// Возвращает имя крысы внутри домика; параметров нет, отдаёт сохранённое имя или пустую строку.
+	// Returns the name of the rat inside the house; no parameters, returns the stored name or an empty string.
 	public String getStoredRatName() {
 		try {
 			if (this.storedRatTag == null) {
@@ -117,27 +117,27 @@ public class RatHouseBlockEntity extends BlockEntity {
 			}
 			return this.boundRatUuid == null ? "" : this.boundRatUuid.toString();
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось получить имя крысы в домике {}: {}", this.worldPosition, exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Failed to get the name of the rat in house {}: {}", this.worldPosition, exception.getMessage(), exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет, может ли домик принять конкретную крысу; принимает крысу, отдаёт true при совпадении привязки.
+	// Checks whether the house can accept a specific rat; takes the rat, returns true if the binding matches.
 	public boolean canAcceptRat(TamedRat rat) {
 		try {
 			return this.boundRatUuid == null || this.boundRatUuid.equals(rat.getUUID());
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить привязку домика {} для крысы {}", this.worldPosition, rat.getUUID(), exception);
+			RatsMod.LOGGER.error("Failed to check the binding of house {} for rat {}", this.worldPosition, rat.getUUID(), exception);
 			throw exception;
 		}
 	}
 
-	// Привязывает домик к крысе; принимает крысу и игрока, отдаёт true если привязка записана.
+	// Binds the house to a rat; takes the rat and player, returns true if the binding was written.
 	public boolean bindRat(TamedRat rat, Player player) {
 		try {
 			if (this.boundRatUuid != null && !this.boundRatUuid.equals(rat.getUUID())) {
 				player.displayClientMessage(Component.translatable(RatsLangConstants.RAT_HOUSE_OCCUPIED), true);
-				RatsMod.LOGGER.warn("Игрок {} пытался привязать крысу {} к занятому домику {} (занят {})", player.getGameProfile().getName(), rat.getUUID(), this.worldPosition, this.boundRatUuid);
+				RatsMod.LOGGER.warn("Player {} tried to bind rat {} to occupied house {} (occupied by {})", player.getGameProfile().getName(), rat.getUUID(), this.worldPosition, this.boundRatUuid);
 				return false;
 			}
 			this.boundRatUuid = rat.getUUID();
@@ -146,20 +146,20 @@ public class RatHouseBlockEntity extends BlockEntity {
 			player.displayClientMessage(Component.translatable(RatsLangConstants.RAT_HOUSE_BIND, rat.getName()), true);
 			return true;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось привязать крысу {} к домику {}: {}", rat.getUUID(), this.worldPosition, exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Failed to bind rat {} to house {}: {}", rat.getUUID(), this.worldPosition, exception.getMessage(), exception);
 			throw exception;
 		}
 	}
 
-	// Прячет крысу в домик; принимает живую крысу, отдаёт true если NBT сохранён и сущность удалена из мира.
+	// Hides a rat in the house; takes a live rat, returns true if the NBT was saved and the entity removed from the world.
 	public boolean storeRat(TamedRat rat) {
 		try {
 			if (this.storedRatTag != null) {
-				RatsMod.LOGGER.warn("Домик {} уже содержит крысу, новая крыса {} не помещена", this.worldPosition, rat.getUUID());
+				RatsMod.LOGGER.warn("House {} already contains a rat, new rat {} was not placed", this.worldPosition, rat.getUUID());
 				return false;
 			}
 			if (!this.canAcceptRat(rat)) {
-				RatsMod.LOGGER.warn("Домик {} отказал крысе {}: привязан UUID {}", this.worldPosition, rat.getUUID(), this.boundRatUuid);
+				RatsMod.LOGGER.warn("House {} refused rat {}: bound to UUID {}", this.worldPosition, rat.getUUID(), this.boundRatUuid);
 				return false;
 			}
 			CompoundTag tag = new CompoundTag();
@@ -178,22 +178,22 @@ public class RatHouseBlockEntity extends BlockEntity {
 			}
 			return true;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось поместить крысу {} в домик {}: {}", rat.getUUID(), this.worldPosition, exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Failed to put rat {} into house {}: {}", rat.getUUID(), this.worldPosition, exception.getMessage(), exception);
 			throw exception;
 		}
 	}
 
 
 
-	// Запускает респавн умершей крысы у домика; принимает крысу и задержку, отдаёт true если таймер принят.
+	// Starts respawning a dead rat at the house; takes the rat and delay, returns true if the timer was accepted.
 	public boolean beginRespawn(TamedRat rat, int ticks) {
 		try {
 			if (this.storedRatTag != null || this.pendingRespawnTag != null) {
-				RatsMod.LOGGER.warn("Домик {} не принял респавн крысы {}: stored={}, pending={}", this.worldPosition, rat.getUUID(), this.storedRatTag != null, this.pendingRespawnTag != null);
+				RatsMod.LOGGER.warn("House {} did not accept respawn of rat {}: stored={}, pending={}", this.worldPosition, rat.getUUID(), this.storedRatTag != null, this.pendingRespawnTag != null);
 				return false;
 			}
 			if (!this.canAcceptRat(rat)) {
-				RatsMod.LOGGER.warn("Домик {} отказал в респавне крысы {}: привязан UUID {}", this.worldPosition, rat.getUUID(), this.boundRatUuid);
+				RatsMod.LOGGER.warn("House {} refused respawn of rat {}: bound to UUID {}", this.worldPosition, rat.getUUID(), this.boundRatUuid);
 				return false;
 			}
 			CompoundTag tag = new CompoundTag();
@@ -207,15 +207,15 @@ public class RatHouseBlockEntity extends BlockEntity {
 			this.pendingRespawnTag = tag;
 			this.pendingRespawnTicks = Math.max(1, ticks);
 			this.setChangedAndSync();
-			RatsMod.LOGGER.info("Домик {} начал респавн крысы {} через {} тиков", this.worldPosition, rat.getUUID(), this.pendingRespawnTicks);
+			RatsMod.LOGGER.info("House {} started respawning rat {} in {} ticks", this.worldPosition, rat.getUUID(), this.pendingRespawnTicks);
 			return true;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось запустить респавн крысы {} у домика {}", rat.getUUID(), this.worldPosition, exception);
+			RatsMod.LOGGER.error("Failed to start respawning rat {} at house {}", rat.getUUID(), this.worldPosition, exception);
 			throw exception;
 		}
 	}
 
-	// Выпускает крысу, ожидавшую респавна; принимает координаты появления, отдаёт true при успехе.
+	// Releases a rat that was waiting to respawn; takes spawn coordinates, returns true on success.
 	private boolean releasePendingRespawn(double x, double y, double z) {
 		try {
 			Level level = this.getLevel();
@@ -224,7 +224,7 @@ public class RatHouseBlockEntity extends BlockEntity {
 			}
 			TamedRat rat = RatsEntityRegistry.TAMED_RAT.get().create(level);
 			if (rat == null) {
-				throw new IllegalStateException("Не удалось создать TamedRat из реестра");
+				throw new IllegalStateException("Failed to create a TamedRat from the registry");
 			}
 			CompoundTag tag = this.pendingRespawnTag.copy();
 			rat.readAdditionalSaveData(tag);
@@ -238,16 +238,16 @@ public class RatHouseBlockEntity extends BlockEntity {
 			this.pendingRespawnTicks = 0;
 			this.setChangedAndSync();
 			level.playSound(null, this.worldPosition, SoundEvents.WOOL_PLACE, SoundSource.BLOCKS, 0.8F, 1.2F);
-			RatsMod.LOGGER.info("Крыса {} вернулась у домика {}", rat.getUUID(), this.worldPosition);
+			RatsMod.LOGGER.info("Rat {} returned at house {}", rat.getUUID(), this.worldPosition);
 			return true;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось выпустить ожидающую респавна крысу из домика {}", this.worldPosition, exception);
+			RatsMod.LOGGER.error("Failed to release the respawning rat from house {}", this.worldPosition, exception);
 			throw exception;
 		}
 	}
 
 
-	// Выпускает проснувшуюся крысу у входа; принимает координаты появления, отдаёт true при успешном выпуске.
+	// Releases a woken rat at the entrance; takes spawn coordinates, returns true if released.
 	private boolean releaseSleepingRatToWorld(double x, double y, double z) {
 		try {
 			Level level = this.getLevel();
@@ -256,7 +256,7 @@ public class RatHouseBlockEntity extends BlockEntity {
 			}
 			TamedRat rat = RatsEntityRegistry.TAMED_RAT.get().create(level);
 			if (rat == null) {
-				throw new IllegalStateException("Не удалось создать TamedRat из реестра");
+				throw new IllegalStateException("Failed to create a TamedRat from the registry");
 			}
 			CompoundTag tag = this.storedRatTag.copy();
 			rat.readAdditionalSaveData(tag);
@@ -269,27 +269,27 @@ public class RatHouseBlockEntity extends BlockEntity {
 			this.storedRatTag = null;
 			this.setChangedAndSync();
 			level.playSound(null, this.worldPosition, SoundEvents.WOOL_BREAK, SoundSource.BLOCKS, 0.7F, 1.15F);
-			RatsMod.LOGGER.info("Крыса {} проснулась и вышла из домика {}", rat.getUUID(), this.worldPosition);
+			RatsMod.LOGGER.info("Rat {} woke up and left house {}", rat.getUUID(), this.worldPosition);
 			return true;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось выпустить проснувшуюся крысу из домика {}", this.worldPosition, exception);
+			RatsMod.LOGGER.error("Failed to release the woken rat from house {}", this.worldPosition, exception);
 			throw exception;
 		}
 	}
 
-	// Выпускает сохранённую крысу в мир при разрушении домика; принимает позицию появления, отдаёт true при успешном выпуске.
+	// Releases the stored rat into the world when the house is destroyed; takes the spawn position, returns true if released.
 	public boolean releaseRatToWorld(double x, double y, double z) {
 		try {
 			Level level = this.getLevel();
 			if (level == null) {
-				throw new IllegalStateException("У домика нет уровня");
+				throw new IllegalStateException("The house has no level");
 			}
 			if (level.isClientSide() || this.storedRatTag == null && this.pendingRespawnTag == null) {
 				return false;
 			}
 			TamedRat rat = RatsEntityRegistry.TAMED_RAT.get().create(level);
 			if (rat == null) {
-				throw new IllegalStateException("Не удалось создать TamedRat из реестра");
+				throw new IllegalStateException("Failed to create a TamedRat from the registry");
 			}
 			CompoundTag tag = (this.storedRatTag != null ? this.storedRatTag : this.pendingRespawnTag).copy();
 			rat.readAdditionalSaveData(tag);
@@ -304,20 +304,20 @@ public class RatHouseBlockEntity extends BlockEntity {
 			this.pendingRespawnTicks = 0;
 			this.setChangedAndSync();
 			level.playSound(null, this.worldPosition, SoundEvents.WOOL_BREAK, SoundSource.BLOCKS, 0.8F, 0.9F);
-			RatsMod.LOGGER.info("Крыса {} выпущена из разрушенного домика {}", rat.getUUID(), this.worldPosition);
+			RatsMod.LOGGER.info("Rat {} released from destroyed house {}", rat.getUUID(), this.worldPosition);
 			return true;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось выпустить крысу из разрушенного домика {}: {}", this.worldPosition, exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Failed to release the rat from destroyed house {}: {}", this.worldPosition, exception.getMessage(), exception);
 			throw exception;
 		}
 	}
 
-	// Достаёт сохранённую крысу из домика на плечо игрока; принимает игрока, отдаёт true при успехе.
+	// Takes the stored rat out of the house onto the player's shoulder; takes the player, returns true on success.
 	public boolean releaseRatToPlayer(Player player) {
 		try {
 			Level level = this.getLevel();
 			if (level == null) {
-				throw new IllegalStateException("У домика нет уровня");
+				throw new IllegalStateException("The house has no level");
 			}
 			if (this.storedRatTag == null) {
 				player.displayClientMessage(Component.translatable(RatsLangConstants.RAT_HOUSE_EMPTY), true);
@@ -329,7 +329,7 @@ public class RatHouseBlockEntity extends BlockEntity {
 			}
 			TamedRat rat = RatsEntityRegistry.TAMED_RAT.get().create(level);
 			if (rat == null) {
-				throw new IllegalStateException("Не удалось создать TamedRat из реестра");
+				throw new IllegalStateException("Failed to create a TamedRat from the registry");
 			}
 			CompoundTag tag = this.storedRatTag.copy();
 			rat.readAdditionalSaveData(tag);
@@ -346,17 +346,17 @@ public class RatHouseBlockEntity extends BlockEntity {
 			player.displayClientMessage(Component.translatable(RatsLangConstants.RAT_HOUSE_WITHDRAW, rat.getName()), true);
 			return true;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось достать крысу из домика {}: {}", this.worldPosition, exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Failed to take the rat out of house {}: {}", this.worldPosition, exception.getMessage(), exception);
 			throw exception;
 		}
 	}
 
 
-	// Снимает привязку домика к крысе; принимает крысу и игрока, отдаёт true если домик освобождён.
+	// Removes the house-to-rat binding; takes the rat and player, returns true if the house was freed.
 	public boolean clearBinding(TamedRat rat, Player player) {
 		try {
 			if (this.storedRatTag != null) {
-				RatsMod.LOGGER.warn("Домик {} не снимает привязку крысы {}: крыса уже внутри", this.worldPosition, rat.getUUID());
+				RatsMod.LOGGER.warn("House {} does not unbind rat {}: the rat is already inside", this.worldPosition, rat.getUUID());
 				return false;
 			}
 			if (this.boundRatUuid == null || !this.boundRatUuid.equals(rat.getUUID())) {
@@ -368,22 +368,22 @@ public class RatHouseBlockEntity extends BlockEntity {
 			player.displayClientMessage(Component.translatable(RatsLangConstants.RAT_HOUSE_UNBIND, rat.getName()), true);
 			return true;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось снять привязку крысы {} от домика {}: {}", rat.getUUID(), this.worldPosition, exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Failed to unbind rat {} from house {}: {}", rat.getUUID(), this.worldPosition, exception.getMessage(), exception);
 			throw exception;
 		}
 	}
 
-	// Вызывается при удалении блока из мира; ничего не принимает, пишет состояние домика в лог.
+	// Called when the block is removed from the world; takes nothing, logs the house state.
 	public void onRemoved() {
 		try {
-			RatsMod.LOGGER.debug("Удалён block entity rat_house в {}, storedRat={}", this.worldPosition, this.storedRatTag != null);
+			RatsMod.LOGGER.debug("Removed rat_house block entity at {}, storedRat={}", this.worldPosition, this.storedRatTag != null);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Ошибка при удалении block entity rat_house в {}: {}", this.worldPosition, exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Error removing rat_house block entity at {}: {}", this.worldPosition, exception.getMessage(), exception);
 			throw exception;
 		}
 	}
 
-	// Сохраняет NBT домика; принимает тег и HolderLookup, отдаёт CompoundTag.
+	// Saves the house NBT; takes the tag and HolderLookup, returns a CompoundTag.
 	@Override
 	protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
 		try {
@@ -399,12 +399,12 @@ public class RatHouseBlockEntity extends BlockEntity {
 				tag.putInt("PendingRespawnTicks", this.pendingRespawnTicks);
 			}
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось сохранить NBT rat_house в {}: {}", this.worldPosition, exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Failed to save rat_house NBT at {}: {}", this.worldPosition, exception.getMessage(), exception);
 			throw exception;
 		}
 	}
 
-	// Загружает NBT домика; принимает тег и HolderLookup.
+	// Loads the house NBT; takes the tag and HolderLookup.
 	@Override
 	protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
 		try {
@@ -414,35 +414,35 @@ public class RatHouseBlockEntity extends BlockEntity {
 			this.pendingRespawnTag = tag.contains("PendingRespawnRat", Tag.TAG_COMPOUND) ? tag.getCompound("PendingRespawnRat").copy() : null;
 			this.pendingRespawnTicks = tag.getInt("PendingRespawnTicks");
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось загрузить NBT rat_house в {}: {}", this.worldPosition, exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Failed to load rat_house NBT at {}: {}", this.worldPosition, exception.getMessage(), exception);
 			throw exception;
 		}
 	}
 
-	// Формирует пакет синхронизации клиенту; параметров нет, отдаёт ClientboundBlockEntityDataPacket.
+	// Builds the client sync packet; no parameters, returns a ClientboundBlockEntityDataPacket.
 	@Nullable
 	@Override
 	public ClientboundBlockEntityDataPacket getUpdatePacket() {
 		try {
 			return ClientboundBlockEntityDataPacket.create(this);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось создать пакет обновления rat_house в {}: {}", this.worldPosition, exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Failed to create the rat_house update packet at {}: {}", this.worldPosition, exception.getMessage(), exception);
 			throw exception;
 		}
 	}
 
-	// Формирует тег для синхронизации клиенту; принимает HolderLookup, отдаёт CompoundTag.
+	// Builds the client sync tag; takes a HolderLookup, returns a CompoundTag.
 	@Override
 	public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
 		try {
 			return this.saveWithoutMetadata(registries);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось собрать updateTag rat_house в {}: {}", this.worldPosition, exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Failed to build the rat_house updateTag at {}: {}", this.worldPosition, exception.getMessage(), exception);
 			throw exception;
 		}
 	}
 
-	// Помечает домик изменённым и отправляет обновление блока клиентам; параметров нет.
+	// Marks the house as changed and sends a block update to clients; no parameters.
 	private void setChangedAndSync() {
 		try {
 			this.setChanged();
@@ -452,7 +452,7 @@ public class RatHouseBlockEntity extends BlockEntity {
 				level.sendBlockUpdated(this.worldPosition, state, state, 3);
 			}
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось синхронизировать rat_house в {}: {}", this.worldPosition, exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Failed to sync rat_house at {}: {}", this.worldPosition, exception.getMessage(), exception);
 			throw exception;
 		}
 	}

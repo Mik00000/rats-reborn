@@ -287,7 +287,7 @@ public class Rat extends DiggingRat {
 				if (entity instanceof Player player) {
 					RatUtils.tryProgressWildRatTaming(this, player);
 				} else {
-					RatsMod.LOGGER.warn("Прогресс приручения крысы не начислен: игрок {} не найден", this.cheeseFeederUuid);
+					RatsMod.LOGGER.warn("Rat taming progress not awarded: player {} not found", this.cheeseFeederUuid);
 				}
 			}
 			this.cheeseFeederUuid = null;

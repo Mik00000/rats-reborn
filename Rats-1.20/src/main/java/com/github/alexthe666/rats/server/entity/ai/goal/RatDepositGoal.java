@@ -152,7 +152,7 @@ implements RatWorkGoal {
             if (RatUpgradeUtils.hasUpgrade(this.rat, (Item)RatsItemRegistry.RAT_UPGRADE_PLATTER.get()) && this.rat.getMainHandItem().getCount() < 64 && this.hasItemsOfTypeAroundCached(this.rat.getMainHandItem(), 10)) {
                 return false;
             }
-            if (!RatInventoryAccess.canInsert(this.rat.level(), te.getBlockPos(), this.rat.depositFacing, this.rat.getMainHandItem(), this.rat, "\u0441\u0434\u0430\u0447\u0430 \u043f\u0440\u0435\u0434\u043c\u0435\u0442\u043e\u0432")) {
+            if (!RatInventoryAccess.canInsert(this.rat.level(), te.getBlockPos(), this.rat.depositFacing, this.rat.getMainHandItem(), this.rat, "item delivery")) {
                 return false;
             }
         } else if (this.type == DepositType.ENERGY) {
@@ -192,7 +192,7 @@ implements RatWorkGoal {
             return reachable;
         }
         catch (RuntimeException exception) {
-            RatsMod.LOGGER.error("Крыса {} не смогла проверить ближайшие предметы перед сдачей", (Object)this.rat.getUUID(), (Object)exception);
+            RatsMod.LOGGER.error("Rat {} failed to check nearby items before delivery", (Object)this.rat.getUUID(), (Object)exception);
             throw exception;
         }
     }
@@ -222,7 +222,7 @@ implements RatWorkGoal {
             return this.cachedPlatterNearbyItems;
         }
         catch (RuntimeException exception) {
-            RatsMod.LOGGER.error("\u041a\u0440\u044b\u0441\u0430 {} \u043d\u0435 \u0441\u043c\u043e\u0433\u043b\u0430 \u043f\u0440\u043e\u0432\u0435\u0440\u0438\u0442\u044c \u043a\u0435\u0448 \u0431\u043b\u0438\u0436\u0430\u0439\u0448\u0438\u0445 \u043f\u0440\u0435\u0434\u043c\u0435\u0442\u043e\u0432 \u043f\u0435\u0440\u0435\u0434 \u0441\u0434\u0430\u0447\u0435\u0439", (Object)this.rat.getUUID(), (Object)exception);
+            RatsMod.LOGGER.error("Rat {} failed to check the nearby item cache before delivery", (Object)this.rat.getUUID(), (Object)exception);
             throw exception;
         }
     }
@@ -252,7 +252,7 @@ implements RatWorkGoal {
                 RatQuarryBlockEntity quarry = (RatQuarryBlockEntity)te;
                 if (!this.isAtQuarryDepositStand(quarry)) {
                     if (!this.moveQuarryGridTo(quarry, quarry.getQuarryDepositWaitPos(this.rat.level()))) {
-                        RatsMod.LOGGER.warn("\u041a\u0440\u044b\u0441\u0430 {} \u043d\u0435 \u043d\u0430\u0448\u043b\u0430 \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u044b\u0439 \u043f\u0443\u0442\u044c \u043a \u0441\u0434\u0430\u0447\u0435 \u043a\u0430\u0440\u044c\u0435\u0440\u0430 {} \u0441 \u043f\u043e\u0437\u0438\u0446\u0438\u0438 {}", (Object)this.rat.getUUID(), (Object)quarry.getBlockPos(), (Object)this.rat.blockPosition());
+                        RatsMod.LOGGER.warn("Rat {} found no safe path to the delivery of quarry {} from position {}", (Object)this.rat.getUUID(), (Object)quarry.getBlockPos(), (Object)this.rat.blockPosition());
                         this.rat.getNavigation().stop();
                     }
                     return;
@@ -295,7 +295,7 @@ implements RatWorkGoal {
             this.stop();
         }
         catch (RuntimeException exception) {
-            RatsMod.LOGGER.error("\u041a\u0440\u044b\u0441\u0430 {} \u043d\u0435 \u0441\u043c\u043e\u0433\u043b\u0430 \u0437\u0430\u0432\u0435\u0440\u0448\u0438\u0442\u044c \u0441\u0434\u0430\u0447\u0443 \u0432 \u043a\u0430\u0440\u044c\u0435\u0440 {}", (Object)this.rat.getUUID(), (Object)te.getBlockPos(), (Object)exception);
+            RatsMod.LOGGER.error("Rat {} failed to finish delivering into quarry {}", (Object)this.rat.getUUID(), (Object)te.getBlockPos(), (Object)exception);
             throw exception;
         }
     }
@@ -332,7 +332,7 @@ implements RatWorkGoal {
             return true;
         }
         catch (RuntimeException exception) {
-            RatsMod.LOGGER.error("\u041a\u0440\u044b\u0441\u0430 {} \u043d\u0435 \u0441\u043c\u043e\u0433\u043b\u0430 \u043f\u043e\u0434\u043d\u044f\u0442\u044c\u0441\u044f \u043f\u043e \u0441\u0442\u043e\u043b\u0431\u0443 \u043a\u0430\u0440\u044c\u0435\u0440\u0430 {}", (Object)this.rat.getUUID(), (Object)quarry.getBlockPos(), (Object)exception);
+            RatsMod.LOGGER.error("Rat {} failed to climb the pillar of quarry {}", (Object)this.rat.getUUID(), (Object)quarry.getBlockPos(), (Object)exception);
             throw exception;
         }
     }
@@ -359,7 +359,7 @@ implements RatWorkGoal {
             return this.moveQuarryGridHorizontally(quarry, target);
         }
         catch (RuntimeException exception) {
-            RatsMod.LOGGER.error("\u041a\u0440\u044b\u0441\u0430 {} \u043d\u0435 \u0441\u043c\u043e\u0433\u043b\u0430 \u043f\u0440\u043e\u0439\u0442\u0438 \u043a \u0441\u0434\u0430\u0447\u0435 \u043a\u0430\u0440\u044c\u0435\u0440\u0430 {}", (Object)this.rat.getUUID(), (Object)quarry.getBlockPos(), (Object)exception);
+            RatsMod.LOGGER.error("Rat {} failed to walk to the delivery of quarry {}", (Object)this.rat.getUUID(), (Object)quarry.getBlockPos(), (Object)exception);
             return false;
         }
     }
@@ -372,7 +372,7 @@ implements RatWorkGoal {
             }
             BlockPos next = quarry.findSafeHorizontalGridStep(this.rat.level(), current, target);
             if (next == null) {
-                RatsMod.LOGGER.warn("\u041a\u0440\u044b\u0441\u0430 {} \u043d\u0435 \u043d\u0430\u0448\u043b\u0430 \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u044b\u0439 \u0433\u043e\u0440\u0438\u0437\u043e\u043d\u0442\u0430\u043b\u044c\u043d\u044b\u0439 \u0448\u0430\u0433 \u043a \u0441\u0434\u0430\u0447\u0435 \u0438\u0437 {} \u043a {}", (Object)this.rat.getUUID(), (Object)current, (Object)target);
+                RatsMod.LOGGER.warn("Rat {} found no safe horizontal step to the delivery from {} to {}", (Object)this.rat.getUUID(), (Object)current, (Object)target);
                 return false;
             }
             this.rat.getNavigation().stop();
@@ -382,7 +382,7 @@ implements RatWorkGoal {
             return true;
         }
         catch (RuntimeException exception) {
-            RatsMod.LOGGER.error("\u041a\u0440\u044b\u0441\u0430 {} \u043d\u0435 \u0441\u043c\u043e\u0433\u043b\u0430 \u043f\u0440\u043e\u0439\u0442\u0438 \u043f\u043e \u043a\u043b\u0435\u0442\u043a\u0430\u043c \u043a \u0441\u0434\u0430\u0447\u0435 {}", (Object)this.rat.getUUID(), (Object)target, (Object)exception);
+            RatsMod.LOGGER.error("Rat {} failed to walk the cells to delivery {}", (Object)this.rat.getUUID(), (Object)target, (Object)exception);
             return false;
         }
     }
@@ -403,7 +403,7 @@ implements RatWorkGoal {
             this.rat.walkAnimation.update(1.0f, 0.4f);
         }
         catch (RuntimeException exception) {
-            RatsMod.LOGGER.error("\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u043e\u0431\u043d\u043e\u0432\u0438\u0442\u044c \u0430\u043d\u0438\u043c\u0430\u0446\u0438\u044e \u0448\u0430\u0433\u0430 \u043a\u0440\u044b\u0441\u044b {} \u0438\u0437 {} \u0432 {}", (Object)this.rat.getUUID(), (Object)current, (Object)next, (Object)exception);
+            RatsMod.LOGGER.error("Failed to update the step animation of rat {} from {} to {}", (Object)this.rat.getUUID(), (Object)current, (Object)next, (Object)exception);
             throw exception;
         }
     }
@@ -413,7 +413,7 @@ implements RatWorkGoal {
             return quarry.isValidQuarryDepositStand(this.rat.level(), this.rat.blockPosition());
         }
         catch (RuntimeException exception) {
-            RatsMod.LOGGER.error("\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u043f\u0440\u043e\u0432\u0435\u0440\u0438\u0442\u044c \u0442\u043e\u0447\u043a\u0443 \u0441\u0434\u0430\u0447\u0438 \u043a\u0430\u0440\u044c\u0435\u0440\u0430 \u0434\u043b\u044f \u043a\u0440\u044b\u0441\u044b {}", (Object)this.rat.getUUID(), (Object)exception);
+            RatsMod.LOGGER.error("Failed to check the quarry delivery point for rat {}", (Object)this.rat.getUUID(), (Object)exception);
             throw exception;
         }
     }
@@ -435,7 +435,7 @@ implements RatWorkGoal {
             ItemStack duplicate = this.rat.getItemInHand(InteractionHand.MAIN_HAND).copy();
             RatsMod.LOGGER.info("[RAT_DEPOSIT_EXEC] Rat {} trying insert into {} facing={}: item={}",
                 this.rat.getUUID(), entity.getBlockPos(), this.rat.depositFacing, duplicate);
-            ItemStack shrunkenStack = RatInventoryAccess.insert(this.rat.level(), entity.getBlockPos(), this.rat.depositFacing, duplicate, this.rat, "\u0441\u0434\u0430\u0447\u0430 \u043f\u0440\u0435\u0434\u043c\u0435\u0442\u043e\u0432");
+            ItemStack shrunkenStack = RatInventoryAccess.insert(this.rat.level(), entity.getBlockPos(), this.rat.depositFacing, duplicate, this.rat, "item delivery");
             RatsMod.LOGGER.info("[RAT_DEPOSIT_EXEC] Primary insert result: remaining={}", shrunkenStack);
             if (shrunkenStack.getCount() == duplicate.getCount()) {
                 net.neoforged.neoforge.items.IItemHandler unsided = (net.neoforged.neoforge.items.IItemHandler)this.rat.level().getCapability(Capabilities.ItemHandler.BLOCK, entity.getBlockPos(), null);
@@ -470,7 +470,7 @@ implements RatWorkGoal {
                     }
                 }
                 catch (RuntimeException exception) {
-                    RatsMod.LOGGER.error("\u041a\u0440\u044b\u0441\u0430 {} \u043d\u0435 \u0441\u043c\u043e\u0433\u043b\u0430 \u043f\u043e\u043b\u043e\u0436\u0438\u0442\u044c \u044d\u043d\u0435\u0440\u0433\u0438\u044e \u0432 \u0431\u043b\u043e\u043a {}", (Object)this.rat.getUUID(), (Object)entity.getBlockPos(), (Object)exception);
+                    RatsMod.LOGGER.error("Rat {} failed to put energy into block {}", (Object)this.rat.getUUID(), (Object)entity.getBlockPos(), (Object)exception);
                     throw exception;
                 }
                 if (inputtedEnergy > 0) {
@@ -509,7 +509,7 @@ implements RatWorkGoal {
                     }
                 }
                 catch (RuntimeException exception) {
-                    RatsMod.LOGGER.error("\u041a\u0440\u044b\u0441\u0430 {} \u043d\u0435 \u0441\u043c\u043e\u0433\u043b\u0430 \u043f\u043e\u043b\u043e\u0436\u0438\u0442\u044c \u0436\u0438\u0434\u043a\u043e\u0441\u0442\u044c \u0432 \u0431\u043b\u043e\u043a {}", (Object)this.rat.getUUID(), (Object)entity.getBlockPos(), (Object)exception);
+                    RatsMod.LOGGER.error("Rat {} failed to put fluid into block {}", (Object)this.rat.getUUID(), (Object)entity.getBlockPos(), (Object)exception);
                     throw exception;
                 }
                 if (minusAmount > 0) {
@@ -552,7 +552,7 @@ implements RatWorkGoal {
             Field internalTankField = this.getCreateItemDrainInternalTankField(entity.getClass());
             Object internalTank = internalTankField.get(entity);
             if (internalTank == null) {
-                RatsMod.LOGGER.debug("\u041a\u0440\u044b\u0441\u0430 {} \u043d\u0435 \u0441\u043c\u043e\u0433\u043b\u0430 \u0437\u0430\u043b\u0438\u0442\u044c \u0436\u0438\u0434\u043a\u043e\u0441\u0442\u044c \u0432 Create Item Drain {}: \u0432\u043d\u0443\u0442\u0440\u0435\u043d\u043d\u0438\u0439 \u0431\u0430\u043a \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d", (Object)this.rat.getUUID(), (Object)entity.getBlockPos());
+                RatsMod.LOGGER.debug("Rat {} failed to pour fluid into Create Item Drain {}: inner tank not found", (Object)this.rat.getUUID(), (Object)entity.getBlockPos());
                 return 0;
             }
             this.ensureCreateTankMethods(internalTank.getClass());
@@ -560,14 +560,14 @@ implements RatWorkGoal {
             try {
                 Object primaryHandler = createTankGetPrimaryHandlerMethod.invoke(internalTank, new Object[0]);
                 if (!(primaryHandler instanceof IFluidHandler)) {
-                    RatsMod.LOGGER.debug("\u041a\u0440\u044b\u0441\u0430 {} \u043d\u0435 \u0441\u043c\u043e\u0433\u043b\u0430 \u0437\u0430\u043b\u0438\u0442\u044c \u0436\u0438\u0434\u043a\u043e\u0441\u0442\u044c \u0432 Create Item Drain {}: \u043e\u0441\u043d\u043e\u0432\u043d\u043e\u0439 \u0431\u0430\u043a \u043d\u0435 \u044f\u0432\u043b\u044f\u0435\u0442\u0441\u044f IFluidHandler", (Object)this.rat.getUUID(), (Object)entity.getBlockPos());
+                    RatsMod.LOGGER.debug("Rat {} failed to pour fluid into Create Item Drain {}: the main tank is not an IFluidHandler", (Object)this.rat.getUUID(), (Object)entity.getBlockPos());
                     int n = 0;
                     return n;
                 }
                 IFluidHandler handler = (IFluidHandler)primaryHandler;
                 int simulated = handler.fill(fluid.copy(), IFluidHandler.FluidAction.SIMULATE);
                 if (simulated <= 0) {
-                    RatsMod.LOGGER.debug("\u041a\u0440\u044b\u0441\u0430 {} \u043d\u0435 \u0441\u043c\u043e\u0433\u043b\u0430 \u0437\u0430\u043b\u0438\u0442\u044c {} \u0432 Create Item Drain {}: \u0431\u0430\u043a \u043e\u0442\u043a\u0430\u0437\u0430\u043b\u0441\u044f \u043f\u0440\u0438\u043d\u044f\u0442\u044c \u0436\u0438\u0434\u043a\u043e\u0441\u0442\u044c", (Object)this.rat.getUUID(), (Object)fluid.getHoverName().getString(), (Object)entity.getBlockPos());
+                    RatsMod.LOGGER.debug("Rat {} failed to pour {} into Create Item Drain {}: the tank refused the fluid", (Object)this.rat.getUUID(), (Object)fluid.getHoverName().getString(), (Object)entity.getBlockPos());
                     int n = 0;
                     return n;
                 }
@@ -577,7 +577,7 @@ implements RatWorkGoal {
                 if (inserted > 0) {
                     entity.setChanged();
                     this.notifyCreateBlockEntity(entity);
-                    RatsMod.LOGGER.debug("\u041a\u0440\u044b\u0441\u0430 {} \u0437\u0430\u043b\u0438\u043b\u0430 {} \u043c\u0411 {} \u0432 Create Item Drain {}", (Object)this.rat.getUUID(), (Object)inserted, (Object)fluid.getHoverName().getString(), (Object)entity.getBlockPos());
+                    RatsMod.LOGGER.debug("Rat {} poured {} mB of {} into Create Item Drain {}", (Object)this.rat.getUUID(), (Object)inserted, (Object)fluid.getHoverName().getString(), (Object)entity.getBlockPos());
                 }
                 int n = inserted;
                 return n;
@@ -587,11 +587,11 @@ implements RatWorkGoal {
             }
         }
         catch (ReflectiveOperationException exception) {
-            RatsMod.LOGGER.error("\u041a\u0440\u044b\u0441\u0430 {} \u043d\u0435 \u0441\u043c\u043e\u0433\u043b\u0430 \u043e\u0431\u0440\u0430\u0442\u0438\u0442\u044c\u0441\u044f \u043a API Create Item Drain \u0432 {}", (Object)this.rat.getUUID(), (Object)(entity == null ? null : entity.getBlockPos()), (Object)exception);
-            throw new IllegalStateException("\u041e\u0448\u0438\u0431\u043a\u0430 \u0441\u043e\u0432\u043c\u0435\u0441\u0442\u0438\u043c\u043e\u0441\u0442\u0438 \u0441 Create Item Drain: " + exception.getMessage(), exception);
+            RatsMod.LOGGER.error("Rat {} failed to access the Create Item Drain API at {}", (Object)this.rat.getUUID(), (Object)(entity == null ? null : entity.getBlockPos()), (Object)exception);
+            throw new IllegalStateException("Create Item Drain compat error: " + exception.getMessage(), exception);
         }
         catch (RuntimeException exception) {
-            RatsMod.LOGGER.error("\u041a\u0440\u044b\u0441\u0430 {} \u043d\u0435 \u0441\u043c\u043e\u0433\u043b\u0430 \u0437\u0430\u043b\u0438\u0442\u044c \u0436\u0438\u0434\u043a\u043e\u0441\u0442\u044c \u0432 Create Item Drain {}", (Object)this.rat.getUUID(), (Object)(entity == null ? null : entity.getBlockPos()), (Object)exception);
+            RatsMod.LOGGER.error("Rat {} failed to pour fluid into Create Item Drain {}", (Object)this.rat.getUUID(), (Object)(entity == null ? null : entity.getBlockPos()), (Object)exception);
             throw exception;
         }
     }
@@ -610,7 +610,7 @@ implements RatWorkGoal {
             throw exception;
         }
         catch (RuntimeException exception) {
-            RatsMod.LOGGER.error("\u041a\u0440\u044b\u0441\u0430 {} \u043d\u0435 \u0441\u043c\u043e\u0433\u043b\u0430 \u043f\u043e\u043b\u0443\u0447\u0438\u0442\u044c \u043f\u043e\u043b\u0435 \u0431\u0430\u043a\u0430 Create Item Drain", (Object)this.rat.getUUID(), (Object)exception);
+            RatsMod.LOGGER.error("Rat {} failed to get the Create Item Drain tank field", (Object)this.rat.getUUID(), (Object)exception);
             throw exception;
         }
     }
@@ -632,7 +632,7 @@ implements RatWorkGoal {
             throw exception;
         }
         catch (RuntimeException exception) {
-            RatsMod.LOGGER.error("\u041a\u0440\u044b\u0441\u0430 {} \u043d\u0435 \u0441\u043c\u043e\u0433\u043b\u0430 \u043f\u043e\u0434\u0433\u043e\u0442\u043e\u0432\u0438\u0442\u044c \u043c\u0435\u0442\u043e\u0434\u044b \u0431\u0430\u043a\u0430 Create Item Drain", (Object)this.rat.getUUID(), (Object)exception);
+            RatsMod.LOGGER.error("Rat {} failed to prepare the Create Item Drain tank methods", (Object)this.rat.getUUID(), (Object)exception);
             throw exception;
         }
     }
@@ -646,8 +646,8 @@ implements RatWorkGoal {
             entity.setChanged();
         }
         catch (ReflectiveOperationException exception) {
-            RatsMod.LOGGER.error("\u041a\u0440\u044b\u0441\u0430 {} \u043d\u0435 \u0441\u043c\u043e\u0433\u043b\u0430 \u043e\u0431\u043d\u043e\u0432\u0438\u0442\u044c Create Item Drain {}", (Object)this.rat.getUUID(), (Object)entity.getBlockPos(), (Object)exception);
-            throw new IllegalStateException("\u041e\u0448\u0438\u0431\u043a\u0430 \u043e\u0431\u043d\u043e\u0432\u043b\u0435\u043d\u0438\u044f Create Item Drain: " + exception.getMessage(), exception);
+            RatsMod.LOGGER.error("Rat {} failed to update Create Item Drain {}", (Object)this.rat.getUUID(), (Object)entity.getBlockPos(), (Object)exception);
+            throw new IllegalStateException("Create Item Drain update error: " + exception.getMessage(), exception);
         }
     }
 
@@ -666,7 +666,7 @@ implements RatWorkGoal {
             throw exception;
         }
         catch (RuntimeException exception) {
-            RatsMod.LOGGER.error("\u041a\u0440\u044b\u0441\u0430 {} \u043d\u0435 \u0441\u043c\u043e\u0433\u043b\u0430 \u043f\u043e\u043b\u0443\u0447\u0438\u0442\u044c \u043c\u0435\u0442\u043e\u0434 \u043e\u0431\u043d\u043e\u0432\u043b\u0435\u043d\u0438\u044f Create block entity", (Object)this.rat.getUUID(), (Object)exception);
+            RatsMod.LOGGER.error("Rat {} failed to get the Create block entity update method", (Object)this.rat.getUUID(), (Object)exception);
             throw exception;
         }
     }
@@ -679,13 +679,13 @@ implements RatWorkGoal {
             }
             for (Direction direction : Direction.values()) {
                 if (direction == preferredSide || (handler = (IFluidHandler)this.rat.level().getCapability(Capabilities.FluidHandler.BLOCK, pos, direction)) == null) continue;
-                RatsMod.LOGGER.debug("Крыса {} использует сторону {} для сдачи жидкости в {}, потому что сторона {} не дала обработчик", (Object)this.rat.getUUID(), (Object)direction, (Object)pos, (Object)preferredSide);
+                RatsMod.LOGGER.debug("Rat {} uses side {} to deliver fluid into {} because side {} provided no handler", (Object)this.rat.getUUID(), (Object)direction, (Object)pos, (Object)preferredSide);
                 return handler;
             }
             return null;
         }
         catch (RuntimeException exception) {
-            RatsMod.LOGGER.error("\u041a\u0440\u044b\u0441\u0430 {} \u043d\u0435 \u0441\u043c\u043e\u0433\u043b\u0430 \u043d\u0430\u0439\u0442\u0438 \u0436\u0438\u0434\u043a\u043e\u0441\u0442\u043d\u044b\u0439 \u043e\u0431\u0440\u0430\u0431\u043e\u0442\u0447\u0438\u043a \u0434\u043b\u044f \u0441\u0434\u0430\u0447\u0438 \u0432 {}", (Object)this.rat.getUUID(), (Object)pos, (Object)exception);
+            RatsMod.LOGGER.error("Rat {} could not find a fluid handler to deliver into {}", (Object)this.rat.getUUID(), (Object)pos, (Object)exception);
             throw exception;
         }
     }
@@ -695,7 +695,7 @@ implements RatWorkGoal {
             return this.type == DepositType.FLUID && pos != null && this.rat.level().getBlockState(pos).is(Blocks.CAULDRON) && !this.rat.transportingFluid.isEmpty() && this.rat.transportingFluid.getAmount() >= 1000 && (this.rat.transportingFluid.getFluid().isSame((Fluid)NeoForgeMod.MILK.get()) || this.rat.transportingFluid.getFluid().isSame((Fluid)Fluids.WATER));
         }
         catch (RuntimeException exception) {
-            RatsMod.LOGGER.error("\u041a\u0440\u044b\u0441\u0430 {} \u043d\u0435 \u0441\u043c\u043e\u0433\u043b\u0430 \u043f\u0440\u043e\u0432\u0435\u0440\u0438\u0442\u044c \u043a\u043e\u0442\u0451\u043b \u0434\u043b\u044f \u0436\u0438\u0434\u043a\u043e\u0441\u0442\u0438 {}", (Object)this.rat.getUUID(), (Object)pos, (Object)exception);
+            RatsMod.LOGGER.error("Rat {} failed to check the cauldron for fluid {}", (Object)this.rat.getUUID(), (Object)pos, (Object)exception);
             throw exception;
         }
     }
@@ -703,7 +703,7 @@ implements RatWorkGoal {
     private void fillEmptyCauldronWithFluid(BlockPos pos) {
         try {
             if (!this.canDepositFluidInEmptyCauldron(pos)) {
-                RatsMod.LOGGER.debug("\u041a\u0440\u044b\u0441\u0430 {} \u043d\u0435 \u043c\u043e\u0436\u0435\u0442 \u0432\u044b\u043b\u0438\u0442\u044c \u0436\u0438\u0434\u043a\u043e\u0441\u0442\u044c {} \u0432 \u043a\u043e\u0442\u0451\u043b {}", (Object)this.rat.getUUID(), (Object)this.rat.transportingFluid.getHoverName().getString(), (Object)pos);
+                RatsMod.LOGGER.debug("Rat {} cannot pour fluid {} into cauldron {}", (Object)this.rat.getUUID(), (Object)this.rat.transportingFluid.getHoverName().getString(), (Object)pos);
                 return;
             }
             if (this.rat.transportingFluid.getFluid().isSame((Fluid)NeoForgeMod.MILK.get())) {
@@ -711,7 +711,7 @@ implements RatWorkGoal {
             } else if (this.rat.transportingFluid.getFluid().isSame((Fluid)Fluids.WATER)) {
                 this.rat.level().setBlockAndUpdate(pos, (BlockState)Blocks.WATER_CAULDRON.defaultBlockState().setValue((Property)LayeredCauldronBlock.LEVEL, (Comparable)Integer.valueOf(3)));
             } else {
-                throw new IllegalStateException("\u041f\u0443\u0441\u0442\u043e\u0439 \u043a\u043e\u0442\u0451\u043b \u043d\u0435 \u043f\u043e\u0434\u0434\u0435\u0440\u0436\u0438\u0432\u0430\u0435\u0442 \u0436\u0438\u0434\u043a\u043e\u0441\u0442\u044c " + this.rat.transportingFluid.getHoverName().getString());
+                throw new IllegalStateException("An empty cauldron does not support fluid " + this.rat.transportingFluid.getHoverName().getString());
             }
             int remaining = this.rat.transportingFluid.getAmount() - 1000;
             if (remaining <= 0) {
@@ -725,7 +725,7 @@ implements RatWorkGoal {
             this.rat.playSound(SoundEvents.BUCKET_EMPTY, 1.0f, 1.0f);
         }
         catch (RuntimeException exception) {
-            RatsMod.LOGGER.error("\u041a\u0440\u044b\u0441\u0430 {} \u043d\u0435 \u0441\u043c\u043e\u0433\u043b\u0430 \u0432\u044b\u043b\u0438\u0442\u044c \u0436\u0438\u0434\u043a\u043e\u0441\u0442\u044c \u0432 \u043a\u043e\u0442\u0451\u043b {}", (Object)this.rat.getUUID(), (Object)pos, (Object)exception);
+            RatsMod.LOGGER.error("Rat {} failed to pour fluid into cauldron {}", (Object)this.rat.getUUID(), (Object)pos, (Object)exception);
             throw exception;
         }
     }

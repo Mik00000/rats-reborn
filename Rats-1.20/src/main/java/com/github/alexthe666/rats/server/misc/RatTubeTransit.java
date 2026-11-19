@@ -16,7 +16,7 @@ public final class RatTubeTransit {
 	private static final int TICKS_PER_SEGMENT = 4;
 	private static final double ENTRY_REACHED_DISTANCE_SQ = 1.75D;
 
-	// Закрывает служебный класс; ничего не принимает и не отдаёт.
+	// Closes the utility class; takes and returns nothing.
 	private RatTubeTransit() {
 	}
 
@@ -40,7 +40,7 @@ public final class RatTubeTransit {
 		private BlockPos currentStepTo;
 		private int currentStepTick;
 
-		// Создаёт состояние транзита; принимает маршрут, конечную цель и скорость подхода, ничего не отдаёт.
+		// Creates the transit state; takes the route, final target and approach speed, returns nothing.
 		private Session(RatTubePathHelper.TubeRoute route, Vec3 target, double speed) {
 			this.route = route;
 			this.target = target;
@@ -51,33 +51,33 @@ public final class RatTubeTransit {
 			this.lastFeetPos = BlockPos.ZERO;
 		}
 
-		// Проверяет, относится ли текущий транзит к той же цели; принимает цель и допуск, отдаёт true при совпадении.
+		// Checks whether the current transit is for the same target; takes the target and tolerance, returns true on a match.
 		public boolean targetsSame(Vec3 other, double tolerance) {
 			return this.target.distanceToSqr(other) < tolerance * tolerance;
 		}
 
-		// Возвращает активность транзита; ничего не принимает.
+		// Returns whether the transit is active; takes nothing.
 		public boolean isActive() {
 			return this.phase != null;
 		}
 
-		// Возвращает позицию внешней клетки входа; ничего не принимает.
+		// Returns the position of the outer entrance cell; takes nothing.
 		public BlockPos entryStandPos() {
 			return this.route.entry().standPos();
 		}
 
-		// Возвращает скорость подхода к входу; ничего не принимает.
+		// Returns the approach speed to the entrance; takes nothing.
 		public double speed() {
 			return this.speed;
 		}
 
-		// Возвращает true, если крыса ещё должна идти к входу обычной навигацией.
+		// Returns true if the rat still has to walk to the entrance with regular navigation.
 		public boolean needsVanillaApproach() {
 			return this.phase == Phase.APPROACH_ENTRY;
 		}
 	}
 
-	// Пытается создать транзит по трубе; принимает крысу, цель и скорость, отдаёт true если маршрут по трубе выбран.
+	// Tries to create a tube transit; takes the rat, target and speed, returns true if the tube route was chosen.
 	public static boolean tryStart(TamedRat rat, Vec3 target, double speed) {
 		try {
 			if (rat.level().isClientSide()) {
@@ -100,16 +100,16 @@ public final class RatTubeTransit {
 				}
 			}
 			rat.setTubeTransit(session);
-			RatsMod.LOGGER.debug("Крыса {} выбрала маршрут по трубе: вход {}, выход {}, сегментов {}",
+			RatsMod.LOGGER.debug("Rat {} chose a tube route: entry {}, exit {}, segments {}",
 					rat.getUUID(), session.route.entry().standPos(), session.route.exit().standPos(), session.route.segments().size());
 			return true;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось начать транзит по трубе для крысы {}: {}", rat.getUUID(), exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Failed to start a tube transit for rat {}: {}", rat.getUUID(), exception.getMessage(), exception);
 			throw exception;
 		}
 	}
 
-	// Тикает активный транзит по трубе; принимает крысу, отдаёт true пока транзит удерживает управление.
+	// Ticks the active tube transit; takes the rat, returns true while the transit holds control.
 	public static boolean tick(TamedRat rat) {
 		try {
 			Session session = rat.getTubeTransit();
@@ -127,7 +127,7 @@ public final class RatTubeTransit {
 				session.lastFeetPos = feet;
 			}
 			if (session.stuckTicks >= STUCK_TICK_LIMIT && session.phase == Phase.APPROACH_ENTRY) {
-				RatsMod.LOGGER.debug("Крыса {} зависла перед входом трубы в {}, сброс транзита", rat.getUUID(), feet);
+				RatsMod.LOGGER.debug("Rat {} got stuck in front of the tube entrance at {}, resetting transit", rat.getUUID(), feet);
 				rat.clearTubeTransit();
 				return false;
 			}
@@ -144,13 +144,13 @@ public final class RatTubeTransit {
 			}
 			return true;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Ошибка тика транзита по трубе для крысы {}: {}", rat.getUUID(), exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Tube transit tick error for rat {}: {}", rat.getUUID(), exception.getMessage(), exception);
 			rat.clearTubeTransit();
 			throw exception;
 		}
 	}
 
-	// Ведёт крысу к внешней клетке входа; принимает крысу и сессию, ничего не отдаёт.
+	// Leads the rat to the outer entrance cell; takes the rat and session, returns nothing.
 	private static void tickApproachEntry(TamedRat rat, Session session) {
 		if (isAtEntrance(rat, session.route.entry())) {
 			stopPathOnly(rat);
@@ -161,7 +161,7 @@ public final class RatTubeTransit {
 		driveVanillaApproach(rat, session);
 	}
 
-	// Переводит крысу из внешней клетки внутрь первого сегмента; принимает крысу и сессию, ничего не отдаёт.
+	// Moves the rat from the outer cell into the first segment; takes the rat and session, returns nothing.
 	private static void tickEnterTube(TamedRat rat, Session session) {
 		stopPathOnly(rat);
 		rat.switchNavigator(2);
@@ -172,7 +172,7 @@ public final class RatTubeTransit {
 		}
 	}
 
-	// Двигает крысу по списку сегментов трубы; принимает крысу и сессию, ничего не отдаёт.
+	// Moves the rat along the list of tube segments; takes the rat and session, returns nothing.
 	private static void tickTraverse(TamedRat rat, Session session) {
 		if (session.segmentIndex >= session.route.segments().size()) {
 			session.phase = Phase.EXIT_TUBE;
@@ -187,7 +187,7 @@ public final class RatTubeTransit {
 		}
 	}
 
-	// Выводит крысу из последнего сегмента во внешнюю клетку выхода; принимает крысу и сессию, ничего не отдаёт.
+	// Brings the rat out of the last segment into the outer exit cell; takes the rat and session, returns nothing.
 	private static void tickExitTube(TamedRat rat, Session session) {
 		stopPathOnly(rat);
 		BlockPos from = session.route.exit().tubePos();
@@ -198,14 +198,14 @@ public final class RatTubeTransit {
 		}
 	}
 
-	// Завершает транзит и сбрасывает вертикальное состояние; принимает крысу и сессию, ничего не отдаёт.
+	// Finishes the transit and resets the vertical state; takes the rat and session, returns nothing.
 	private static void tickFinish(TamedRat rat, Session session) {
 		session.phase = null;
 		rat.climbingTube = false;
 		rat.setTubeClimbDirection(0);
 	}
 
-	// Выполняет плавный шаг между соседними блоками; принимает крысу, сессию, начальный и конечный блок, отдаёт true в конце шага.
+	// Performs a smooth step between adjacent blocks; takes the rat, session, start and end block, returns true at the end of the step.
 	private static boolean advanceBlockStep(TamedRat rat, Session session, BlockPos from, BlockPos to) {
 		try {
 			stopPathOnly(rat);
@@ -229,19 +229,19 @@ public final class RatTubeTransit {
 			session.currentStepTick = nextTick;
 			return session.currentStepTick >= TICKS_PER_SEGMENT;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось выполнить шаг крысы {} по трубе {} -> {}: {}", rat.getUUID(), from, to, exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Failed to perform a tube step for rat {} {} -> {}: {}", rat.getUUID(), from, to, exception.getMessage(), exception);
 			throw exception;
 		}
 	}
 
-	// Сбрасывает текущий шаг между двумя блоками; принимает сессию, ничего не отдаёт.
+	// Resets the current step between two blocks; takes the session, returns nothing.
 	private static void clearCurrentStep(Session session) {
 		session.currentStepFrom = null;
 		session.currentStepTo = null;
 		session.currentStepTick = 0;
 	}
 
-	// Поддерживает обычный путь до внешней клетки входа; принимает крысу и транзит, ничего не отдаёт.
+	// Maintains the regular path to the outer entrance cell; takes the rat and transit, returns nothing.
 	private static void driveVanillaApproach(TamedRat rat, Session session) {
 		PathNavigation navigation = rat.getNavigation();
 		if (navigation instanceof RatNavigation ratNavigation) {
@@ -252,7 +252,7 @@ public final class RatTubeTransit {
 		}
 	}
 
-	// Проверяет, дошла ли крыса до открытой грани входа; принимает крысу и вход, отдаёт true при достижении.
+	// Checks whether the rat reached the open entrance face; takes the rat and entrance, returns true when reached.
 	private static boolean isAtEntrance(TamedRat rat, RatTubePathHelper.TubeEntrance entrance) {
 		if (rat.blockPosition().equals(entrance.tubePos())) {
 			return true;
@@ -263,7 +263,7 @@ public final class RatTubeTransit {
 				|| rat.position().distanceToSqr(tubeCenter) <= ENTRY_REACHED_DISTANCE_SQ;
 	}
 
-	// Останавливает только текущий путь навигации без сброса транзита; принимает крысу.
+	// Stops only the current navigation path without resetting the transit; takes the rat.
 	private static void stopPathOnly(TamedRat rat) {
 		PathNavigation navigation = rat.getNavigation();
 		if (navigation instanceof RatNavigation ratNavigation) {
@@ -273,7 +273,7 @@ public final class RatTubeTransit {
 		}
 	}
 
-	// Поворачивает крысу по направлению шага; принимает крысу, начальный и конечный блок, ничего не отдаёт.
+	// Turns the rat in the step direction; takes the rat, start and end block, returns nothing.
 	private static void faceToward(TamedRat rat, BlockPos from, BlockPos to) {
 		double dx = to.getX() - from.getX();
 		double dz = to.getZ() - from.getZ();

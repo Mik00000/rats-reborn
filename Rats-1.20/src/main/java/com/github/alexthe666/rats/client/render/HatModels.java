@@ -56,7 +56,7 @@ public final class HatModels {
                 default -> null;
             };
         } catch (Throwable e) {
-            RatsMod.LOGGER.error("Не удалось создать модель шляпы {}: {}", BuiltInRegistries.ITEM.getKey(hat), e.getMessage());
+            RatsMod.LOGGER.error("Failed to create hat model {}: {}", BuiltInRegistries.ITEM.getKey(hat), e.getMessage());
             return null;
         }
     }
@@ -68,7 +68,7 @@ public final class HatModels {
             model.head.visible = true;
             model.head.render(poseStack, buffer, packedLight, packedOverlay);
         } catch (Throwable e) {
-            RatsMod.LOGGER.error("Ошибка рендера шляпы на крысе: {}", e.getMessage());
+            RatsMod.LOGGER.error("Error rendering a hat on a rat: {}", e.getMessage());
         }
     }
 
@@ -81,7 +81,7 @@ public final class HatModels {
             ResourceLocation key = BuiltInRegistries.ITEM.getKey(item);
             return ResourceLocation.fromNamespaceAndPath(key.getNamespace(), "textures/model/hat/" + key.getPath() + ".png");
         } catch (Throwable e) {
-            RatsMod.LOGGER.error("Не удалось получить текстуру шляпы {}: {}", item, e.getMessage());
+            RatsMod.LOGGER.error("Failed to get hat texture {}: {}", item, e.getMessage());
             throw new RuntimeException(e);
         }
     }

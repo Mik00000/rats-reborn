@@ -66,13 +66,13 @@ public class MobFilterScreen extends Screen {
 	private boolean scrolling;
 	private final Set<TagKey<EntityType<?>>> visibleTags = new HashSet<>();
 
-	// Экран фильтра мобов: hand — рука с улучшением; список мобов строится при открытии (level может быть null до загрузки мира).
+	// Mob filter screen: hand is the hand holding the upgrade; the mob list is built on open (level may be null before the world loads).
 	public MobFilterScreen(InteractionHand hand) {
 		super(Component.translatable(RatsLangConstants.MOB_FILTER));
 		var player = Minecraft.getInstance().player;
 		if (player == null) {
-			RatsMod.LOGGER.error("MobFilterScreen: игрок null при открытии экрана");
-			throw new IllegalStateException("MobFilterScreen: игрок не инициализирован");
+			RatsMod.LOGGER.error("MobFilterScreen: player is null when opening the screen");
+			throw new IllegalStateException("MobFilterScreen: player is not initialized");
 		}
 		this.allMobs = new ArrayList<>(RatsMod.getCachedMobList(Minecraft.getInstance().level));
 		this.hand = hand;

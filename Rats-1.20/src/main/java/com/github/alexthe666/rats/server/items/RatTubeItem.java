@@ -43,7 +43,7 @@ public class RatTubeItem extends Item {
 		this.color = color;
 	}
 
-	// Подключает клиентский 3D-рендер трубы; принимает consumer расширений предмета, ничего не возвращает.
+	// Hooks up the client-side 3D tube renderer; takes the item extensions consumer, returns nothing.
 	@Override
 	public void initializeClient(Consumer<IClientItemExtensions> consumer) {
 		try {
@@ -54,7 +54,7 @@ public class RatTubeItem extends Item {
 				}
 			});
 		} catch (RuntimeException exception) {
-			throw new IllegalStateException("Не удалось подключить клиентский рендер трубы", exception);
+			throw new IllegalStateException("Failed to hook up the client-side tube renderer", exception);
 		}
 	}
 

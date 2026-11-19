@@ -12,7 +12,7 @@ import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 /**
- * Регистрация и отправка сетевых пакетов Rats через CustomPacketPayload (NeoForge 1.21.1).
+ * Registration and sending of Rats network packets via CustomPacketPayload (NeoForge 1.21.1).
  */
 public final class RatsNetworkHandler {
 
@@ -21,7 +21,7 @@ public final class RatsNetworkHandler {
 	private RatsNetworkHandler() {
 	}
 
-	// Регистрирует все play-пакеты мода; принимает событие NeoForge, ничего не возвращает.
+	// Registers all play packets of the mod; takes the NeoForge event, returns nothing.
 	public static void registerPayloads(RegisterPayloadHandlersEvent event) {
 		try {
 			PayloadRegistrar registrar = event.registrar("1");
@@ -45,56 +45,56 @@ public final class RatsNetworkHandler {
 			registrar.playToClient(UpdateRatFluidPacket.TYPE, UpdateRatFluidPacket.STREAM_CODEC, UpdateRatFluidPacket.Handler::handle);
 			registrar.playToClient(UpdateRatMusicPacket.TYPE, UpdateRatMusicPacket.STREAM_CODEC, UpdateRatMusicPacket.Handler::handle);
 			registrar.playToClient(UpdateSelectedRatPacket.TYPE, UpdateSelectedRatPacket.STREAM_CODEC, UpdateSelectedRatPacket.Handler::handle);
-			RatsMod.LOGGER.info("Сеть Rats: зарегистрировано 20 play-пакетов CustomPacketPayload");
+			RatsMod.LOGGER.info("Rats network: registered 20 CustomPacketPayload play packets");
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось зарегистрировать сетевые пакеты Rats", exception);
+			RatsMod.LOGGER.error("Failed to register the Rats network packets", exception);
 			throw exception;
 		}
 	}
 
-	// Точка совместимости со старым init(); параметры не принимает, ничего не возвращает.
+	// Compatibility entry point for the old init(); takes no parameters, returns nothing.
 	public static void init() {
-		RatsMod.LOGGER.debug("Сеть Rats инициализируется через RegisterPayloadHandlersEvent");
+		RatsMod.LOGGER.debug("The Rats network is initialized via RegisterPayloadHandlersEvent");
 	}
 
-	// Маркер цели «все игроки»; параметры не принимает, отдаёт маркер.
+	// The "all players" target marker; takes no parameters, returns the marker.
 	public static Object allTarget() {
 		return AllPlayersTarget.INSTANCE;
 	}
 
-	// Цель отправки одному игроку; принимает поставщик игрока, отдаёт игрока.
+	// Send target: a single player; takes a player supplier, returns the player.
 	public static ServerPlayer playerTarget(java.util.function.Supplier<ServerPlayer> player) {
 		return player.get();
 	}
 
-	// Цель отправки игрокам, отслеживающим сущность; принимает поставщик сущности, отдаёт сущность.
+	// Send target: players tracking an entity; takes an entity supplier, returns the entity.
 	public static Entity trackingEntityTarget(java.util.function.Supplier<? extends Entity> entity) {
 		return entity.get();
 	}
 
-	// Цель отправки игрокам, отслеживающим сущность, и самой сущности; принимает поставщик сущности, отдаёт маркер цели.
+	// Send target: players tracking an entity and the entity itself; takes an entity supplier, returns the target marker.
 	public static EntityAndSelfTarget trackingEntityAndSelfTarget(java.util.function.Supplier<? extends Entity> entity) {
 		return new EntityAndSelfTarget(entity.get());
 	}
 
-	// Цель отправки игрокам, отслеживающим чанк; принимает поставщик чанка, отдаёт чанк.
+	// Send target: players tracking a chunk; takes a chunk supplier, returns the chunk.
 	public static LevelChunk trackingChunkTarget(java.util.function.Supplier<LevelChunk> chunk) {
 		return chunk.get();
 	}
 
 	public static final class Channel {
 
-		// Отправляет пакет на сервер с клиента; принимает полезную нагрузку, ничего не возвращает.
+		// Sends a packet from the client to the server; takes the payload, returns nothing.
 		public void sendToServer(CustomPacketPayload packet) {
 			try {
 				PacketDistributor.sendToServer(packet);
 			} catch (RuntimeException exception) {
-				RatsMod.LOGGER.error("Не удалось отправить пакет {} на сервер", packet.type().id(), exception);
+				RatsMod.LOGGER.error("Failed to send packet {} to the server", packet.type().id(), exception);
 				throw exception;
 			}
 		}
 
-		// Отправляет пакет выбранной цели с сервера; принимает цель и полезную нагрузку, ничего не возвращает.
+		// Sends a packet from the server to the chosen target; takes the target and payload, returns nothing.
 		public void send(Object target, CustomPacketPayload packet) {
 			try {
 				if (target instanceof AllPlayersTarget) {
@@ -108,20 +108,20 @@ public final class RatsNetworkHandler {
 				} else if (target instanceof LevelChunk chunk && chunk.getLevel() instanceof ServerLevel serverLevel) {
 					PacketDistributor.sendToPlayersTrackingChunk(serverLevel, chunk.getPos(), packet);
 				} else {
-					throw new IllegalArgumentException("Неизвестная цель отправки пакета: " + target.getClass().getName());
+					throw new IllegalArgumentException("Unknown packet send target: " + target.getClass().getName());
 				}
 			} catch (RuntimeException exception) {
-				RatsMod.LOGGER.error("Не удалось отправить пакет {} цели {}", packet.type().id(), target, exception);
+				RatsMod.LOGGER.error("Failed to send packet {} to target {}", packet.type().id(), target, exception);
 				throw exception;
 			}
 		}
 
-		// Отправляет пакет отслеживающим сущность и самой сущности (если игрок); принимает сущность и пакет.
+		// Sends a packet to players tracking an entity and to the entity itself (if it is a player); takes the entity and packet.
 		public void sendToTrackingEntityAndSelf(Entity entity, CustomPacketPayload packet) {
 			try {
 				PacketDistributor.sendToPlayersTrackingEntityAndSelf(entity, packet);
 			} catch (RuntimeException exception) {
-				RatsMod.LOGGER.error("Не удалось отправить пакет {} отслеживающим {}", packet.type().id(), entity, exception);
+				RatsMod.LOGGER.error("Failed to send packet {} to players tracking {}", packet.type().id(), entity, exception);
 				throw exception;
 			}
 		}

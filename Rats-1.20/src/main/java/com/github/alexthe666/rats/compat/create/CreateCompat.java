@@ -355,17 +355,17 @@ public final class CreateCompat {
 		}
 	}
 
-	// Быстро проверяет, принимает ли рецепт предмет в лапах крысы; принимает рецепт и стек, отдаёт true для подходящего предмета.
+	// Quickly checks whether the recipe accepts the item in the rat's paws; takes the recipe and stack, returns true for a matching item.
 	private static boolean applicationRecipeAcceptsHeldItem(Recipe<?> recipe, ItemStack held) {
 		try {
 			return hasApplicationRecipeMethods(recipe) && ingredientAccepts(getRequiredHeldItem(recipe), held);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить предмет применения Create {} для рецепта {}", held, recipe, exception);
+			RatsMod.LOGGER.error("Failed to check Create application item {} for recipe {}", held, recipe, exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет актуальность кешей рецептов Create; принимает уровень сервера, очищает кеши при смене менеджера рецептов.
+	// Checks that the Create recipe caches are current; takes the server level, clears the caches when the recipe manager changes.
 	private static void ensureRecipeCachesValid(ServerLevel level) {
 		try {
 			Object recipeManager = level.getRecipeManager();
@@ -380,17 +380,17 @@ public final class CreateCompat {
 			APPLICATION_ITEM_CACHE.clear();
 			SEQUENCED_STEP_RECIPE_CACHE.clear();
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить кеш рецептов Create", exception);
+			RatsMod.LOGGER.error("Failed to check the Create recipe cache", exception);
 			throw exception;
 		}
 	}
 
-	// Создаёт ключ совпадения рецепта применения; принимает предмет крысы и предмет на ленте, отдаёт стабильный ключ для кеша.
+	// Builds a match key for an application recipe; takes the rat's item and the belt item, returns a stable cache key.
 	private static String getApplicationMatchCacheKey(ItemStack held, ItemStack target) {
 		try {
 			return getItemId(held) + "|" + getItemId(target);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось создать ключ кеша рецепта Create для {} и {}", held, target, exception);
+			RatsMod.LOGGER.error("Failed to build the Create recipe cache key for {} and {}", held, target, exception);
 			throw exception;
 		}
 	}
@@ -1078,7 +1078,7 @@ public final class CreateCompat {
 		}
 	}
 
-	// Находит класс Create один раз и дальше берёт его из кеша; принимает полное имя класса, отдаёт Class.
+	// Looks up a Create class once and then takes it from the cache; takes the fully qualified class name, returns the Class.
 	private static Class<?> findClass(String className) throws ClassNotFoundException {
 		try {
 			Class<?> cached = CLASS_CACHE.get(className);
@@ -1091,12 +1091,12 @@ public final class CreateCompat {
 		} catch (ClassNotFoundException exception) {
 			throw exception;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось найти класс Create {}", className, exception);
+			RatsMod.LOGGER.error("Failed to find Create class {}", className, exception);
 			throw exception;
 		}
 	}
 
-	// Находит публичный метод и кеширует результат; принимает класс, имя и типы параметров, отдаёт Method.
+	// Finds a public method and caches the result; takes the class, name and parameter types, returns the Method.
 	private static Method findMethod(Class<?> type, String name, Class<?>... parameterTypes) throws NoSuchMethodException {
 		try {
 			String cacheKey = getMethodCacheKey(type, name, parameterTypes);
@@ -1119,24 +1119,24 @@ public final class CreateCompat {
 		} catch (NoSuchMethodException exception) {
 			throw exception;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось найти метод {} у класса {}", name, type.getName(), exception);
+			RatsMod.LOGGER.error("Failed to find method {} on class {}", name, type.getName(), exception);
 			throw exception;
 		}
 	}
 
-	// Пробует найти метод без исключения на частом пути; принимает класс, имя и параметры, отдаёт Optional с Method.
+	// Tries to find a method without throwing on the hot path; takes the class, name and parameters, returns an Optional Method.
 	private static Optional<Method> findOptionalMethod(Class<?> type, String name, Class<?>... parameterTypes) {
 		try {
 			return Optional.of(findMethod(type, name, parameterTypes));
 		} catch (NoSuchMethodException exception) {
 			return Optional.empty();
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить метод {} у класса {}", name, type.getName(), exception);
+			RatsMod.LOGGER.error("Failed to check method {} on class {}", name, type.getName(), exception);
 			throw exception;
 		}
 	}
 
-	// Создаёт ключ кеша метода; принимает класс, имя и параметры, отдаёт строковый ключ.
+	// Builds a method cache key; takes the class, name and parameters, returns a string key.
 	private static String getMethodCacheKey(Class<?> type, String name, Class<?>... parameterTypes) {
 		try {
 			StringBuilder builder = new StringBuilder(type.getName()).append('#').append(name).append('(');
@@ -1145,7 +1145,7 @@ public final class CreateCompat {
 			}
 			return builder.append(')').toString();
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось собрать ключ метода {} у класса {}", name, type.getName(), exception);
+			RatsMod.LOGGER.error("Failed to build the key for method {} on class {}", name, type.getName(), exception);
 			throw exception;
 		}
 	}

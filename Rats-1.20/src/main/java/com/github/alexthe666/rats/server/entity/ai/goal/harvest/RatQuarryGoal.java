@@ -65,7 +65,7 @@ public class RatQuarryGoal extends BaseRatHarvestGoal {
 		return true;
 	}
 
-	// Выбирает цель: возврат к карьеру, подход к столбу или добыча забронированного блока.
+	// Picks the target: return to the quarry, approach the pillar or mine the reserved block.
 	private void resetTarget() {
 		try {
 			this.setTargetBlock(null);
@@ -90,29 +90,29 @@ public class RatQuarryGoal extends BaseRatHarvestGoal {
 				this.setTargetBlock(miningTarget);
 			}
 		} catch (RuntimeException exception) {
-			com.github.alexthe666.rats.RatsMod.LOGGER.error("Не удалось выбрать цель карьера для крысы {}", this.rat.getUUID(), exception);
+			com.github.alexthe666.rats.RatsMod.LOGGER.error("Failed to pick a quarry target for rat {}", this.rat.getUUID(), exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет точную рабочую позицию; принимает позицию ног, отдаёт true при совпадении блока крысы.
+	// Checks the exact work position; takes the foot position, returns true if it matches the rat's block.
 	private boolean isAtStandPos(BlockPos standPos) {
 		try {
 			return this.rat.blockPosition().equals(standPos);
 		} catch (RuntimeException exception) {
-			com.github.alexthe666.rats.RatsMod.LOGGER.error("Не удалось проверить позицию крысы {} у карьера", this.rat.getUUID(), exception);
+			com.github.alexthe666.rats.RatsMod.LOGGER.error("Failed to check the position of rat {} at the quarry", this.rat.getUUID(), exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет, может ли блок дать предмет крысе; принимает уровень и позицию, отдаёт true если предмет подходит.
+	// Checks whether a block can drop an item for the rat; takes the level and position, returns true if the item fits.
 	private boolean doesListContainBlock(Level level, BlockPos pos) {
 		try {
 			BlockState state = level.getBlockState(pos);
 			ItemStack getStack = state.getBlock().getCloneItemStack(level, pos, state);
 			return this.rat.canRatPickupItem(getStack);
 		} catch (RuntimeException exception) {
-			com.github.alexthe666.rats.RatsMod.LOGGER.error("Не удалось проверить добычу блока {} для крысы {}", pos, this.rat.getUUID(), exception);
+			com.github.alexthe666.rats.RatsMod.LOGGER.error("Failed to check mining block {} for rat {}", pos, this.rat.getUUID(), exception);
 			throw exception;
 		}
 	}
@@ -161,7 +161,7 @@ public class RatQuarryGoal extends BaseRatHarvestGoal {
 		this.pathStuckTicks = 0;
 	}
 
-	// Сбрасывает недостижимую цель и выбирает новую на том же слое; принимает карьер, ничего не возвращает.
+	// Drops an unreachable target and picks a new one on the same layer; takes the quarry, returns nothing.
 	private void retargetAfterBlockedWork(RatQuarryBlockEntity quarry) {
 		try {
 			BlockPos oldTarget = this.getTargetBlock();
@@ -176,7 +176,7 @@ public class RatQuarryGoal extends BaseRatHarvestGoal {
 				this.stop();
 			}
 		} catch (RuntimeException exception) {
-			com.github.alexthe666.rats.RatsMod.LOGGER.error("Крыса {} не смогла переназначить цель карьера {}", this.rat.getUUID(), quarry.getBlockPos(), exception);
+			com.github.alexthe666.rats.RatsMod.LOGGER.error("Rat {} failed to reassign the target of quarry {}", this.rat.getUUID(), quarry.getBlockPos(), exception);
 			this.stop();
 			throw exception;
 		}
@@ -194,7 +194,7 @@ public class RatQuarryGoal extends BaseRatHarvestGoal {
 		this.tickMining();
 	}
 
-	// Движение по лестнице поддержки вверх или вниз.
+	// Moving up or down the support ladder.
 	private void tickPathMovement() {
 		try {
 			BlockPos target = this.getTargetBlock();
@@ -233,16 +233,16 @@ public class RatQuarryGoal extends BaseRatHarvestGoal {
 			}
 			this.pathStuckTicks++;
 			if (this.pathStuckTicks >= 40) {
-				com.github.alexthe666.rats.RatsMod.LOGGER.warn("Крыса {} зависла у цели {} карьера {}, переназначение", this.rat.getUUID(), target, quarry.getBlockPos());
+				com.github.alexthe666.rats.RatsMod.LOGGER.warn("Rat {} got stuck at target {} of quarry {}, reassigning", this.rat.getUUID(), target, quarry.getBlockPos());
 				this.retargetAfterBlockedWork(quarry);
 			}
 		} catch (RuntimeException exception) {
-			com.github.alexthe666.rats.RatsMod.LOGGER.error("Ошибка движения по лестнице карьера {}: {}", this.rat.getUUID(), exception.getMessage(), exception);
+			com.github.alexthe666.rats.RatsMod.LOGGER.error("Error moving along the ladder of quarry {}: {}", this.rat.getUUID(), exception.getMessage(), exception);
 			this.stop();
 		}
 	}
 
-	// Перемещает крысу по угловой колонне карьера; принимает карьер и цель, отдаёт true если шаг уже выполнен.
+	// Moves the rat along the quarry corner column; takes the quarry and target, returns true if the step is already done.
 	private boolean moveAlongAccessColumn(RatQuarryBlockEntity quarry, BlockPos target) {
 		try {
 			if (!quarry.isPrimaryAccessColumnStandPos(target)) {
@@ -264,11 +264,11 @@ public class RatQuarryGoal extends BaseRatHarvestGoal {
 			int nextY = currentY + Integer.compare(target.getY(), currentY);
 			BlockPos nextStep = quarry.getPrimaryAccessColumnStandPos(nextY);
 			if (!quarry.isPrimaryAccessColumnStandPos(nextStep)) {
-				com.github.alexthe666.rats.RatsMod.LOGGER.warn("Карьер {} не смог провести крысу {} по столбу через {}", quarry.getBlockPos(), this.rat.getUUID(), nextStep);
+				com.github.alexthe666.rats.RatsMod.LOGGER.warn("Quarry {} could not move rat {} along the pillar through {}", quarry.getBlockPos(), this.rat.getUUID(), nextStep);
 				return false;
 			}
 			if (!quarry.hasAccessColumnPlatformBelow(this.rat.level(), nextStep)) {
-				com.github.alexthe666.rats.RatsMod.LOGGER.warn("Карьер {} не провёл крысу {} по столбу на {} без платформы", quarry.getBlockPos(), this.rat.getUUID(), nextStep);
+				com.github.alexthe666.rats.RatsMod.LOGGER.warn("Quarry {} did not move rat {} along the pillar to {} without a platform", quarry.getBlockPos(), this.rat.getUUID(), nextStep);
 				return false;
 			}
 			this.rat.getNavigation().stop();
@@ -277,12 +277,12 @@ public class RatQuarryGoal extends BaseRatHarvestGoal {
 			this.rat.setPos(targetX, nextY, targetZ);
 			return true;
 		} catch (RuntimeException exception) {
-			com.github.alexthe666.rats.RatsMod.LOGGER.error("Ошибка движения крысы {} по столбу карьера {}", this.rat.getUUID(), quarry.getBlockPos(), exception);
+			com.github.alexthe666.rats.RatsMod.LOGGER.error("Error moving rat {} along the pillar of quarry {}", this.rat.getUUID(), quarry.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Безопасно выводит крысу на уровень рабочей стойки через угловую колонну; принимает карьер и стойку, отдаёт true если шаг выполнен.
+	// Safely brings the rat to the work standing spot level via the corner column; takes the quarry and standing spot, returns true if the step is done.
 	private boolean moveAlongAccessColumnToStandLevel(RatQuarryBlockEntity quarry, BlockPos standPos) {
 		try {
 			int currentY = this.rat.blockPosition().getY();
@@ -299,12 +299,12 @@ public class RatQuarryGoal extends BaseRatHarvestGoal {
 			}
 			return false;
 		} catch (RuntimeException exception) {
-			com.github.alexthe666.rats.RatsMod.LOGGER.error("Крыса {} не смогла безопасно пройти по шахте карьера {}", this.rat.getUUID(), quarry.getBlockPos(), exception);
+			com.github.alexthe666.rats.RatsMod.LOGGER.error("Rat {} failed to safely traverse the shaft of quarry {}", this.rat.getUUID(), quarry.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Ведёт крысу внутри карьера по безопасной сетке; принимает карьер и точку ног, отдаёт true если шаг движения выполнен.
+	// Leads the rat inside the quarry along the safe grid; takes the quarry and foot point, returns true if a movement step was done.
 	private boolean moveQuarryGridTo(RatQuarryBlockEntity quarry, BlockPos target) {
 		try {
 			BlockPos current = this.rat.blockPosition();
@@ -321,7 +321,7 @@ public class RatQuarryGoal extends BaseRatHarvestGoal {
 				int nextY = current.getY() + Integer.compare(target.getY(), current.getY());
 				BlockPos nextStep = quarry.getPrimaryAccessColumnStandPos(nextY);
 				if (!quarry.hasAccessColumnPlatformBelow(this.rat.level(), nextStep)) {
-					com.github.alexthe666.rats.RatsMod.LOGGER.warn("Крыса {} не может подняться по шахте карьера {} на {} без платформы под ногами", this.rat.getUUID(), quarry.getBlockPos(), nextStep);
+					com.github.alexthe666.rats.RatsMod.LOGGER.warn("Rat {} cannot climb the shaft of quarry {} to {} without a platform underfoot", this.rat.getUUID(), quarry.getBlockPos(), nextStep);
 					return false;
 				}
 				this.animateQuarryStep(current, nextStep);
@@ -330,12 +330,12 @@ public class RatQuarryGoal extends BaseRatHarvestGoal {
 			}
 			return this.moveQuarryGridHorizontally(quarry, target);
 		} catch (RuntimeException exception) {
-			com.github.alexthe666.rats.RatsMod.LOGGER.error("Крыса {} не смогла пройти по сетке карьера {} к {}", this.rat.getUUID(), quarry.getBlockPos(), target, exception);
+			com.github.alexthe666.rats.RatsMod.LOGGER.error("Rat {} failed to walk the grid of quarry {} to {}", this.rat.getUUID(), quarry.getBlockPos(), target, exception);
 			return false;
 		}
 	}
 
-	// Двигает крысу по горизонтали строго по клеткам; принимает карьер и цель ног, отдаёт true если шаг выполнен.
+	// Moves the rat horizontally strictly cell by cell; takes the quarry and foot target, returns true if the step is done.
 	private boolean moveQuarryGridHorizontally(RatQuarryBlockEntity quarry, BlockPos target) {
 		try {
 			BlockPos current = this.rat.blockPosition();
@@ -344,7 +344,7 @@ public class RatQuarryGoal extends BaseRatHarvestGoal {
 			}
 			BlockPos next = quarry.findSafeHorizontalGridStep(this.rat.level(), current, target);
 			if (next == null) {
-				com.github.alexthe666.rats.RatsMod.LOGGER.warn("Крыса {} не нашла безопасный горизонтальный шаг в карьере {} из {} к {}", this.rat.getUUID(), quarry.getBlockPos(), current, target);
+				com.github.alexthe666.rats.RatsMod.LOGGER.warn("Rat {} found no safe horizontal step in quarry {} from {} to {}", this.rat.getUUID(), quarry.getBlockPos(), current, target);
 				return false;
 			}
 			this.rat.getNavigation().stop();
@@ -353,12 +353,12 @@ public class RatQuarryGoal extends BaseRatHarvestGoal {
 			this.rat.setPos(next.getX() + 0.5D, next.getY(), next.getZ() + 0.5D);
 			return true;
 		} catch (RuntimeException exception) {
-			com.github.alexthe666.rats.RatsMod.LOGGER.error("Крыса {} не смогла пройти по клеткам к {} в карьере {}", this.rat.getUUID(), target, quarry.getBlockPos(), exception);
+			com.github.alexthe666.rats.RatsMod.LOGGER.error("Rat {} failed to walk the cells to {} in quarry {}", this.rat.getUUID(), target, quarry.getBlockPos(), exception);
 			return false;
 		}
 	}
 
-	// Разворачивает крысу и запускает шаговую анимацию; принимает текущую и следующую клетку, ничего не возвращает.
+	// Turns the rat and starts the step animation; takes the current and next cell, returns nothing.
 	private void animateQuarryStep(BlockPos current, BlockPos next) {
 		try {
 			double dx = next.getX() - current.getX();
@@ -374,12 +374,12 @@ public class RatQuarryGoal extends BaseRatHarvestGoal {
 			this.rat.getLookControl().setLookAt(next.getX() + 0.5D, next.getY() + 0.5D, next.getZ() + 0.5D);
 			this.rat.walkAnimation.update(1.0F, 0.4F);
 		} catch (RuntimeException exception) {
-			com.github.alexthe666.rats.RatsMod.LOGGER.error("Не удалось обновить анимацию шага крысы {} из {} в {}", this.rat.getUUID(), current, next, exception);
+			com.github.alexthe666.rats.RatsMod.LOGGER.error("Failed to update the step animation of rat {} from {} to {}", this.rat.getUUID(), current, next, exception);
 			throw exception;
 		}
 	}
 
-	// Копает текущий блок на слое.
+	// Mines the current block on the layer.
 	private void tickMining() {
 		try {
 			BlockPos target = this.getTargetBlock();
@@ -412,30 +412,30 @@ public class RatQuarryGoal extends BaseRatHarvestGoal {
 				return;
 			}
 			if (!this.canMineBlock(quarry, target) || !this.canReachTargetFromCurrentPosition(quarry, target)) {
-				com.github.alexthe666.rats.RatsMod.LOGGER.warn("Крыса {} не может добыть {} в карьере {}, переназначение", this.rat.getUUID(), target, quarry.getBlockPos());
+				com.github.alexthe666.rats.RatsMod.LOGGER.warn("Rat {} cannot mine {} in quarry {}, reassigning", this.rat.getUUID(), target, quarry.getBlockPos());
 				this.retargetAfterBlockedWork(quarry);
 				return;
 			}
 			this.mineTargetBlock(quarry, target, block);
 		} catch (RuntimeException exception) {
-			com.github.alexthe666.rats.RatsMod.LOGGER.error("Ошибка добычи карьером для крысы {}", this.rat.getUUID(), exception);
+			com.github.alexthe666.rats.RatsMod.LOGGER.error("Quarry mining error for rat {}", this.rat.getUUID(), exception);
 			this.stop();
 			throw exception;
 		}
 	}
 
-	// Проверяет, стоит ли крыса на добываемом блоке; принимает цель, отдаёт true если цель в ногах или под ногами.
+	// Checks whether the rat stands on the block being mined; takes the target, returns true if the target is at or below its feet.
 	private boolean isStandingOnTarget(BlockPos target) {
 		try {
 			BlockPos current = this.rat.blockPosition();
 			return target.equals(current) || target.equals(current.below());
 		} catch (RuntimeException exception) {
-			com.github.alexthe666.rats.RatsMod.LOGGER.error("Не удалось проверить положение крысы {} над целью {}", this.rat.getUUID(), target, exception);
+			com.github.alexthe666.rats.RatsMod.LOGGER.error("Failed to check the position of rat {} above target {}", this.rat.getUUID(), target, exception);
 			throw exception;
 		}
 	}
 
-	// Отводит крысу с блока цели; принимает карьер, цель и безопасную стойку, отдаёт true если движение начато или выполнено.
+	// Moves the rat off the target block; takes the quarry, target and safe standing spot, returns true if movement started or finished.
 	private boolean moveOffTargetBlock(RatQuarryBlockEntity quarry, BlockPos target, BlockPos standPos) {
 		try {
 			if (quarry.isSupportTarget(target)) {
@@ -458,12 +458,12 @@ public class RatQuarryGoal extends BaseRatHarvestGoal {
 			}
 			return true;
 		} catch (RuntimeException exception) {
-			com.github.alexthe666.rats.RatsMod.LOGGER.error("Крыса {} не смогла отойти с цели {} карьера {}", this.rat.getUUID(), target, quarry.getBlockPos(), exception);
+			com.github.alexthe666.rats.RatsMod.LOGGER.error("Rat {} failed to step off target {} of quarry {}", this.rat.getUUID(), target, quarry.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Добывает текущий блок цели; принимает карьер, цель и состояние, ничего не возвращает до завершения добычи.
+	// Mines the current target block; takes the quarry, target and state, returns nothing until mining finishes.
 	private void mineTargetBlock(RatQuarryBlockEntity quarry, BlockPos target, BlockState block) {
 		try {
 			SoundType soundType = block.getBlock().getSoundType(block, this.rat.level(), target, null);
@@ -489,12 +489,12 @@ public class RatQuarryGoal extends BaseRatHarvestGoal {
 			}
 			this.prevMiningState = block;
 		} catch (RuntimeException exception) {
-			com.github.alexthe666.rats.RatsMod.LOGGER.error("Не удалось добыть цель {} карьером {}", target, quarry.getBlockPos(), exception);
+			com.github.alexthe666.rats.RatsMod.LOGGER.error("Failed to mine target {} with quarry {}", target, quarry.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Завершает добычу блока; принимает карьер, цель, состояние и звук, переносит дроп и обновляет цель.
+	// Finishes mining a block; takes the quarry, target, state and sound, moves the drops and updates the target.
 	private void finishMinedTarget(RatQuarryBlockEntity quarry, BlockPos target, BlockState state, SoundType soundType) {
 		try {
 			this.rat.level().broadcastEntityEvent(this.rat, (byte) 86);
@@ -514,28 +514,28 @@ public class RatQuarryGoal extends BaseRatHarvestGoal {
 			quarry.completeTarget(this.rat.getUUID(), target);
 			this.stop();
 		} catch (RuntimeException exception) {
-			com.github.alexthe666.rats.RatsMod.LOGGER.error("Не удалось завершить добычу цели {} карьером {}", target, quarry.getBlockPos(), exception);
+			com.github.alexthe666.rats.RatsMod.LOGGER.error("Failed to finish mining target {} with quarry {}", target, quarry.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Завершает герметизацию жидкости; принимает карьер и цель, заменяет воду или лаву булыжником без добычи предмета.
+	// Finishes fluid sealing; takes the quarry and target, replaces water or lava with cobblestone without mining an item.
 	private void finishFluidSealTarget(RatQuarryBlockEntity quarry, BlockPos target) {
 		try {
 			if (quarry.sealFluidBlock(this.rat.level(), target)) {
 				quarry.completeTarget(this.rat.getUUID(), target);
 				this.stop();
 			} else {
-				com.github.alexthe666.rats.RatsMod.LOGGER.warn("Крыса {} не смогла закупорить жидкость {} карьером {}", this.rat.getUUID(), target, quarry.getBlockPos());
+				com.github.alexthe666.rats.RatsMod.LOGGER.warn("Rat {} failed to plug fluid {} with quarry {}", this.rat.getUUID(), target, quarry.getBlockPos());
 				this.retargetAfterBlockedWork(quarry);
 			}
 		} catch (RuntimeException exception) {
-			com.github.alexthe666.rats.RatsMod.LOGGER.error("Не удалось завершить герметизацию жидкости {} карьером {}", target, quarry.getBlockPos(), exception);
+			com.github.alexthe666.rats.RatsMod.LOGGER.error("Failed to finish sealing fluid {} with quarry {}", target, quarry.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Завершает пустую цель поддержки; принимает карьер и цель, ставит платформу без добычи.
+	// Finishes an empty support target; takes the quarry and target, places a platform without mining.
 	private void finishSupportTarget(RatQuarryBlockEntity quarry, BlockPos target) {
 		try {
 			if (quarry.placeSupport(this.rat.level(), target)) {
@@ -543,11 +543,11 @@ public class RatQuarryGoal extends BaseRatHarvestGoal {
 				quarry.completeTarget(this.rat.getUUID(), target);
 				this.stop();
 			} else {
-				com.github.alexthe666.rats.RatsMod.LOGGER.warn("Крыса {} не смогла поставить платформу {} карьером {}", this.rat.getUUID(), target, quarry.getBlockPos());
+				com.github.alexthe666.rats.RatsMod.LOGGER.warn("Rat {} failed to place platform {} with quarry {}", this.rat.getUUID(), target, quarry.getBlockPos());
 				this.retargetAfterBlockedWork(quarry);
 			}
 		} catch (RuntimeException exception) {
-			com.github.alexthe666.rats.RatsMod.LOGGER.error("Не удалось завершить поддержку {} карьером {}", target, quarry.getBlockPos(), exception);
+			com.github.alexthe666.rats.RatsMod.LOGGER.error("Failed to finish support {} with quarry {}", target, quarry.getBlockPos(), exception);
 			throw exception;
 		}
 	}
@@ -560,7 +560,7 @@ public class RatQuarryGoal extends BaseRatHarvestGoal {
 		return this.rat.level().getBlockEntity(quarryPos.pos()) instanceof RatQuarryBlockEntity quarry ? quarry : null;
 	}
 
-	// Проверяет возможность добычи цели; принимает карьер и позицию, отдаёт true для обычного блока или блока поддержки.
+	// Checks whether the target can be mined; takes the quarry and position, returns true for a regular or support block.
 	private boolean canMineBlock(RatQuarryBlockEntity quarry, BlockPos rayPos) {
 		BlockPos feet = this.rat.blockPosition();
 		if (!quarry.isSupportTarget(rayPos) && !quarry.isInsideWorkVolume(rayPos)) {
@@ -579,7 +579,7 @@ public class RatQuarryGoal extends BaseRatHarvestGoal {
 		return !state.is(RatsBlockTags.QUARRY_IGNORABLES) && this.doesListContainBlock(this.rat.level(), rayPos) && RatUtils.canRatBreakBlock(this.rat.level(), rayPos, this.rat);
 	}
 
-	// Проверяет, можно ли копать с текущего места крысы; принимает карьер и цель, отдаёт true при безопасной близкой позиции.
+	// Checks whether the rat can dig from its current spot; takes the quarry and target, returns true for a safe nearby position.
 	private boolean canMineFromCurrentPosition(RatQuarryBlockEntity quarry, BlockPos target) {
 		try {
 			BlockPos current = this.rat.blockPosition();
@@ -606,7 +606,7 @@ public class RatQuarryGoal extends BaseRatHarvestGoal {
 			}
 			return this.canReachTargetFromCurrentPosition(quarry, target);
 		} catch (RuntimeException exception) {
-			com.github.alexthe666.rats.RatsMod.LOGGER.error("Не удалось проверить текущую позицию крысы {} для цели {}", this.rat.getUUID(), target, exception);
+			com.github.alexthe666.rats.RatsMod.LOGGER.error("Failed to check the current position of rat {} for target {}", this.rat.getUUID(), target, exception);
 			throw exception;
 		}
 	}
@@ -632,12 +632,12 @@ public class RatQuarryGoal extends BaseRatHarvestGoal {
 			int dz = Math.abs(target.getZ() - current.getZ());
 			return dx <= 2 && dz <= 2 && dy >= -2 && dy <= 1 && this.rat.getRatDistanceCenterSq(target.getX() + 0.5D, target.getY() + 0.5D, target.getZ() + 0.5D) < this.rat.getRatHarvestDistance(3.0D);
 		} catch (RuntimeException exception) {
-			com.github.alexthe666.rats.RatsMod.LOGGER.error("Не удалось проверить досягаемость цели {} карьером {}", target, quarry.getBlockPos(), exception);
+			com.github.alexthe666.rats.RatsMod.LOGGER.error("Failed to check reach of target {} with quarry {}", target, quarry.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет досягаемость блока поддержки; принимает цель и текущую позицию ног, отдаёт true для соседнего блока.
+	// Checks reach of a support block; takes the target and current foot position, returns true for an adjacent block.
 	private boolean canReachSupportTargetFromCurrentPosition(BlockPos target, BlockPos current) {
 		try {
 			int dx = Math.abs(target.getX() - current.getX());
@@ -645,7 +645,7 @@ public class RatQuarryGoal extends BaseRatHarvestGoal {
 			int dz = Math.abs(target.getZ() - current.getZ());
 			return dx <= 1 && dz <= 1 && dy >= -1 && dy <= 0 && !target.equals(current) && this.rat.getRatDistanceCenterSq(target.getX() + 0.5D, target.getY() + 0.5D, target.getZ() + 0.5D) < this.rat.getRatHarvestDistance(2.0D);
 		} catch (RuntimeException exception) {
-			com.github.alexthe666.rats.RatsMod.LOGGER.error("Не удалось проверить досягаемость поддержки {} для крысы {}", target, this.rat.getUUID(), exception);
+			com.github.alexthe666.rats.RatsMod.LOGGER.error("Failed to check support reach {} for rat {}", target, this.rat.getUUID(), exception);
 			throw exception;
 		}
 	}

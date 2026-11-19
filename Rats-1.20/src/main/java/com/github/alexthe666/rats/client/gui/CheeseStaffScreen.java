@@ -40,7 +40,7 @@ public class CheeseStaffScreen extends Screen {
 		this.init();
 	}
 
-	// Создаёт кнопки посоха сыра; параметры берутся из полей экрана, ничего не отдаёт.
+	// Creates the cheese staff buttons; parameters come from the screen fields, returns nothing.
 	protected void init() {
 		super.init();
 		this.clearWidgets();
@@ -99,17 +99,17 @@ public class CheeseStaffScreen extends Screen {
 	}
 
 
-	// Проверяет, является ли отмеченный блок крысиным домиком; параметров нет, отдаёт true для rat_house.
+	// Checks whether the marked block is a rat house; no parameters, returns true for rat_house.
 	private boolean isRatHouseAtPos() {
 		try {
 			return this.pos != null && this.rat.level().getBlockState(this.pos).getBlock() instanceof RatHouseBlock;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить домик крысы в {}", this.pos, exception);
+			RatsMod.LOGGER.error("Failed to check the rat house at {}", this.pos, exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет видимость кнопки назначения домика или рабочей базы; параметров нет, отдаёт true если можно назначить.
+	// Checks visibility of the assign house / work base button; no parameters, returns true if it can be assigned.
 	private boolean canMarkHouseOrWorkAnchor() {
 		try {
 			if (this.isRatHouseAtPos()) {
@@ -117,12 +117,12 @@ public class CheeseStaffScreen extends Screen {
 			}
 			return this.rat.getWorkAnchorPoint().isEmpty() || !this.rat.getWorkAnchorPoint().get().pos().equals(this.pos);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить кнопку назначения посоха в {}", this.pos, exception);
+			RatsMod.LOGGER.error("Failed to check the staff assign button at {}", this.pos, exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет видимость кнопки сброса домика или рабочей базы; параметров нет, отдаёт true если есть что сбросить.
+	// Checks visibility of the reset house / work base button; no parameters, returns true if there is something to reset.
 	private boolean canRemoveHouseOrWorkAnchor() {
 		try {
 			if (this.isRatHouseAtPos()) {
@@ -130,12 +130,12 @@ public class CheeseStaffScreen extends Screen {
 			}
 			return this.rat.getWorkAnchorPoint().isPresent();
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить кнопку сброса посоха в {}", this.pos, exception);
+			RatsMod.LOGGER.error("Failed to check the staff reset button at {}", this.pos, exception);
 			throw exception;
 		}
 	}
 
-	// Возвращает имя отмеченного блока; принимает позицию из поля экрана, отдаёт строку для кнопок.
+	// Returns the name of the marked block; takes the position from the screen field, returns a string for the buttons.
 	private String getPosName() {
 		if (this.pos != null) {
 			BlockState state = this.rat.level().getBlockState(this.pos);
@@ -144,7 +144,7 @@ public class CheeseStaffScreen extends Screen {
 			try {
 				namelist = pick.getTooltipLines(Item.TooltipContext.of(this.rat.level()), Minecraft.getInstance().player, TooltipFlag.Default.NORMAL);
 			} catch (RuntimeException exception) {
-				RatsMod.LOGGER.error("Не удалось получить имя блока {} для посоха сыра", this.pos, exception);
+				RatsMod.LOGGER.error("Failed to get the name of block {} for the cheese staff", this.pos, exception);
 				throw exception;
 			}
 			if (namelist != null && !namelist.isEmpty()) {
@@ -154,7 +154,7 @@ public class CheeseStaffScreen extends Screen {
 		return "";
 	}
 
-	// Проверяет, можно ли отметить позицию как склад; принимает позицию из поля экрана, отдаёт true для контейнеров и пустого котла.
+	// Checks whether the position can be marked as a deposit; takes the position from the screen field, returns true for containers and an empty cauldron.
 	private boolean canMarkDepositAtPos() {
 		try {
 			if (this.pos != null) {
@@ -164,12 +164,12 @@ public class CheeseStaffScreen extends Screen {
 			}
 			return false;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить точку склада посоха сыра {}", this.pos, exception);
+			RatsMod.LOGGER.error("Failed to check the cheese staff deposit point {}", this.pos, exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет, можно ли отметить позицию как забор; принимает позицию из поля экрана, отдаёт true для контейнеров и source-жидкости.
+	// Checks whether the position can be marked as a pickup; takes the position from the screen field, returns true for containers and source fluids.
 	private boolean canMarkPickupAtPos() {
 		try {
 			if (this.pos != null) {
@@ -180,12 +180,12 @@ public class CheeseStaffScreen extends Screen {
 			}
 			return false;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить точку забора посоха сыра {}", this.pos, exception);
+			RatsMod.LOGGER.error("Failed to check the cheese staff pickup point {}", this.pos, exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет, можно ли отметить позицию как точку применения; принимает позицию из поля экрана, отдаёт true для любого непустого блока.
+	// Checks whether the position can be marked as a use point; takes the position from the screen field, returns true for any non-empty block.
 	private boolean canMarkApplyAtPos() {
 		try {
 			if (this.pos != null) {
@@ -194,12 +194,12 @@ public class CheeseStaffScreen extends Screen {
 			}
 			return false;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить точку применения посоха сыра {}", this.pos, exception);
+			RatsMod.LOGGER.error("Failed to check the cheese staff use point {}", this.pos, exception);
 			throw exception;
 		}
 	}
 
-	// Рисует окно посоха сыра; принимает графику, координаты мыши и частичный тик, ничего не отдаёт.
+	// Draws the cheese staff window; takes graphics, mouse coordinates and partial tick, returns nothing.
 	@Override
 	public void render(GuiGraphics graphics, int x, int y, float partialTicks) {
 		super.renderBackground(graphics, x, y, partialTicks);
@@ -212,7 +212,7 @@ public class CheeseStaffScreen extends Screen {
 
 	}
 
-	// Сообщает, ставит ли экран игру на паузу; параметров нет, отдаёт false.
+	// Reports whether the screen pauses the game; no parameters, returns false.
 	@Override
 	public boolean isPauseScreen() {
 		return false;

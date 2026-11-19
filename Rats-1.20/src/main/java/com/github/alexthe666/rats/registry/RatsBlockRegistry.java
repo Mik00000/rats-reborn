@@ -73,12 +73,12 @@ public class RatsBlockRegistry {
 	public static final DeferredHolder<Block, Block> RAT_QUARRY = register("rat_quarry", () -> new RatQuarryBlock(Block.Properties.of().sound(SoundType.SLIME_BLOCK).strength(2.0F, 0.0F)));
 	public static final DeferredHolder<Block, Block> RAT_QUARRY_PLATFORM = register("rat_quarry_platform", () -> new RatQuarryPlatformBlock(Block.Properties.of().sound(SoundType.SLIME_BLOCK).noOcclusion().strength(1.0F, 0.0F)));
 
-	// Создаёт блок домика с общими свойствами; ничего не принимает, отдаёт новый RatHouseBlock.
+	// Creates a house block with shared properties; takes nothing, returns a new RatHouseBlock.
 	private static RatHouseBlock createRatHouseBlock() {
 		return new RatHouseBlock(Block.Properties.of().mapColor(MapColor.WOOD).sound(SoundType.WOOD).strength(2.0F, 3.0F));
 	}
 
-	// Возвращает все варианты крысиного домика для регистрации одной block entity; ничего не принимает.
+	// Returns all rat house variants for registering a single block entity; takes nothing.
 	public static Block[] getAllRatHouseBlocks() {
 		Block[] blocks = new Block[RAT_HOUSES.length + 1];
 		blocks[0] = RAT_HOUSE.get();
@@ -88,7 +88,7 @@ public class RatsBlockRegistry {
 		return blocks;
 	}
 
-	// Регистрирует блок; предмет блока создаётся в static-блоке после объявления всех блоков.
+	// Registers a block; the block item is created in the static block after all blocks are declared.
 	public static DeferredHolder<Block, Block> register(String name, Supplier<Block> blockSupplier) {
 		DeferredHolder<Block, Block> ret = BLOCKS.register(name, blockSupplier);
 		BLOCKS_PENDING_ITEMS.add(ret);

@@ -34,7 +34,7 @@ public class RatIglooItem extends Item implements RatCageDecoration {
 		tooltip.add(Component.translatable(RatsLangConstants.CAGE_DECORATION).withStyle(ChatFormatting.GRAY));
 	}
 
-	// Подключает клиентский 3D-рендер иглу; принимает consumer расширений предмета, ничего не возвращает.
+	// Hooks up the client-side 3D igloo renderer; takes the item extensions consumer, returns nothing.
 	@Override
 	public void initializeClient(Consumer<IClientItemExtensions> consumer) {
 		try {
@@ -45,7 +45,7 @@ public class RatIglooItem extends Item implements RatCageDecoration {
 				}
 			});
 		} catch (RuntimeException exception) {
-			throw new IllegalStateException("Не удалось подключить клиентский рендер иглу", exception);
+			throw new IllegalStateException("Failed to hook up the client-side igloo renderer", exception);
 		}
 	}
 }

@@ -36,9 +36,9 @@ public record SyncRatTagPacket(int ratId, List<GlobalPos> nodes) implements Cust
 					Entity entity = player.level().getEntity(packet.ratId());
 					if (entity instanceof TamedRat rat && rat.isOwnedBy(player)) {
 						rat.setPatrolNodes(packet.nodes());
-						RatsMod.LOGGER.info("Маршрут патруля крысы {} обновлён: {} точек", rat.getUUID(), packet.nodes().size());
+						RatsMod.LOGGER.info("Patrol route of rat {} updated: {} points", rat.getUUID(), packet.nodes().size());
 					} else if (entity instanceof TamedRat rat) {
-						RatsMod.LOGGER.error("Отклонена смена маршрута патруля: игрок {} не владелец крысы {}", player.getGameProfile().getName(), rat.getUUID());
+						RatsMod.LOGGER.error("Patrol route change rejected: player {} is not the owner of rat {}", player.getGameProfile().getName(), rat.getUUID());
 					}
 				}
 			});

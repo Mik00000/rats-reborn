@@ -9,18 +9,18 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * Диагностика и принудительная перезагрузка NBT инвентаря и улучшений крысы.
+ * Diagnostics and forced reload of the rat inventory and upgrade NBT.
  */
 public final class RatPersistenceHelper {
 
 	private RatPersistenceHelper() {
 	}
 
-	// Логирует содержимое слотов при сохранении; принимает крысу и тег сущности, ничего не возвращает.
+	// Logs slot contents on save; takes the rat and entity tag, returns nothing.
 	public static void logSave(TamedRat rat, CompoundTag tag) {
 		try {
 			if (!tag.contains("Items", Tag.TAG_LIST) && !tag.contains("RatUpgradeSlots", Tag.TAG_LIST)) {
-				RatsMod.LOGGER.debug("Сохранение крысы {}: в NBT нет Items и RatUpgradeSlots", rat.getUUID());
+				RatsMod.LOGGER.debug("Saving rat {}: NBT has no Items and RatUpgradeSlots", rat.getUUID());
 				return;
 			}
 			StringBuilder builder = new StringBuilder();
@@ -38,19 +38,19 @@ public final class RatPersistenceHelper {
 					}
 				}
 			}
-			RatsMod.LOGGER.debug("Сохранение крысы {}: Items={}, RatUpgradeSlots={}, слоты:{}",
+			RatsMod.LOGGER.debug("Saving rat {}: Items={}, RatUpgradeSlots={}, slots:{}",
 					rat.getUUID(),
 					tag.contains("Items", Tag.TAG_LIST) ? tag.getList("Items", Tag.TAG_COMPOUND).size() : 0,
 					tag.contains("RatUpgradeSlots", Tag.TAG_LIST) ? tag.getList("RatUpgradeSlots", Tag.TAG_COMPOUND).size() : 0,
 					builder);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Ошибка логирования сохранения крысы {}: {}", rat.getUUID(), exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Error logging the save of rat {}: {}", rat.getUUID(), exception.getMessage(), exception);
 			throw exception;
 		}
 	}
 
-	// Логирует результат загрузки; принимает крысу и флаги отложенных данных, ничего не возвращает.
-	public static void logLoadResult(TamedRat rat, boolean hadPendingInventory, boolean hadPendingUpgrades) {
+	// Logs the load result; takes the rat and pending data flags, returns nothing.
+	public static void logLoadResult(TamedRat rat, boolean hadPendingInventory, int expectedUpgrades) {
 		try {
 			StringBuilder builder = new StringBuilder();
 			if (rat.getInventory() != null) {
@@ -61,13 +61,15 @@ public final class RatPersistenceHelper {
 					}
 				}
 			}
-			RatsMod.LOGGER.debug("Загрузка крысы {}: pendingItems={}, pendingUpgrades={}, слоты после загрузки:{}",
-					rat.getUUID(), hadPendingInventory, hadPendingUpgrades, builder);
-			if (hadPendingUpgrades && builder.toString().isBlank()) {
-				RatsMod.LOGGER.error("Загрузка крысы {}: RatUpgradeSlots были в NBT, но слоты 3-5 пусты после parse", rat.getUUID());
+			RatsMod.LOGGER.debug("Loading rat {}: pendingItems={}, pendingUpgrades={}, slots after load:{}",
+					rat.getUUID(), hadPendingInventory, expectedUpgrades, builder);
+			// An empty RatUpgradeSlots list is saved for every rat without upgrades; only complain when
+			// upgrades were actually stored but none of them made it into slots 3-5.
+			if (expectedUpgrades > 0 && !rat.hasAnyUpgradeSlotFilled()) {
+				RatsMod.LOGGER.warn("Loading rat {}: {} upgrade(s) were stored in NBT but slots 3-5 are empty after parsing", rat.getUUID(), expectedUpgrades);
 			}
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Ошибка логирования загрузки крысы {}: {}", rat.getUUID(), exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Error logging the load of rat {}: {}", rat.getUUID(), exception.getMessage(), exception);
 			throw exception;
 		}
 	}

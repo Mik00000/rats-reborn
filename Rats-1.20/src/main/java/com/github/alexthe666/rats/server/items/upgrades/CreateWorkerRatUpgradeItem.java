@@ -6,18 +6,18 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 public class CreateWorkerRatUpgradeItem extends BaseRatUpgradeItem {
-	// Создаёт улучшение работяги Create; принимает свойства предмета и задаёт длину описания.
+	// Creates the Create worker upgrade; takes item properties and sets the description length.
 	public CreateWorkerRatUpgradeItem(Item.Properties properties) {
 		super(properties, 1, 3);
 	}
 
-	// Проверяет, должна ли крыса складывать предмет; принимает крысу и стек, отдаёт true для обычного транспорта.
+	// Checks whether the rat should store the item; takes the rat and stack, returns true for regular transport.
 	@Override
 	public boolean shouldDepositItem(TamedRat rat, ItemStack stack) {
 		try {
 			return true;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить сдачу предмета работягой Create {} для крысы {}", stack, rat.getUUID(), exception);
+			RatsMod.LOGGER.error("Failed to check Create worker delivery of item {} for rat {}", stack, rat.getUUID(), exception);
 			throw exception;
 		}
 	}

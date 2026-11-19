@@ -40,18 +40,18 @@ public class RatMilkCowGoal extends BaseRatHarvestGoal {
 		}
 		this.resetTarget();
 		if (this.getTargetEntity() == null && !this.rat.level().isClientSide() && this.rat.tickCount % 200 == 0) {
-			RatsMod.LOGGER.warn("Крыса {} не нашла взрослое животное для доения в радиусе {}", this.rat.getUUID(), this.rat.getRadius());
+			RatsMod.LOGGER.warn("Rat {} found no adult animal to milk within radius {}", this.rat.getUUID(), this.rat.getRadius());
 		}
 		return this.getTargetEntity() != null;
 	}
 
-	// Проверяет продолжение доения; параметров нет, отдаёт true пока есть цель и место под молоко.
+	// Checks whether milking continues; no parameters, returns true while there is a target and room for milk.
 	@Override
 	public boolean canContinueToUse() {
 		return this.getTargetEntity() != null && (this.rat.transportingFluid.isEmpty() || this.rat.transportingFluid.getAmount() < this.rat.getMBTransferRate());
 	}
 
-	// Выполняет подход к животному и набор молока; параметров нет, ничего не отдаёт.
+	// Approaches the animal and collects milk; no parameters, returns nothing.
 	@Override
 	public void tick() {
 		try {
@@ -60,7 +60,7 @@ public class RatMilkCowGoal extends BaseRatHarvestGoal {
 				if (this.rat.distanceToSqr(this.getTargetEntity()) < this.rat.getRatHarvestDistance(0.0D)) {
 					FluidStack milkFluid = this.createMilkStack();
 					if (!this.rat.transportingFluid.isEmpty() && !this.rat.transportingFluid.getFluid().isSame(milkFluid.getFluid())) {
-						RatsMod.LOGGER.warn("Крыса {} не может доить {}: уже несёт {}", this.rat.getUUID(), this.getTargetEntity().getType().getDescriptionId(), this.rat.transportingFluid.getHoverName().getString());
+						RatsMod.LOGGER.warn("Rat {} cannot milk {}: already carrying {}", this.rat.getUUID(), this.getTargetEntity().getType().getDescriptionId(), this.rat.transportingFluid.getHoverName().getString());
 						this.stop();
 						return;
 					}
@@ -86,12 +86,12 @@ public class RatMilkCowGoal extends BaseRatHarvestGoal {
 				this.stop();
 			}
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Крыса {} не смогла подоить животное {}", this.rat.getUUID(), this.getTargetEntity(), exception);
+			RatsMod.LOGGER.error("Rat {} failed to milk animal {}", this.rat.getUUID(), this.getTargetEntity(), exception);
 			throw exception;
 		}
 	}
 
-	// Создаёт стек молока для доильщика; параметров нет, отдаёт молоко NeoForge объёмом ведро.
+	// Creates the milk stack for the milker; no parameters, returns a bucket of NeoForge milk.
 	private FluidStack createMilkStack() {
 		try {
 			FluidBucketWrapper milkWrapper = new FluidBucketWrapper(new ItemStack(Items.MILK_BUCKET));
@@ -100,16 +100,16 @@ public class RatMilkCowGoal extends BaseRatHarvestGoal {
 				milkFluid = new FluidStack(NeoForgeMod.MILK.get(), 1000);
 			}
 			if (milkFluid.isEmpty()) {
-				throw new IllegalStateException("NeoForge не вернул жидкое молоко для ведра молока");
+				throw new IllegalStateException("NeoForge did not return fluid milk for a milk bucket");
 			}
 			return milkFluid;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось создать жидкое молоко для доильщика крысы {}", this.rat.getUUID(), exception);
+			RatsMod.LOGGER.error("Failed to create fluid milk for the milker rat {}", this.rat.getUUID(), exception);
 			throw exception;
 		}
 	}
 
-	// Ищет ближайшее взрослое животное для доения; параметров нет, обновляет цель.
+	// Finds the nearest adult animal to milk; no parameters, updates the target.
 	private void resetTarget() {
 		try {
 			int radius = this.rat.getRadius();
@@ -125,7 +125,7 @@ public class RatMilkCowGoal extends BaseRatHarvestGoal {
 				this.setTargetEntity(closestCow);
 			}
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Крыса {} не смогла найти животное для доения", this.rat.getUUID(), exception);
+			RatsMod.LOGGER.error("Rat {} failed to find an animal to milk", this.rat.getUUID(), exception);
 			throw exception;
 		}
 	}

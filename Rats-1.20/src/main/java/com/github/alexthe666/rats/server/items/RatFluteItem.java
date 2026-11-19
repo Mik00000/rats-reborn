@@ -33,40 +33,40 @@ public class RatFluteItem extends Item {
 		super(properties);
 	}
 
-	// Возвращает анимацию использования дудки; принимает стек предмета, отдаёт тип анимации.
+	// Returns the flute use animation; takes the item stack, returns the animation type.
 	@Override
 	public UseAnim getUseAnimation(ItemStack stack) {
 		return UseAnim.TOOT_HORN;
 	}
 
-	// Читает номер выбранной команды из данных дудки; принимает стек, отдаёт сохранённый индекс команды.
+	// Reads the selected command index from the flute data; takes the stack, returns the stored command index.
 	private static int getCommandInt(ItemStack stack) {
 		try {
 			return RatsItemStackData.getTag(stack).getInt("Command");
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось прочитать команду крысьей дудки из стека {}", stack, exception);
+			RatsMod.LOGGER.error("Failed to read the rat flute command from stack {}", stack, exception);
 			throw exception;
 		}
 	}
 
-	// Записывает номер выбранной команды в данные дудки; принимает стек и индекс команды, ничего не отдаёт.
+	// Writes the selected command index into the flute data; takes the stack and command index, returns nothing.
 	private static void setCommandInt(ItemStack stack, int command) {
 		try {
 			CompoundTag tag = RatsItemStackData.getTag(stack);
 			tag.putInt("Command", command);
 			RatsItemStackData.setTag(stack, tag);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось записать команду {} в крысью дудку {}", command, stack, exception);
+			RatsMod.LOGGER.error("Failed to write command {} into rat flute {}", command, stack, exception);
 			throw exception;
 		}
 	}
 
-	// Возвращает выбранную команду дудки; принимает стек, отдаёт команду с безопасным ограничением индекса.
+	// Returns the selected flute command; takes the stack, returns the command with a safely clamped index.
 	private static RatCommand getCommand(ItemStack stack) {
 		return RatCommand.values()[Mth.clamp(getCommandInt(stack), 0, RatCommand.values().length - 1)];
 	}
 
-	// Обрабатывает использование дудки; принимает мир, игрока и руку, отдаёт результат использования со стеком.
+	// Handles using the flute; takes the level, player and hand, returns the use result with the stack.
 	@Override
 	public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
 		ItemStack stack = player.getItemInHand(hand);
@@ -79,7 +79,7 @@ public class RatFluteItem extends Item {
 				}
 				setCommandInt(stack, commandInt);
 			} catch (RuntimeException exception) {
-				RatsMod.LOGGER.error("Игрок {} не смог переключить команду крысьей дудки", player.getUUID(), exception);
+				RatsMod.LOGGER.error("Player {} failed to switch the rat flute command", player.getUUID(), exception);
 				throw exception;
 			}
 			RatCommand ratCommand = getCommand(stack);
@@ -110,7 +110,7 @@ public class RatFluteItem extends Item {
 		return InteractionResultHolder.success(stack);
 	}
 
-	// Добавляет подсказку дудки; принимает стек, контекст и список строк, ничего не отдаёт.
+	// Adds the flute tooltip; takes the stack, context and list of lines, returns nothing.
 	@Override
 	public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
 		tooltip.add(Component.translatable("item.rats.rat_flute.desc0").withStyle(ChatFormatting.GRAY));

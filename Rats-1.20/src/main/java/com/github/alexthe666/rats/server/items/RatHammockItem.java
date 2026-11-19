@@ -34,7 +34,7 @@ public class RatHammockItem extends Item implements RatCageDecoration {
 		tooltip.add(Component.translatable(RatsLangConstants.CAGE_DECORATION).withStyle(ChatFormatting.GRAY));
 	}
 
-	// Подключает клиентский 3D-рендер гамака; принимает consumer расширений предмета, ничего не возвращает.
+	// Hooks up the client-side 3D hammock renderer; takes the item extensions consumer, returns nothing.
 	@Override
 	public void initializeClient(Consumer<IClientItemExtensions> consumer) {
 		try {
@@ -45,7 +45,7 @@ public class RatHammockItem extends Item implements RatCageDecoration {
 				}
 			});
 		} catch (RuntimeException exception) {
-			throw new IllegalStateException("Не удалось подключить клиентский рендер гамака", exception);
+			throw new IllegalStateException("Failed to hook up the client-side hammock renderer", exception);
 		}
 	}
 }

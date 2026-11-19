@@ -23,10 +23,10 @@ public class PlagueDoctorWorldData extends SavedData {
 	}
 
 	/**
-	 * Возвращает сохранённые данные чумного доктора для указанного серверного уровня.
-	 * Параметры: {@code level} — уровень (только {@link ServerLevel}).
-	 * Возвращает экземпляр {@link PlagueDoctorWorldData} или {@code null} на клиенте / при ошибке.
-	 * Нельзя вызывать {@code getServer().getLevel(dimension)} во время конструирования уровня — уровень ещё не зарегистрирован.
+	 * Returns the saved plague doctor data for the given server level.
+	 * Parameters: {@code level} - the level (only {@link ServerLevel}).
+	 * Returns a {@link PlagueDoctorWorldData} instance or {@code null} on the client / on error.
+	 * {@code getServer().getLevel(dimension)} must not be called while the level is being constructed - the level is not registered yet.
 	 */
 	@Nullable
 	public static PlagueDoctorWorldData get(Level level) {
@@ -38,7 +38,7 @@ public class PlagueDoctorWorldData extends SavedData {
 					new SavedData.Factory<>(PlagueDoctorWorldData::new, PlagueDoctorWorldData::load, null),
 					IDENTIFIER);
 		} catch (Exception e) {
-			LOGGER.error("Не удалось получить PlagueDoctorWorldData для уровня {}: {}", level.dimension().location(), e.getMessage(), e);
+			LOGGER.error("Failed to get PlagueDoctorWorldData for level {}: {}", level.dimension().location(), e.getMessage(), e);
 			return null;
 		}
 	}

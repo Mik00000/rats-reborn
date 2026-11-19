@@ -5,8 +5,8 @@ import net.minecraft.network.codec.StreamCodec;
 import net.neoforged.neoforge.fluids.FluidStack;
 
 /**
- * Кодеки сетевой сериализации FluidStack, допускающие пустой стек.
- * В 1.21.1 стандартный FluidStack.STREAM_CODEC не кодирует EMPTY.
+ * Network serialization codecs for FluidStack that allow an empty stack.
+ * In 1.21.1 the standard FluidStack.STREAM_CODEC does not encode EMPTY.
  */
 public final class RatsFluidStackCodecs {
 

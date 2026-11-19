@@ -36,11 +36,11 @@ public final class RatTubePathHelper {
 	private RatTubePathHelper() {
 	}
 
-	/** Точка входа/выхода: сегмент трубы и клетка снаружи, куда встаёт крыса перед заходом. */
+	/** Entry/exit point: a tube segment and the outside cell where the rat stands before entering. */
 	public record TubeEntrance(BlockPos tubePos, BlockPos standPos, Direction openSide) {
 	}
 
-	/** Маршрут по сети труб: вход, сегменты внутри, выход, финальная цель. */
+	/** Route through the tube network: entry, inner segments, exit, final target. */
 	public record TubeRoute(TubeEntrance entry, List<BlockPos> segments, TubeEntrance exit, Vec3 target) {
 	}
 
@@ -225,8 +225,8 @@ public final class RatTubePathHelper {
 	}
 
 	/**
-	 * Строит маршрут по трубе от крысы к цели, если сеть с открытыми входами даёт выигрыш по длине.
-	 * Принимает мир, позицию ног крысы и цель; отдаёт маршрут или пусто.
+	 * Builds a tube route from the rat to the target if the network with open entrances gives a shorter path.
+	 * Takes the level, rat foot position and target; returns a route or empty.
 	 */
 	public static Optional<TubeRoute> planRoute(Level level, BlockPos ratFeet, Vec3 target) {
 		try {
@@ -278,8 +278,8 @@ public final class RatTubePathHelper {
 	}
 
 	/**
-	 * Собирает все входы/выходы сети труб (открытая грань к не-трубе).
-	 * Принимает мир и любой сегмент сети; отдаёт список входов.
+	 * Collects all entries/exits of the tube network (an open face towards a non-tube).
+	 * Takes the level and any segment of the network; returns the list of entries.
 	 */
 	public static List<TubeEntrance> collectNetworkEntrances(Level level, BlockPos networkSeed) {
 		try {
@@ -308,8 +308,8 @@ public final class RatTubePathHelper {
 	}
 
 	/**
-	 * BFS-путь по соседним сегментам трубы.
-	 * Принимает мир и два сегмента; отдаёт список сегментов от старта до конца включительно.
+	 * BFS path through adjacent tube segments.
+	 * Takes the level and two segments; returns the list of segments from start to end inclusive.
 	 */
 	public static List<BlockPos> buildTubeSegmentPath(Level level, BlockPos start, BlockPos end) {
 		try {

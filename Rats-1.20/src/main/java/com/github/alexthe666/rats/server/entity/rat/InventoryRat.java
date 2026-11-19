@@ -133,25 +133,26 @@ public abstract class InventoryRat extends DiggingRat implements ContainerListen
 		this.tryReloadPendingSaveData();
 	}
 
-	// Перезагружает отложенный NBT, если мир и реестры уже доступны.
+	// Reloads pending NBT if the level and registries are already available.
 	public void tryReloadPendingSaveData() {
 		try {
 			boolean hadItems = this.pendingInventoryTags != null;
 			this.loadPendingInventory();
 			if (this instanceof TamedRat tamed) {
 				boolean hadUpgrades = tamed.hasPendingUpgradeTags();
+				int expectedUpgrades = tamed.getPendingUpgradeCount();
 				tamed.tryReloadPendingUpgradeTags();
 				if (hadItems || hadUpgrades) {
-					RatPersistenceHelper.logLoadResult(tamed, hadItems, hadUpgrades);
+					RatPersistenceHelper.logLoadResult(tamed, hadItems, expectedUpgrades);
 				}
 			}
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось перезагрузить отложенные данные крысы {}: {}", this.getUUID(), exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Failed to reload pending data of rat {}: {}", this.getUUID(), exception.getMessage(), exception);
 			throw exception;
 		}
 	}
 
-	// Загружает инвентарь крысы после появления в мире, когда реестры уже доступны.
+	// Loads the rat inventory after it appears in the world, when registries are already available.
 	private void loadPendingInventory() {
 		try {
 			if (this.pendingInventoryTags == null || this.level() == null || this.getInventory() == null) {
@@ -174,7 +175,7 @@ public abstract class InventoryRat extends DiggingRat implements ContainerListen
 				tamed.scheduleUpgradeRefreshAfterLoad();
 			}
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось загрузить отложенный инвентарь крысы {}", this.getUUID(), exception);
+			RatsMod.LOGGER.error("Failed to load the pending inventory of rat {}", this.getUUID(), exception);
 			throw exception;
 		}
 	}
@@ -198,18 +199,18 @@ public abstract class InventoryRat extends DiggingRat implements ContainerListen
 		this.itemHandler = new InvWrapper(this.getInventory());
 	}
 
-	// Возвращает обработчик инвентаря крысы для NeoForge capability; параметры не принимает, отдаёт IItemHandler.
+	// Returns the rat inventory handler for the NeoForge capability; takes no parameters, returns an IItemHandler.
 	public IItemHandler getItemHandler() {
 		try {
 			if (!this.isAlive()) {
-				throw new IllegalStateException("Нельзя получить capability инвентаря мёртвой крысы");
+				throw new IllegalStateException("Cannot get the inventory capability of a dead rat");
 			}
 			if (this.itemHandler == null) {
-				throw new IllegalStateException("Capability инвентаря крысы не создан");
+				throw new IllegalStateException("Rat inventory capability was not created");
 			}
 			return this.itemHandler;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось получить capability инвентаря крысы {}", this.getUUID(), exception);
+			RatsMod.LOGGER.error("Failed to get the inventory capability of rat {}", this.getUUID(), exception);
 			throw exception;
 		}
 	}
@@ -239,7 +240,7 @@ public abstract class InventoryRat extends DiggingRat implements ContainerListen
 		return super.getItemBySlot(slot);
 	}
 
-	// Устанавливает предмет в слот экипировки крысы; при смене улучшения (грудь/ноги/стопы) вызывает onUpgradeChanged на сервере.
+	// Sets an item in a rat equipment slot; when an upgrade changes (chest/legs/feet) calls onUpgradeChanged on the server.
 	@Override
 	public void setItemSlot(EquipmentSlot slot, ItemStack stack) {
 		ItemStack previous = this.getItemBySlot(slot);
@@ -352,44 +353,44 @@ public abstract class InventoryRat extends DiggingRat implements ContainerListen
 	}
 
 	/**
-	 * Заменяет маршрут патруля и синхронизирует список с клиентами.
-	 * Параметры: список GlobalPos точек маршрута. Ничего не возвращает.
+	 * Replaces the patrol route and syncs the list with clients.
+	 * Parameters: list of GlobalPos route points. Returns nothing.
 	 */
 	public void setPatrolNodes(List<GlobalPos> nodes) {
 		this.getEntityData().set(PATROL_NODES, new ArrayList<>(nodes));
 	}
 
-	// Возвращает рабочую базу крысы; параметров нет, отдаёт глобальную позицию, если она назначена.
+	// Returns the rat's work base; no parameters, returns the global position if one is assigned.
 	public Optional<GlobalPos> getWorkAnchorPoint() {
 		try {
 			return this.getEntityData().get(HOME_POS);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось получить рабочую базу крысы {}", this.getUUID(), exception);
+			RatsMod.LOGGER.error("Failed to get the work base of rat {}", this.getUUID(), exception);
 			throw exception;
 		}
 	}
 
-	// Задаёт рабочую базу крысы; принимает глобальную позицию или null, ничего не отдаёт.
+	// Sets the rat's work base; takes a global position or null, returns nothing.
 	public void setWorkAnchorPoint(@Nullable GlobalPos workAnchor) {
 		try {
 			this.getEntityData().set(HOME_POS, Optional.ofNullable(workAnchor));
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось задать рабочую базу крысы {}", this.getUUID(), exception);
+			RatsMod.LOGGER.error("Failed to set the work base of rat {}", this.getUUID(), exception);
 			throw exception;
 		}
 	}
 
-	// Возвращает старую домашнюю точку как рабочую базу; оставлено для совместимости старого кода.
+	// Returns the old home point as the work base; kept for compatibility with old code.
 	public Optional<GlobalPos> getHomePoint() {
 		return this.getWorkAnchorPoint();
 	}
 
-	// Задаёт старую домашнюю точку как рабочую базу; оставлено для миграции и совместимости.
+	// Sets the old home point as the work base; kept for migration and compatibility.
 	public void setHomePoint(@Nullable GlobalPos home) {
 		this.setWorkAnchorPoint(home);
 	}
 
-	// Возвращает радиус поиска обычных рабочих целей; параметров нет, отдаёт радиус посоха или безопасное значение по умолчанию.
+	// Returns the search radius for regular work targets; no parameters, returns the staff radius or a safe default.
 	public int getRadius() {
 		return this.getRadiusCenter().isPresent() ? this.getEntityData().get(SEARCH_RADIUS) : RatConfig.defaultRatRadius;
 	}

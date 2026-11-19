@@ -24,7 +24,7 @@ public class OreDoublingRatUpgradeItem extends BaseRatUpgradeItem {
 		return isProcessable(rat.level(), rat.getMainHandItem());
 	}
 
-	// Проверяет, может ли крыса съесть этот стек и выдать кусочки руды; принимает уровень и предмет, отдаёт true/false.
+	// Checks whether the rat can eat this stack and produce ore chunks; takes the level and item, returns true/false.
 	public static boolean isProcessable(Level level, ItemStack stack) {
 		try {
 			if (stack.isEmpty()) {
@@ -35,7 +35,7 @@ public class OreDoublingRatUpgradeItem extends BaseRatUpgradeItem {
 			}
 			return !OreRatNuggetItem.getIngot(level, stack).isEmpty();
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Ошибка проверки руды для удвоения {}: {}", stack.getItem(), exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Error checking ore for doubling {}: {}", stack.getItem(), exception.getMessage(), exception);
 			throw exception;
 		}
 	}

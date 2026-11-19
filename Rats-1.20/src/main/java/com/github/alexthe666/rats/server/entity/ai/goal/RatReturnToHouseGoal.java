@@ -25,7 +25,7 @@ public class RatReturnToHouseGoal extends Goal {
 	private Vec3 entryCenter;
 	private int nextStartTick;
 
-	// Создаёт цель входа в домик; принимает крысу и скорость движения.
+	// Creates the go-to-house goal; takes the rat and movement speed.
 	public RatReturnToHouseGoal(TamedRat rat, double speedModifier) {
 		this.rat = rat;
 		this.speedModifier = speedModifier;
@@ -33,7 +33,7 @@ public class RatReturnToHouseGoal extends Goal {
 		this.setFlags(EnumSet.of(Goal.Flag.MOVE));
 	}
 
-	// Проверяет, нужно ли крысе идти к привязанному домику; параметров нет, отдаёт true если домик валиден.
+	// Checks whether the rat needs to go to its bound house; no parameters, returns true if the house is valid.
 	@Override
 	public boolean canUse() {
 		try {
@@ -54,12 +54,12 @@ public class RatReturnToHouseGoal extends Goal {
 			}
 			BlockPos pos = house.get().pos();
 			if (this.rat.distanceToSqr(Vec3.atCenterOf(pos)) > (double) RatConfig.pathfindHomeWorkDistance * RatConfig.pathfindHomeWorkDistance) {
-				this.rat.setLastPathFailure("домик " + pos + " дальше лимита " + RatConfig.pathfindHomeWorkDistance);
+				this.rat.setLastPathFailure("house " + pos + " beyond the limit " + RatConfig.pathfindHomeWorkDistance);
 				return false;
 			}
 			BlockState state = this.rat.level().getBlockState(pos);
 			if (!(state.getBlock() instanceof RatHouseBlock)) {
-				RatsMod.LOGGER.warn("Крыса {} потеряла привязанный домик {}: блок не rat_house", this.rat.getUUID(), pos);
+				RatsMod.LOGGER.warn("Rat {} lost its bound house {}: the block is not a rat_house", this.rat.getUUID(), pos);
 				this.rat.setBoundHousePos(null);
 				return false;
 			}
@@ -72,12 +72,12 @@ public class RatReturnToHouseGoal extends Goal {
 			this.rat.clearLastPathFailure();
 			return true;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось запустить путь крысы {} к домику: {}", this.rat.getUUID(), exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Failed to start the path of rat {} to the house: {}", this.rat.getUUID(), exception.getMessage(), exception);
 			throw exception;
 		}
 	}
 
-	// Продолжает путь, пока крыса жива и ещё не вошла в домик; параметров нет.
+	// Continues the path while the rat is alive and has not entered the house yet; no parameters.
 	@Override
 	public boolean canContinueToUse() {
 		return this.rat.isAlive()
@@ -87,24 +87,24 @@ public class RatReturnToHouseGoal extends Goal {
 				&& (!this.rat.getNavigation().isDone() || this.isCloseEnoughToEnter());
 	}
 
-	// Запускает движение к входу домика; параметров нет.
+	// Starts moving to the house entrance; no parameters.
 	@Override
 	public void start() {
 		try {
 			if (this.entryCenter == null) {
-				throw new IllegalStateException("Не задан вход домика");
+				throw new IllegalStateException("House entrance is not set");
 			}
 			boolean pathStarted = this.rat.moveSmoothlyTo(this.entryCenter.x, this.entryCenter.y, this.entryCenter.z, this.speedModifier);
 			if (!pathStarted) {
-				this.rat.setLastPathFailure("нет пути к домику " + this.housePos);
+				this.rat.setLastPathFailure("no path to the house " + this.housePos);
 			}
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось начать движение крысы {} к домику {}: {}", this.rat.getUUID(), this.housePos, exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Failed to start moving rat {} to house {}: {}", this.rat.getUUID(), this.housePos, exception.getMessage(), exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет достижение входа и помещает крысу внутрь домика; параметров нет.
+	// Checks whether the entrance was reached and puts the rat inside the house; no parameters.
 	@Override
 	public void tick() {
 		try {
@@ -120,12 +120,12 @@ public class RatReturnToHouseGoal extends Goal {
 				this.rat.getNavigation().stop();
 			}
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось поместить крысу {} в домик {}: {}", this.rat.getUUID(), this.housePos, exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Failed to put rat {} into house {}: {}", this.rat.getUUID(), this.housePos, exception.getMessage(), exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет близость к входу домика; параметров нет, отдаёт true если путь довёл крысу достаточно близко для входа.
+	// Checks closeness to the house entrance; no parameters, returns true if the path brought the rat close enough to enter.
 	private boolean isCloseEnoughToEnter() {
 		try {
 			if (this.housePos == null || this.entryCenter == null) {
@@ -141,12 +141,12 @@ public class RatReturnToHouseGoal extends Goal {
 			BlockPos ratPos = this.rat.blockPosition();
 			return ratPos.distManhattan(entryBlock) <= 2 && Math.abs(this.rat.getY() - this.entryCenter.y) <= 2.0D;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить близость крысы {} ко входу домика {}", this.rat.getUUID(), this.housePos, exception);
+			RatsMod.LOGGER.error("Failed to check how close rat {} is to the entrance of house {}", this.rat.getUUID(), this.housePos, exception);
 			throw exception;
 		}
 	}
 
-	// Сбрасывает временные точки пути; параметров нет.
+	// Resets temporary path points; no parameters.
 	@Override
 	public void stop() {
 		this.housePos = null;

@@ -46,7 +46,7 @@ public record SyncRatStaffPacket(int entityId, long pos, int facing, int control
 	}
 
 	public static class Handler {
-		// Обрабатывает команду посоха крысы; принимает пакет и сетевой контекст, ничего не отдаёт.
+		// Handles a rat staff command; takes the packet and network context, returns nothing.
 		public static void handle(SyncRatStaffPacket packet, IPayloadContext context) {
 			context.enqueueWork(() -> {
 				Player player = context.player();
@@ -83,7 +83,7 @@ public record SyncRatStaffPacket(int entityId, long pos, int facing, int control
 								rat.createWorkFacing = direction;
 							}
 							case 9 -> rat.setCreateWorkPos(null);
-							default -> RatsMod.LOGGER.warn("Игрок {} отправил неизвестное действие посоха {} для крысы {}", player.getGameProfile().getName(), packet.control(), rat.getUUID());
+							default -> RatsMod.LOGGER.warn("Player {} sent unknown staff action {} for rat {}", player.getGameProfile().getName(), packet.control(), rat.getUUID());
 						}
 					}
 				}
@@ -91,7 +91,7 @@ public record SyncRatStaffPacket(int entityId, long pos, int facing, int control
 		}
 
 
-		// Отмечает обычную домашнюю точку или привязывает rat_house; принимает игрока, крысу и позицию, ничего не отдаёт.
+		// Marks a regular home point or binds a rat_house; takes the player, rat and position, returns nothing.
 		private static void markHomeOrHouse(Player player, TamedRat rat, BlockPos pos) {
 			try {
 				GlobalPos target = GlobalPos.of(player.level().dimension(), pos);
@@ -100,26 +100,26 @@ public record SyncRatStaffPacket(int entityId, long pos, int facing, int control
 						GlobalPos oldHouse = rat.getBoundHousePos().get();
 						if (oldHouse.dimension().equals(player.level().dimension()) && player.level().getBlockState(oldHouse.pos()).getBlock() instanceof RatHouseBlock) {
 							player.displayClientMessage(Component.translatable(RatsLangConstants.RAT_HOUSE_BOUND_ELSEWHERE), true);
-							RatsMod.LOGGER.warn("Игрок {} пытался перепривязать крысу {} с домика {} на {}", player.getGameProfile().getName(), rat.getUUID(), oldHouse.pos(), pos);
+							RatsMod.LOGGER.warn("Player {} tried to rebind rat {} from house {} to {}", player.getGameProfile().getName(), rat.getUUID(), oldHouse.pos(), pos);
 							return;
 						}
 					}
 					BlockEntity blockEntity = player.level().getBlockEntity(pos);
 					if (!(blockEntity instanceof RatHouseBlockEntity house)) {
-						throw new IllegalStateException("У rat_house нет RatHouseBlockEntity в " + pos);
+						throw new IllegalStateException("rat_house has no RatHouseBlockEntity at " + pos);
 					}
 					house.bindRat(rat, player);
 					return;
 				}
 				rat.setWorkAnchorPoint(target);
 			} catch (RuntimeException exception) {
-				RatsMod.LOGGER.error("Не удалось отметить домик или рабочую базу {} для крысы {} игроком {}", pos, rat.getUUID(), player.getGameProfile().getName(), exception);
+				RatsMod.LOGGER.error("Failed to mark house or work base {} for rat {} by player {}", pos, rat.getUUID(), player.getGameProfile().getName(), exception);
 				throw exception;
 			}
 		}
 
 
-		// Сбрасывает рабочую базу или привязанный rat_house; принимает игрока, крысу и позицию экрана посоха, ничего не отдаёт.
+		// Resets the work base or bound rat_house; takes the player, rat and staff screen position, returns nothing.
 		private static void clearHomeOrHouse(Player player, TamedRat rat, BlockPos pos) {
 			try {
 				if (!(player.level().getBlockState(pos).getBlock() instanceof RatHouseBlock)) {
@@ -140,40 +140,40 @@ public record SyncRatStaffPacket(int entityId, long pos, int facing, int control
 				}
 				rat.setBoundHousePos(null);
 			} catch (RuntimeException exception) {
-				RatsMod.LOGGER.error("Не удалось сбросить домик или рабочую базу крысы {} игроком {}", rat.getUUID(), player.getGameProfile().getName(), exception);
+				RatsMod.LOGGER.error("Failed to reset the house or work base of rat {} by player {}", rat.getUUID(), player.getGameProfile().getName(), exception);
 				throw exception;
 			}
 		}
 
-		// Проверяет владельца перед применением посоха; принимает игрока, крысу и код действия, отдаёт true при разрешении.
+		// Checks the owner before using the staff; takes the player, rat and action code, returns true if allowed.
 		private static boolean canPlayerControlRat(Player player, TamedRat rat, int control) {
 			try {
 				if (rat.getOwnerUUID() == null) {
-					RatsMod.LOGGER.warn("Игрок {} попытался применить посох к крысе {} без владельца, действие {}", player.getGameProfile().getName(), rat.getUUID(), control);
+					RatsMod.LOGGER.warn("Player {} tried to use the staff on rat {} that has no owner, action {}", player.getGameProfile().getName(), rat.getUUID(), control);
 					return false;
 				}
 				if (!rat.isOwnedBy(player)) {
-					RatsMod.LOGGER.warn("Игрок {} попытался применить посох к чужой крысе {} владельца {}, действие {}", player.getGameProfile().getName(), rat.getUUID(), rat.getOwnerUUID(), control);
+					RatsMod.LOGGER.warn("Player {} tried to use the staff on someone else's rat {} owned by {}, action {}", player.getGameProfile().getName(), rat.getUUID(), rat.getOwnerUUID(), control);
 					return false;
 				}
 				return true;
 			} catch (RuntimeException exception) {
-				RatsMod.LOGGER.error("Не удалось проверить владельца крысы {} для посоха игрока {}", rat.getUUID(), player.getGameProfile().getName(), exception);
+				RatsMod.LOGGER.error("Failed to check the owner of rat {} for the staff of player {}", rat.getUUID(), player.getGameProfile().getName(), exception);
 				throw exception;
 			}
 		}
 
-		// Читает сторону из пакета; принимает пакет, отдаёт валидное направление или кидает явную ошибку.
+		// Reads a side from the packet; takes the packet, returns a valid direction or throws an explicit error.
 		private static Direction readPacketDirection(SyncRatStaffPacket packet) {
 			try {
 				Direction[] directions = Direction.values();
 				int facing = packet.facing();
 				if (facing < 0 || facing >= directions.length) {
-					throw new IllegalArgumentException("Недопустимая сторона в пакете посоха: " + facing);
+					throw new IllegalArgumentException("Invalid side in the staff packet: " + facing);
 				}
 				return directions[facing];
 			} catch (RuntimeException exception) {
-				RatsMod.LOGGER.error("Не удалось прочитать сторону из пакета посоха для сущности {}", packet.entityId(), exception);
+				RatsMod.LOGGER.error("Failed to read the side from the staff packet for entity {}", packet.entityId(), exception);
 				throw exception;
 			}
 		}

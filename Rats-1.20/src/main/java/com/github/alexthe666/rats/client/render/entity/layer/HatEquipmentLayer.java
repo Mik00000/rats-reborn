@@ -26,7 +26,7 @@ public class HatEquipmentLayer<T extends LivingEntity, M extends EntityModel<T>>
 		super(parent);
 	}
 
-	// Рендерит 3D-шляпу на игроке или крысе; принимает стандартные параметры слоя рендера.
+	// Renders a 3D hat on a player or rat; takes the standard render layer parameters.
 	@Override
 	public void render(PoseStack stack, MultiBufferSource buffer, int light, T entity, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
 		try {
@@ -37,7 +37,7 @@ public class HatEquipmentLayer<T extends LivingEntity, M extends EntityModel<T>>
 			if (!(head.getItem() instanceof HatItem hat)) {
 				return;
 			}
-			// Крысы рисуются только в RatHelmetLayer.
+			// Rats are drawn only in RatHelmetLayer.
 			if (entity instanceof AbstractRat) {
 				return;
 			}
@@ -55,12 +55,12 @@ public class HatEquipmentLayer<T extends LivingEntity, M extends EntityModel<T>>
 			HatModels.renderOnPlayer(model, stack, consumer, light, OverlayTexture.NO_OVERLAY);
 			stack.popPose();
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Ошибка рендера шляпы на {}: {}", entity, exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Error rendering a hat on {}: {}", entity, exception.getMessage(), exception);
 			throw exception;
 		}
 	}
 
-	// Выставляет матрицу в позицию головы гуманоида; принимает стек матриц, ничего не возвращает.
+	// Moves the matrix to the humanoid head position; takes the matrix stack, returns nothing.
 	private void applyHumanoidHeadTransform(PoseStack stack) {
 		if (this.getParentModel() instanceof HumanoidModel<?> human) {
 			human.head.translateAndRotate(stack);

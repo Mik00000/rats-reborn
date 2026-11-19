@@ -286,18 +286,18 @@ public class RatCraftingTableBlockEntity extends BlockEntity implements MenuProv
 		return new RatCraftingTableMenu(id, inventory, this, this.dataAccess);
 	}
 
-	// Возвращает предметный обработчик крысиного верстака; принимает сторону, отдаёт IItemHandler.
+	// Returns the rat crafting table item handler; takes the side, returns an IItemHandler.
 	public IItemHandler getItemHandler(@Nullable Direction side) {
 		try {
 			if (this.remove) {
-				throw new IllegalStateException("Нельзя получить item capability удалённого крысиного верстака");
+				throw new IllegalStateException("Cannot get the item capability of a removed rat crafting table");
 			}
 			if (side == Direction.DOWN) {
 				return this.resultHandler;
 			}
 			return this.bufferHandler;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось получить item capability крысиного верстака на {}", this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to get the rat crafting table item capability at {}", this.getBlockPos(), exception);
 			throw exception;
 		}
 	}

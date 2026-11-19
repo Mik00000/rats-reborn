@@ -217,7 +217,7 @@ extends RenderLayer<T, M> {
             stack.popPose();
         }
         catch (RuntimeException exception) {
-            RatsMod.LOGGER.error("\u041e\u0448\u0438\u0431\u043a\u0430 3D-\u0440\u0435\u043d\u0434\u0435\u0440\u0430 \u0448\u043b\u044f\u043f\u044b \u043d\u0430 \u043a\u0440\u044b\u0441\u0435 {}: {}", (Object)rat.getUUID(), (Object)exception.getMessage(), (Object)exception);
+            RatsMod.LOGGER.error("Error rendering the 3D hat on rat {}: {}", (Object)rat.getUUID(), (Object)exception.getMessage(), (Object)exception);
             throw exception;
         }
     }
@@ -228,7 +228,7 @@ extends RenderLayer<T, M> {
             ((HumanoidModel<LivingEntity>)model).setupAnim(rat, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
         }
         catch (RuntimeException exception) {
-            RatsMod.LOGGER.error("\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u043e\u0431\u043d\u043e\u0432\u0438\u0442\u044c \u0430\u043d\u0438\u043c\u0430\u0446\u0438\u044e \u0448\u043b\u0435\u043c\u0430 \u043d\u0430 \u043a\u0440\u044b\u0441\u0435 {}: {}", (Object)rat.getUUID(), (Object)exception.getMessage(), (Object)exception);
+            RatsMod.LOGGER.error("Failed to update the helmet animation on rat {}: {}", (Object)rat.getUUID(), (Object)exception.getMessage(), (Object)exception);
             throw exception;
         }
     }
@@ -259,7 +259,7 @@ extends RenderLayer<T, M> {
             stack.popPose();
         }
         catch (RuntimeException exception) {
-            RatsMod.LOGGER.error("\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u043e\u0442\u0440\u0438\u0441\u043e\u0432\u0430\u0442\u044c \u0448\u043b\u0435\u043c {} \u043d\u0430 \u043a\u0440\u044b\u0441\u0435 {}: {}", (Object)itemstack.getItem(), (Object)rat.getUUID(), (Object)exception.getMessage(), (Object)exception);
+            RatsMod.LOGGER.error("Failed to render helmet {} on rat {}: {}", (Object)itemstack.getItem(), (Object)rat.getUUID(), (Object)exception.getMessage(), (Object)exception);
             throw exception;
         }
     }
@@ -274,7 +274,7 @@ extends RenderLayer<T, M> {
             }
         }
         catch (RuntimeException exception) {
-            RatsMod.LOGGER.error("\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u043e\u0442\u0440\u0438\u0441\u043e\u0432\u0430\u0442\u044c \u0433\u043e\u043b\u043e\u0432\u0443 \u0448\u043b\u0435\u043c\u0430 \u043f\u043e \u0442\u0435\u043a\u0441\u0442\u0443\u0440\u0435 {}: {}", (Object)armorResource, (Object)exception.getMessage(), (Object)exception);
+            RatsMod.LOGGER.error("Failed to render the helmet head with texture {}: {}", (Object)armorResource, (Object)exception.getMessage(), (Object)exception);
             throw exception;
         }
     }
@@ -299,7 +299,7 @@ extends RenderLayer<T, M> {
             return RatHeadEquipmentAdapter.resolveHelmetTexture(entity, stack, slot, type);
         }
         catch (RuntimeException exception) {
-            RatsMod.LOGGER.error("\u041e\u0448\u0438\u0431\u043a\u0430 \u043f\u043e\u043b\u0443\u0447\u0435\u043d\u0438\u044f \u0442\u0435\u043a\u0441\u0442\u0443\u0440\u044b \u0448\u043b\u0435\u043c\u0430 {}: {}", (Object)stack.getItem(), (Object)exception.getMessage(), (Object)exception);
+            RatsMod.LOGGER.error("Error getting helmet texture {}: {}", (Object)stack.getItem(), (Object)exception.getMessage(), (Object)exception);
             throw exception;
         }
     }

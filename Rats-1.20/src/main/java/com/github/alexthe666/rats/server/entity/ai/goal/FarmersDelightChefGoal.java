@@ -26,19 +26,19 @@ public class FarmersDelightChefGoal extends Goal {
 	private BlockPos depositPos;
 	private int nextStartTick;
 
-	// Создаёт цель шефа Farmer's Delight; принимает приручённую крысу, сохраняет её и настраивает флаги движения.
+	// Creates the Farmer's Delight chef goal; takes the tamed rat, stores it and sets the movement flags.
 	public FarmersDelightChefGoal(TamedRat rat) {
 		try {
 			this.rat = rat;
 			this.nextStartTick = rat.getRandom().nextInt(30);
 			this.setFlags(EnumSet.of(Goal.Flag.MOVE));
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось создать цель шефа Farmer's Delight для крысы {}", rat.getUUID(), exception);
+			RatsMod.LOGGER.error("Failed to create the Farmer's Delight chef goal for rat {}", rat.getUUID(), exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет возможность запуска цели; параметров нет, отдаёт true если крыса готова работать у блока FD.
+	// Checks whether the goal can start; no parameters, returns true if the rat is ready to work at an FD block.
 	@Override
 	public boolean canUse() {
 		try {
@@ -72,12 +72,12 @@ public class FarmersDelightChefGoal extends Goal {
 			BlockEntity blockEntity = this.rat.level().getBlockEntity(this.workPos);
 			return blockEntity != null && FarmersDelightCompat.isSupportedWorkBlock(blockEntity);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Крыса {} не смогла проверить запуск цели шефа Farmer's Delight", this.rat.getUUID(), exception);
+			RatsMod.LOGGER.error("Rat {} failed to check starting the Farmer's Delight chef goal", this.rat.getUUID(), exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет продолжение цели; параметров нет, отдаёт true пока сохранён рабочий блок и крыса может работать.
+	// Checks whether the goal continues; no parameters, returns true while the work block is kept and the rat can work.
 	@Override
 	public boolean canContinueToUse() {
 		try {
@@ -87,23 +87,23 @@ public class FarmersDelightChefGoal extends Goal {
 			BlockEntity blockEntity = this.rat.level().getBlockEntity(this.workPos);
 			return blockEntity != null && FarmersDelightCompat.isSupportedWorkBlock(blockEntity);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Крыса {} не смогла проверить продолжение цели шефа Farmer's Delight", this.rat.getUUID(), exception);
+			RatsMod.LOGGER.error("Rat {} failed to check continuing the Farmer's Delight chef goal", this.rat.getUUID(), exception);
 			throw exception;
 		}
 	}
 
-	// Запускает цель; параметров нет, отмечает крысу работающей.
+	// Starts the goal; no parameters, marks the rat as working.
 	@Override
 	public void start() {
 		try {
 			this.rat.isCurrentlyWorking = true;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Крыса {} не смогла начать цель шефа Farmer's Delight", this.rat.getUUID(), exception);
+			RatsMod.LOGGER.error("Rat {} failed to start the Farmer's Delight chef goal", this.rat.getUUID(), exception);
 			throw exception;
 		}
 	}
 
-	// Останавливает цель; параметров нет, очищает состояние и ставит короткую паузу перед новым циклом.
+	// Stops the goal; no parameters, clears the state and sets a short pause before the next cycle.
 	@Override
 	public void stop() {
 		try {
@@ -113,12 +113,12 @@ public class FarmersDelightChefGoal extends Goal {
 			this.depositPos = null;
 			this.nextStartTick = 10;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Крыса {} не смогла остановить цель шефа Farmer's Delight", this.rat.getUUID(), exception);
+			RatsMod.LOGGER.error("Rat {} failed to stop the Farmer's Delight chef goal", this.rat.getUUID(), exception);
 			throw exception;
 		}
 	}
 
-	// Выполняет шаг цели; параметров нет, ведёт крысу к точке применения или работает с сиденья.
+	// Runs a goal step; no parameters, leads the rat to the use point or works from the seat.
 	@Override
 	public void tick() {
 		try {
@@ -141,12 +141,12 @@ public class FarmersDelightChefGoal extends Goal {
 				this.performChefCycle();
 			}
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Крыса {} не смогла выполнить шаг цели шефа Farmer's Delight", this.rat.getUUID(), exception);
+			RatsMod.LOGGER.error("Rat {} failed to run a Farmer's Delight chef goal step", this.rat.getUUID(), exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет базовые условия работы шефа; параметров нет, отдаёт true если команда, улучшение и состояние подходят.
+	// Checks the basic chef work conditions; no parameters, returns true if the command, upgrade and state are suitable.
 	private boolean canRatWorkAsChef() {
 		try {
 			return this.rat.canMove()
@@ -157,38 +157,38 @@ public class FarmersDelightChefGoal extends Goal {
 					&& this.rat.getCommand() == RatCommand.HARVEST
 					&& RatUpgradeUtils.hasUpgrade(this.rat, RatsItemRegistry.RAT_UPGRADE_CHEF.get());
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Крыса {} не смогла проверить условия работы шефа Farmer's Delight", this.rat.getUUID(), exception);
+			RatsMod.LOGGER.error("Rat {} failed to check the Farmer's Delight chef work conditions", this.rat.getUUID(), exception);
 			throw exception;
 		}
 	}
 
-	// Выполняет рабочий цикл у блока; параметров нет, вызывает compat-слой и завершает цель после попытки.
+	// Runs the work cycle at the block; no parameters, calls the compat layer and finishes the goal after the attempt.
 	private void performChefCycle() {
 		try {
 			boolean worked = FarmersDelightCompat.tryRunChefCycle(this.rat, this.workPos, this.pickupPos, this.depositPos);
 			if (!worked) {
-				RatsMod.LOGGER.debug("Крыса {} не выполнила действие Farmer's Delight у {}", this.rat.getUUID(), this.workPos);
+				RatsMod.LOGGER.debug("Rat {} did not perform a Farmer's Delight action at {}", this.rat.getUUID(), this.workPos);
 			}
 			this.stop();
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Крыса {} не смогла выполнить рабочий цикл Farmer's Delight у {}", this.rat.getUUID(), this.workPos, exception);
+			RatsMod.LOGGER.error("Rat {} failed to run the Farmer's Delight work cycle at {}", this.rat.getUUID(), this.workPos, exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет работу с сиденья; параметров нет, отдаёт true если крыса сидит на сиденье и FD-блок в радиусе.
+	// Checks working from a seat; no parameters, returns true if the rat sits on a seat and the FD block is in range.
 	private boolean canWorkFromCurrentSeat() {
 		try {
 			return this.isMountedOnSeat()
 					&& this.workPos != null
 					&& this.rat.distanceToSqr(Vec3.atCenterOf(this.workPos)) <= SEAT_WORK_REACH * SEAT_WORK_REACH;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Крыса {} не смогла проверить работу с сиденья Farmer's Delight", this.rat.getUUID(), exception);
+			RatsMod.LOGGER.error("Rat {} failed to check working from a Farmer's Delight seat", this.rat.getUUID(), exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет, сидит ли крыса на сущности сиденья; параметров нет, отдаёт true по имени класса сущности сиденья.
+	// Checks whether the rat sits on a seat entity; no parameters, returns true based on the seat entity class name.
 	private boolean isMountedOnSeat() {
 		try {
 			Entity vehicle = this.rat.getVehicle();
@@ -198,7 +198,7 @@ public class FarmersDelightChefGoal extends Goal {
 			String name = vehicle.getClass().getName().toLowerCase();
 			return name.contains("seat");
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Крыса {} не смогла проверить сиденье Farmer's Delight", this.rat.getUUID(), exception);
+			RatsMod.LOGGER.error("Rat {} failed to check the Farmer's Delight seat", this.rat.getUUID(), exception);
 			throw exception;
 		}
 	}

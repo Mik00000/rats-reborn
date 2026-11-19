@@ -41,7 +41,7 @@ public class RatSeekCheeseGoal extends Goal {
          this.nextStartTick = 40 + rat.getRandom().nextInt(120);
          this.setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
       } catch (RuntimeException var3) {
-         RatsMod.LOGGER.error("Не удалось создать цель поиска сыра для крысы {}", rat.getUUID(), var3);
+         RatsMod.LOGGER.error("Failed to create the cheese search goal for rat {}", rat.getUUID(), var3);
          throw var3;
       }
    }
@@ -56,7 +56,7 @@ public class RatSeekCheeseGoal extends Goal {
             if ((this.rat.canMove() || CreateCompat.isMountedOnCreateSeat(this.rat)) && !this.rat.isInCage() && this.rat.getTarget() == null) {
                if (RatDaySchedule.shouldSleep(this.rat.level())) {
                   return false;
-               } else if (this.rat.consumeCheeseFromReserve("личный запас") && !this.rat.needsCheeseNow() && !this.rat.shouldRefillCheeseReserve()) {
+               } else if (this.rat.consumeCheeseFromReserve("personal stock") && !this.rat.needsCheeseNow() && !this.rat.shouldRefillCheeseReserve()) {
                   return false;
                } else if (!this.rat.needsCheeseNow() && !this.rat.shouldRefillCheeseReserve()) {
                   return false;
@@ -64,7 +64,7 @@ public class RatSeekCheeseGoal extends Goal {
                   this.targetBlock = this.findTargetBlock();
                   if (this.targetBlock == null) {
                      this.nextStartTick = reducedTickDelay(240 + this.rat.getRandom().nextInt(160));
-                     this.rat.setLastPathFailure("не найден путь к источнику сыра в радиусе " + RatConfig.pathfindFeederDistance);
+                     this.rat.setLastPathFailure("no path to a cheese source found within radius " + RatConfig.pathfindFeederDistance);
                      return false;
                   } else {
                      this.rat.clearLastPathFailure();
@@ -76,7 +76,7 @@ public class RatSeekCheeseGoal extends Goal {
             }
          }
       } catch (RuntimeException var2) {
-         RatsMod.LOGGER.error("Не удалось запустить поиск сыра крысы {}", this.rat.getUUID(), var2);
+         RatsMod.LOGGER.error("Failed to start the cheese search of rat {}", this.rat.getUUID(), var2);
          throw var2;
       }
    }
@@ -87,7 +87,7 @@ public class RatSeekCheeseGoal extends Goal {
             && (this.rat.canMove() || CreateCompat.isMountedOnCreateSeat(this.rat))
             && (this.rat.needsCheeseNow() || this.rat.shouldRefillCheeseReserve());
       } catch (RuntimeException var2) {
-         RatsMod.LOGGER.error("Не удалось продолжить поиск сыра крысы {}", this.rat.getUUID(), var2);
+         RatsMod.LOGGER.error("Failed to continue the cheese search of rat {}", this.rat.getUUID(), var2);
          throw var2;
       }
    }
@@ -97,7 +97,7 @@ public class RatSeekCheeseGoal extends Goal {
          this.targetBlock = null;
          this.rat.getNavigation().stop();
       } catch (RuntimeException var2) {
-         RatsMod.LOGGER.error("Не удалось остановить поиск сыра крысы {}", this.rat.getUUID(), var2);
+         RatsMod.LOGGER.error("Failed to stop the cheese search of rat {}", this.rat.getUUID(), var2);
          throw var2;
       }
    }
@@ -115,14 +115,14 @@ public class RatSeekCheeseGoal extends Goal {
             this.rat.moveSmoothlyTo(target.x(), target.y(), target.z(), 1.25);
             if (this.rat.distanceToSqr(target) <= this.rat.getRatHarvestDistance(0.0)) {
                if (!this.collectCheeseFromTarget()) {
-                  RatsMod.LOGGER.warn("Крыса {} дошла до источника сыра {}, но не смогла получить сыр", this.rat.getUUID(), this.targetBlock);
+                  RatsMod.LOGGER.warn("Rat {} reached cheese source {} but could not get cheese", this.rat.getUUID(), this.targetBlock);
                }
 
                this.stop();
             }
          }
       } catch (RuntimeException var2) {
-         RatsMod.LOGGER.error("Не удалось выполнить поиск сыра крысы {}", this.rat.getUUID(), var2);
+         RatsMod.LOGGER.error("Failed to run the cheese search of rat {}", this.rat.getUUID(), var2);
          throw var2;
       }
    }
@@ -138,7 +138,7 @@ public class RatSeekCheeseGoal extends Goal {
                : null;
          }
       } catch (RuntimeException var2) {
-         RatsMod.LOGGER.error("Не удалось найти источник сыра для крысы {}", this.rat.getUUID(), var2);
+         RatsMod.LOGGER.error("Failed to find a cheese source for rat {}", this.rat.getUUID(), var2);
          throw var2;
       }
    }
@@ -161,7 +161,7 @@ public class RatSeekCheeseGoal extends Goal {
 
          return this.firstReachableCandidate(candidates);
       } catch (RuntimeException var8) {
-         RatsMod.LOGGER.error("Не удалось найти кормушку с сыром для крысы {}", this.rat.getUUID(), var8);
+         RatsMod.LOGGER.error("Failed to find a feeder with cheese for rat {}", this.rat.getUUID(), var8);
          throw var8;
       }
    }
@@ -181,7 +181,7 @@ public class RatSeekCheeseGoal extends Goal {
 
          return this.firstReachableCandidate(candidates);
       } catch (RuntimeException var7) {
-         RatsMod.LOGGER.error("Не удалось найти контейнер с сыром для крысы {}", this.rat.getUUID(), var7);
+         RatsMod.LOGGER.error("Failed to find a container with cheese for rat {}", this.rat.getUUID(), var7);
          throw var7;
       }
    }
@@ -203,7 +203,7 @@ public class RatSeekCheeseGoal extends Goal {
 
          return null;
       } catch (RuntimeException var5) {
-         RatsMod.LOGGER.error("Не удалось выбрать достижимый источник сыра для крысы {}", this.rat.getUUID(), var5);
+         RatsMod.LOGGER.error("Failed to pick a reachable cheese source for rat {}", this.rat.getUUID(), var5);
          throw var5;
       }
    }
@@ -227,7 +227,7 @@ public class RatSeekCheeseGoal extends Goal {
 
          return entities;
       } catch (RuntimeException var11) {
-         RatsMod.LOGGER.error("Не удалось собрать block entity вокруг {} для крысы {}", center, this.rat.getUUID(), var11);
+         RatsMod.LOGGER.error("Failed to collect block entities around {} for rat {}", center, this.rat.getUUID(), var11);
          throw var11;
       }
    }
@@ -237,12 +237,12 @@ public class RatSeekCheeseGoal extends Goal {
          Path path = this.rat.getNavigation().createPath(pos, 1);
          boolean reachable = path != null && path.getNodeCount() > 0;
          if (!reachable) {
-            this.rat.setLastPathFailure("нет пути к сыру " + pos);
+            this.rat.setLastPathFailure("no path to cheese " + pos);
          }
 
          return reachable;
       } catch (RuntimeException var4) {
-         RatsMod.LOGGER.error("Не удалось проверить путь крысы {} к сыру {}", this.rat.getUUID(), pos, var4);
+         RatsMod.LOGGER.error("Failed to check the path of rat {} to cheese {}", this.rat.getUUID(), pos, var4);
          throw var4;
       }
    }
@@ -259,7 +259,7 @@ public class RatSeekCheeseGoal extends Goal {
             return false;
          }
       } catch (RuntimeException var5) {
-         RatsMod.LOGGER.error("Не удалось проверить кормушку {} для крысы {}", pos, this.rat.getUUID(), var5);
+         RatsMod.LOGGER.error("Failed to check feeder {} for rat {}", pos, this.rat.getUUID(), var5);
          throw var5;
       }
    }
@@ -268,7 +268,7 @@ public class RatSeekCheeseGoal extends Goal {
       try {
          return feeder.hasCheese();
       } catch (RuntimeException var3) {
-         RatsMod.LOGGER.error("Не удалось проверить найденную кормушку {} для крысы {}", feeder.getBlockPos(), this.rat.getUUID(), var3);
+         RatsMod.LOGGER.error("Failed to check found feeder {} for rat {}", feeder.getBlockPos(), this.rat.getUUID(), var3);
          throw var3;
       }
    }
@@ -293,7 +293,7 @@ public class RatSeekCheeseGoal extends Goal {
             return false;
          }
       } catch (RuntimeException var5) {
-         RatsMod.LOGGER.error("Не удалось проверить контейнер {} для голодной крысы {}", pos, this.rat.getUUID(), var5);
+         RatsMod.LOGGER.error("Failed to check container {} for hungry rat {}", pos, this.rat.getUUID(), var5);
          throw var5;
       }
    }
@@ -316,7 +316,7 @@ public class RatSeekCheeseGoal extends Goal {
             return false;
          }
       } catch (RuntimeException var4) {
-         RatsMod.LOGGER.error("Не удалось проверить найденный контейнер {} для голодной крысы {}", entity.getBlockPos(), this.rat.getUUID(), var4);
+         RatsMod.LOGGER.error("Failed to check found container {} for hungry rat {}", entity.getBlockPos(), this.rat.getUUID(), var4);
          throw var4;
       }
    }
@@ -342,7 +342,7 @@ public class RatSeekCheeseGoal extends Goal {
          }
          return false;
       } catch (RuntimeException var3) {
-         RatsMod.LOGGER.error("Не удалось проверить сыр в контейнере для крысы {}", this.rat.getUUID(), var3);
+         RatsMod.LOGGER.error("Failed to check cheese in the container for rat {}", this.rat.getUUID(), var3);
          throw var3;
       }
    }
@@ -361,7 +361,7 @@ public class RatSeekCheeseGoal extends Goal {
             return false;
          }
       } catch (RuntimeException var3) {
-         RatsMod.LOGGER.error("Не удалось получить сыр крысы {} из цели {}", this.rat.getUUID(), this.targetBlock, var3);
+         RatsMod.LOGGER.error("Failed to get cheese for rat {} from target {}", this.rat.getUUID(), this.targetBlock, var3);
          throw var3;
       }
    }
@@ -372,10 +372,10 @@ public class RatSeekCheeseGoal extends Goal {
          if (this.rat.needsCheeseNow()) {
             ItemStack cheese = feeder.takeCheeseForRat(1);
             if (!cheese.isEmpty()) {
-               boolean eaten = this.rat.eatCheeseFromStack(cheese, "кормушка");
+               boolean eaten = this.rat.eatCheeseFromStack(cheese, "feeder");
                if (!eaten) {
                   feeder.addCheeseFrom(cheese);
-                  throw new IllegalStateException("Крыса получила сыр из кормушки, но не съела его");
+                  throw new IllegalStateException("The rat got cheese from the feeder but did not eat it");
                }
 
                changed = true;
@@ -402,7 +402,7 @@ public class RatSeekCheeseGoal extends Goal {
 
          return changed;
       } catch (RuntimeException var5) {
-         RatsMod.LOGGER.error("Не удалось получить сыр крысе {} из кормушки {}", this.rat.getUUID(), feeder.getBlockPos(), var5);
+         RatsMod.LOGGER.error("Failed to get cheese for rat {} from feeder {}", this.rat.getUUID(), feeder.getBlockPos(), var5);
          throw var5;
       }
    }
@@ -413,7 +413,7 @@ public class RatSeekCheeseGoal extends Goal {
             this.toggleChest(inventory, false);
             for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
                ItemStack stack = inventory.getItem(slot);
-               if (TamedRat.isCheeseReserveItem(stack) && this.rat.eatCheeseFromStack(stack, "голодный грабёж")) {
+               if (TamedRat.isCheeseReserveItem(stack) && this.rat.eatCheeseFromStack(stack, "hungry raid")) {
                   if (stack.isEmpty()) {
                      inventory.setItem(slot, ItemStack.EMPTY);
                   } else {
@@ -432,7 +432,7 @@ public class RatSeekCheeseGoal extends Goal {
                   ItemStack simulated = handler.extractItem(slot, 64, true);
                   if (TamedRat.isCheeseReserveItem(simulated)) {
                      ItemStack extracted = handler.extractItem(slot, 1, false);
-                     if (this.rat.eatCheeseFromStack(extracted, "голодный грабёж")) {
+                     if (this.rat.eatCheeseFromStack(extracted, "hungry raid")) {
                         return true;
                      } else {
                         handler.insertItem(slot, extracted, false);
@@ -444,7 +444,7 @@ public class RatSeekCheeseGoal extends Goal {
 
          return false;
       } catch (RuntimeException var4) {
-         RatsMod.LOGGER.error("Не удалось украсть сыр для крысы {}", this.rat.getUUID(), var4);
+         RatsMod.LOGGER.error("Failed to steal cheese for rat {}", this.rat.getUUID(), var4);
          throw var4;
       }
    }
@@ -456,7 +456,7 @@ public class RatSeekCheeseGoal extends Goal {
             this.rat.level().playSound(null, this.targetBlock, open ? SoundEvents.CHEST_OPEN : SoundEvents.CHEST_CLOSE, SoundSource.BLOCKS);
          }
       } catch (RuntimeException var4) {
-         RatsMod.LOGGER.error("Не удалось переключить сундук при поиске сыра крысы {}", this.rat.getUUID(), var4);
+         RatsMod.LOGGER.error("Failed to switch the chest during the cheese search of rat {}", this.rat.getUUID(), var4);
          throw var4;
       }
    }

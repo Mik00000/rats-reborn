@@ -1,14 +1,14 @@
 package com.github.alexthe666.rats.client.util;
 
 /**
- * Упаковка компонентов цвета в ARGB для рендера моделей 1.21.1.
+ * Packs color components into ARGB for 1.21.1 model rendering.
  */
 public final class RenderColorUtil {
 
 	private RenderColorUtil() {
 	}
 
-	// Упаковывает float RGBA (0..1) в int ARGB для renderToBuffer/render.
+	// Packs float RGBA (0..1) into an ARGB int for renderToBuffer/render.
 	public static int packRgba(float red, float green, float blue, float alpha) {
 		int r = (int) (red * 255.0F);
 		int g = (int) (green * 255.0F);
@@ -17,17 +17,17 @@ public final class RenderColorUtil {
 		return (a << 24) | (r << 16) | (g << 8) | b;
 	}
 
-	// Упаковывает float RGB (0..1) с непрозрачной альфой.
+	// Packs float RGB (0..1) with opaque alpha.
 	public static int packRgb(float red, float green, float blue) {
 		return packRgba(red, green, blue, 1.0F);
 	}
 
-	// Упаковывает float[] RGB (0..1) с заданной альфой.
+	// Packs float[] RGB (0..1) with the given alpha.
 	public static int packRgb(float[] rgb, float alpha) {
 		return packRgba(rgb[0], rgb[1], rgb[2], alpha);
 	}
 
-	// Упаковывает float[] RGB (0..1) с непрозрачной альфой.
+	// Packs float[] RGB (0..1) with opaque alpha.
 	public static int packRgb(float[] rgb) {
 		return packRgb(rgb, 1.0F);
 	}

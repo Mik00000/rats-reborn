@@ -101,7 +101,7 @@ public class TamedRatRenderer extends AbstractRatRenderer<TamedRat, AbstractRatM
 //		}
 	}
 
-	// Масштабирует приручённую крысу по гену здоровья; принимает крысу, матрицу и частичный тик, ничего не отдаёт.
+	// Scales a tamed rat by its health gene; takes the rat, matrix and partial tick, returns nothing.
 	@Override
 	protected void scale(TamedRat rat, PoseStack stack, float partialTicks) {
 		try {
@@ -109,7 +109,7 @@ public class TamedRatRenderer extends AbstractRatRenderer<TamedRat, AbstractRatM
 			float geneScale = rat.getRatModelScaleFromGenes();
 			stack.scale(geneScale, geneScale, geneScale);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось применить генетический размер крысы {}", rat.getUUID(), exception);
+			RatsMod.LOGGER.error("Failed to apply genetic size to rat {}", rat.getUUID(), exception);
 			throw exception;
 		}
 	}

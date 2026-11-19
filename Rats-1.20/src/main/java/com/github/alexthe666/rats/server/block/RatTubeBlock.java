@@ -74,7 +74,7 @@ public class RatTubeBlock extends BaseEntityBlock {
 	private static final VoxelShape UP_AABB_CONNECT_2 = Block.box(3, 13, 3, 4, 16, 13);
 	private static final VoxelShape UP_AABB_CONNECT_3 = Block.box(12, 13, 3, 13, 16, 13);
 	private static final VoxelShape UP_AABB_CONNECT_4 = Block.box(3, 13, 12, 13, 16, 13);
-	/** Пол туннеля внутри сегмента (низ блока), если снизу нет открытого входа. */
+	/** Tunnel floor inside the segment (bottom of the block) when there is no open entrance below. */
 	private static final VoxelShape TUNNEL_FLOOR_AABB = Block.box(3, 0, 3, 13, 3, 13);
 
 	//AABB maps to stop mem leaks
@@ -260,7 +260,7 @@ public class RatTubeBlock extends BaseEntityBlock {
 		return state.getBlock() instanceof RatCageBlock || state.getBlock() instanceof RatTubeBlock;
 	}
 
-	// Возвращает AABB зоны трубы для поиска крыс; принимает позицию блока, отдаёт AABB.
+	// Returns the tube zone AABB for finding rats; takes the block position, returns an AABB.
 	public static AABB createTubeBounds(BlockPos pos) {
 		return new AABB(pos).inflate(0.45D);
 	}
@@ -289,7 +289,7 @@ public class RatTubeBlock extends BaseEntityBlock {
 			}
 			return ItemInteractionResult.sidedSuccess(level.isClientSide());
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Ошибка взаимодействия с трубой {}: {}", pos, exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Error interacting with tube {}: {}", pos, exception.getMessage(), exception);
 			throw exception;
 		}
 	}

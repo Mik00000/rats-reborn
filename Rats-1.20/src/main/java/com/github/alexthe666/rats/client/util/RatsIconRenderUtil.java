@@ -17,7 +17,7 @@ import org.joml.Vector3f;
 
 public class RatsIconRenderUtil {
 
-	// Рисует иконку POI в мире через RenderType (API 1.21.1).
+	// Draws a POI icon in the world via RenderType (1.21.1 API).
 	public static void renderPOIIcon(ResourceLocation icon, Vec3 viewVec, @Nullable BlockPos renderPos, float bob, PoseStack stack) {
 		if (renderPos == null || renderPos == BlockPos.ZERO) {
 			return;
@@ -46,7 +46,7 @@ public class RatsIconRenderUtil {
 		stack.popPose();
 	}
 
-	// Рисует текстурированный AABB в мире (радиус, карьер и т.п.).
+	// Draws a textured AABB in the world (radius, quarry, etc.).
 	public static void renderBox(ResourceLocation texture, Vec3 viewPos, Vec3 centerPos, AABB boxSize, PoseStack stack) {
 		MultiBufferSource.BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
 		RenderType renderType = RenderType.entityTranslucent(texture);
@@ -77,7 +77,7 @@ public class RatsIconRenderUtil {
 		float maxZ = (float) boundingBox.maxZ;
 		float uSpan = maxX - minX;
 		float vSpan = maxY - minY;
-		// Передняя и задняя грани (Z)
+		// Front and back faces (Z)
 		putIconVertex(consumer, pose, maxX, maxY, minZ, scroll, scroll + vSpan, 0.0F, 0.0F, -1.0F);
 		putIconVertex(consumer, pose, maxX, minY, minZ, scroll + uSpan, scroll + vSpan, 0.0F, 0.0F, -1.0F);
 		putIconVertex(consumer, pose, minX, minY, minZ, scroll + uSpan, scroll, 0.0F, 0.0F, -1.0F);
@@ -86,7 +86,7 @@ public class RatsIconRenderUtil {
 		putIconVertex(consumer, pose, minX, minY, maxZ, scroll + uSpan, scroll, 0.0F, 0.0F, 1.0F);
 		putIconVertex(consumer, pose, minX, maxY, maxZ, scroll + uSpan, scroll + vSpan, 0.0F, 0.0F, 1.0F);
 		putIconVertex(consumer, pose, maxX, maxY, maxZ, scroll, scroll + vSpan, 0.0F, 0.0F, 1.0F);
-		// Левая и правая (X)
+		// Left and right (X)
 		putIconVertex(consumer, pose, minX, maxY, maxZ, scroll, scroll + vSpan, -1.0F, 0.0F, 0.0F);
 		putIconVertex(consumer, pose, minX, minY, maxZ, scroll + uSpan, scroll + vSpan, -1.0F, 0.0F, 0.0F);
 		putIconVertex(consumer, pose, minX, minY, minZ, scroll + uSpan, scroll, -1.0F, 0.0F, 0.0F);
@@ -95,7 +95,7 @@ public class RatsIconRenderUtil {
 		putIconVertex(consumer, pose, maxX, minY, maxZ, scroll + uSpan, scroll, 1.0F, 0.0F, 0.0F);
 		putIconVertex(consumer, pose, maxX, maxY, maxZ, scroll + uSpan, scroll + vSpan, 1.0F, 0.0F, 0.0F);
 		putIconVertex(consumer, pose, maxX, maxY, minZ, scroll, scroll + vSpan, 1.0F, 0.0F, 0.0F);
-		// Верх и низ (Y)
+		// Top and bottom (Y)
 		putIconVertex(consumer, pose, minX, maxY, minZ, scroll, scroll, 0.0F, -1.0F, 0.0F);
 		putIconVertex(consumer, pose, maxX, maxY, minZ, scroll + uSpan, scroll, 0.0F, -1.0F, 0.0F);
 		putIconVertex(consumer, pose, maxX, maxY, maxZ, scroll + uSpan, scroll + uSpan, 0.0F, -1.0F, 0.0F);
@@ -106,7 +106,7 @@ public class RatsIconRenderUtil {
 		putIconVertex(consumer, pose, minX, minY, minZ, scroll, scroll + uSpan, 0.0F, 1.0F, 0.0F);
 	}
 
-	// Добавляет вершину иконки POI с UV и нормалью.
+	// Adds a POI icon vertex with UV and normal.
 	private static void putIconVertex(
 			VertexConsumer consumer,
 			PoseStack.Pose pose,

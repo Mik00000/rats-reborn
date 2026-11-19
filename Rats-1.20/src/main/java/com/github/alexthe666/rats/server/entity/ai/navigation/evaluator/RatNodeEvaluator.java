@@ -21,7 +21,7 @@ public class RatNodeEvaluator extends WalkNodeEvaluator {
 
 	@Override
 	public PathType getPathType(PathfindingContext context, int x, int y, int z) {
-		// Оценка узла для объёма крысы; принимает контекст и координаты, отдаёт тип узла.
+		// Node evaluation for the rat's volume; takes the context and coordinates, returns the node type.
 		try {
 			if (this.mob instanceof TamedRat rat) {
 				PathType tubeType = RatTubePathHelper.resolveTubePathType(context.level(), new BlockPos(x, y, z), rat);
@@ -31,14 +31,14 @@ public class RatNodeEvaluator extends WalkNodeEvaluator {
 			}
 			return super.getPathType(context, x, y, z);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось оценить узел пути крысы (getPathType) на {}, {}, {}", x, y, z, exception);
+			RatsMod.LOGGER.error("Failed to evaluate rat path node (getPathType) at {}, {}, {}", x, y, z, exception);
 			throw exception;
 		}
 	}
 
 	@Override
 	public PathType getPathTypeOfMob(PathfindingContext context, int x, int y, int z, Mob mob) {
-		// Определяет проходимость узла для крысы; принимает контекст, координаты и моба, отдаёт тип узла.
+		// Determines node passability for a rat; takes the context, coordinates and mob, returns the node type.
 		try {
 			PathType types = super.getPathTypeOfMob(context, x, y, z, mob);
 			BlockPos pos = new BlockPos(x, y, z);
@@ -83,7 +83,7 @@ public class RatNodeEvaluator extends WalkNodeEvaluator {
 			}
 			return types;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось оценить узел пути крысы на {}, {}, {}", x, y, z, exception);
+			RatsMod.LOGGER.error("Failed to evaluate rat path node at {}, {}, {}", x, y, z, exception);
 			throw exception;
 		}
 	}
@@ -91,7 +91,7 @@ public class RatNodeEvaluator extends WalkNodeEvaluator {
 	@Override
 	@Nullable
 	protected Node findAcceptedNode(int x, int y, int z, int verticalDelta, double nodeFloorLevel, Direction direction, PathType pathType) {
-		// Принимает координаты узла и тип; отдаёт узел пути или null. Для трубы — узел внутри сегмента без провала вниз.
+		// Takes node coordinates and type; returns a path node or null. For a tube - a node inside the segment without falling down.
 		try {
 			Node node = super.findAcceptedNode(x, y, z, verticalDelta, nodeFloorLevel, direction, pathType);
 			if (node != null || !(this.mob instanceof TamedRat rat)) {
@@ -110,7 +110,7 @@ public class RatNodeEvaluator extends WalkNodeEvaluator {
 			fallback.costMalus = malus;
 			return fallback;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось принять узел пути крысы на {}, {}, {}", x, y, z, exception);
+			RatsMod.LOGGER.error("Failed to accept rat path node at {}, {}, {}", x, y, z, exception);
 			throw exception;
 		}
 	}

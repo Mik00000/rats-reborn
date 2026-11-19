@@ -276,6 +276,9 @@ public class TamedRat extends InventoryRat {
    private boolean hasWorkerUpgradeCached;
    @Nullable
    private ListTag pendingUpgradeTags;
+   // True while readAdditionalSaveData runs, so setTame() called by the vanilla loader does not roll fresh genes
+   // that loadRatGenes() would overwrite a moment later.
+   private boolean loadingSaveData;
 
    @Override
    public boolean isFood(ItemStack stack) {
@@ -310,7 +313,7 @@ public class TamedRat extends InventoryRat {
             .add(Attributes.ARMOR, 1.0)
             .add(Attributes.FOLLOW_RANGE, 12.0);
       } catch (RuntimeException var1) {
-         RatsMod.LOGGER.error("Не удалось создать базовые атрибуты приручённой крысы", var1);
+         RatsMod.LOGGER.error("Failed to create the base attributes of a tamed rat", var1);
          throw var1;
       }
    }
@@ -322,7 +325,7 @@ public class TamedRat extends InventoryRat {
          this.initializeRandomRatGenes("spawn");
          return data;
       } catch (RuntimeException var6) {
-         RatsMod.LOGGER.error("Не удалось создать гены при появлении крысы {}", this.getUUID(), var6);
+         RatsMod.LOGGER.error("Failed to create genes when rat {} spawned", this.getUUID(), var6);
          throw var6;
       }
    }
@@ -528,7 +531,7 @@ public class TamedRat extends InventoryRat {
 
          return flag;
       } catch (RuntimeException var4) {
-         RatsMod.LOGGER.error("Крыса {} не смогла ударить цель {}", this.getUUID(), entity.getUUID(), var4);
+         RatsMod.LOGGER.error("Rat {} failed to hit target {}", this.getUUID(), entity.getUUID(), var4);
          throw var4;
       }
    }
@@ -566,7 +569,7 @@ public class TamedRat extends InventoryRat {
             return false;
          }
       } catch (RuntimeException var9) {
-         RatsMod.LOGGER.error("Не удалось проверить лазание крысы {} по домику", this.getUUID(), var9);
+         RatsMod.LOGGER.error("Failed to check rat {} climbing the house", this.getUUID(), var9);
          throw var9;
       }
    }
@@ -602,7 +605,7 @@ public class TamedRat extends InventoryRat {
             this.fallDistance = 0.0F;
          }
       } catch (RuntimeException var4) {
-         RatsMod.LOGGER.error("Ошибка тика крысы {} в трубе {}: {}", this.getUUID(), pos, var4.getMessage(), var4);
+         RatsMod.LOGGER.error("Tick error of rat {} in tube {}: {}", this.getUUID(), pos, var4.getMessage(), var4);
          throw var4;
       }
    }
@@ -684,7 +687,12 @@ public class TamedRat extends InventoryRat {
 
    @Override
    public void readAdditionalSaveData(CompoundTag tag) {
-      super.readAdditionalSaveData(tag);
+      this.loadingSaveData = true;
+      try {
+         super.readAdditionalSaveData(tag);
+      } finally {
+         this.loadingSaveData = false;
+      }
       if (tag.contains("RatUpgradeSlots", 9)) {
          this.pendingUpgradeTags = tag.getList("RatUpgradeSlots", 10).copy();
       }
@@ -752,6 +760,22 @@ public class TamedRat extends InventoryRat {
       return this.pendingUpgradeTags != null;
    }
 
+   public int getPendingUpgradeCount() {
+      return this.pendingUpgradeTags == null ? 0 : this.pendingUpgradeTags.size();
+   }
+
+   public boolean hasAnyUpgradeSlotFilled() {
+      if (this.getInventory() == null) {
+         return false;
+      }
+      for (int slot = UPGRADE_SLOT_CHEST; slot <= UPGRADE_SLOT_FEET; slot++) {
+         if (!this.getInventory().getItem(slot).isEmpty()) {
+            return true;
+         }
+      }
+      return false;
+   }
+
    public void tryReloadPendingUpgradeTags() {
       if (!this.level().isClientSide()) {
          this.loadPendingUpgradeTags();
@@ -767,7 +791,7 @@ public class TamedRat extends InventoryRat {
             this.pendingUpgradeTags = null;
          }
       } catch (RuntimeException var2) {
-         RatsMod.LOGGER.error("Не удалось загрузить отложенные улучшения крысы {} при входе в мир", this.getUUID(), var2);
+         RatsMod.LOGGER.error("Failed to load pending upgrades of rat {} on joining the world", this.getUUID(), var2);
          throw var2;
       }
    }
@@ -789,7 +813,7 @@ public class TamedRat extends InventoryRat {
 
          tag.put("RatUpgradeSlots", upgrades);
       } catch (RuntimeException var10) {
-         RatsMod.LOGGER.error("Не удалось сохранить улучшения крысы {}", this.getUUID(), var10);
+         RatsMod.LOGGER.error("Failed to save upgrades of rat {}", this.getUUID(), var10);
          throw var10;
       }
    }
@@ -820,7 +844,7 @@ public class TamedRat extends InventoryRat {
             }
          }
       } catch (RuntimeException var8) {
-         RatsMod.LOGGER.error("Не удалось восстановить улучшения крысы {}", this.getUUID(), var8);
+         RatsMod.LOGGER.error("Failed to restore upgrades of rat {}", this.getUUID(), var8);
          throw var8;
       }
    }
@@ -843,11 +867,11 @@ public class TamedRat extends InventoryRat {
          if (ordinal >= 0 && ordinal < directions.length) {
             return directions[ordinal];
          } else {
-            RatsMod.LOGGER.error("Крыса {} получила битое направление {}={} в NBT, применяю {}", this.getUUID(), key, ordinal, fallback);
+            RatsMod.LOGGER.error("Rat {} got a broken direction {}={} in NBT, applying {}", this.getUUID(), key, ordinal, fallback);
             return fallback;
          }
       } catch (RuntimeException var6) {
-         RatsMod.LOGGER.error("Не удалось прочитать направление {} крысы {}", key, this.getUUID(), var6);
+         RatsMod.LOGGER.error("Failed to read direction {} of rat {}", key, this.getUUID(), var6);
          throw var6;
       }
    }
@@ -917,9 +941,9 @@ public class TamedRat extends InventoryRat {
       }
 
       if (!this.level().isClientSide() && this.isTame()) {
-         if (this.tickCount % 40 == 0 && this.getCommand() == RatCommand.HARVEST) {
+         if (this.tickCount % 40 == 0 && this.getCommand() == RatCommand.HARVEST && com.github.alexthe666.rats.RatsMod.LOGGER.isDebugEnabled()) {
             String activeGoals = this.goalSelector.getAvailableGoals().stream().filter(net.minecraft.world.entity.ai.goal.WrappedGoal::isRunning).map(g -> g.getGoal().getClass().getSimpleName()).collect(java.util.stream.Collectors.joining(", "));
-            com.github.alexthe666.rats.RatsMod.LOGGER.info("[RAT_STATE] Rat {} pos={} | cmd={} | hand={} | sit={} | depositPos={} | activeGoals=[{}]",
+            com.github.alexthe666.rats.RatsMod.LOGGER.debug("[RAT_STATE] Rat {} pos={} | cmd={} | hand={} | sit={} | depositPos={} | activeGoals=[{}]",
                this.getUUID(), this.blockPosition(), this.getCommand(), this.getMainHandItem(), this.isOrderedToSit(),
                this.getDepositPos().map(p -> p.pos().toShortString()).orElse("none"), activeGoals);
          }
@@ -1043,7 +1067,7 @@ public class TamedRat extends InventoryRat {
             }
          }
       } catch (RuntimeException var6) {
-         RatsMod.LOGGER.error("Не удалось обработать подъём крысы {} через платформу карьера", this.getUUID(), var6);
+         RatsMod.LOGGER.error("Failed to handle rat {} climbing through the quarry platform", this.getUUID(), var6);
          throw var6;
       }
    }
@@ -1190,7 +1214,7 @@ public class TamedRat extends InventoryRat {
       try {
          return RatDaySchedule.canWork(this.level());
       } catch (RuntimeException var2) {
-         RatsMod.LOGGER.error("Не удалось проверить распорядок работы крысы {}", this.getUUID(), var2);
+         RatsMod.LOGGER.error("Failed to check the work schedule of rat {}", this.getUUID(), var2);
          throw var2;
       }
    }
@@ -1199,10 +1223,10 @@ public class TamedRat extends InventoryRat {
       try {
          this.getEntityData().set(LAST_PATH_FAILURE, reason == null ? "" : reason);
          if (reason != null && !reason.isBlank()) {
-            RatsMod.LOGGER.debug("Крыса {} не построила путь: {}", this.getUUID(), reason);
+            RatsMod.LOGGER.debug("Rat {} did not build a path: {}", this.getUUID(), reason);
          }
       } catch (RuntimeException var3) {
-         RatsMod.LOGGER.error("Не удалось записать сбой пути крысы {}", this.getUUID(), var3);
+         RatsMod.LOGGER.error("Failed to record the path failure of rat {}", this.getUUID(), var3);
          throw var3;
       }
    }
@@ -1211,7 +1235,7 @@ public class TamedRat extends InventoryRat {
       try {
          return (String)this.getEntityData().get(LAST_PATH_FAILURE);
       } catch (RuntimeException var2) {
-         RatsMod.LOGGER.error("Не удалось получить сбой пути крысы {}", this.getUUID(), var2);
+         RatsMod.LOGGER.error("Failed to get the path failure of rat {}", this.getUUID(), var2);
          throw var2;
       }
    }
@@ -1224,7 +1248,7 @@ public class TamedRat extends InventoryRat {
       try {
          return (Optional<GlobalPos>)this.getEntityData().get(CREATE_WORK_POS);
       } catch (RuntimeException var2) {
-         RatsMod.LOGGER.error("Не удалось получить точку применения Create для крысы {}", this.getUUID(), var2);
+         RatsMod.LOGGER.error("Failed to get the Create use point for rat {}", this.getUUID(), var2);
          throw var2;
       }
    }
@@ -1233,7 +1257,7 @@ public class TamedRat extends InventoryRat {
       try {
          this.getEntityData().set(CREATE_WORK_POS, Optional.ofNullable(pos));
       } catch (RuntimeException var3) {
-         RatsMod.LOGGER.error("Не удалось задать точку применения Create для крысы {}", this.getUUID(), var3);
+         RatsMod.LOGGER.error("Failed to set the Create use point for rat {}", this.getUUID(), var3);
          throw var3;
       }
    }
@@ -1242,7 +1266,7 @@ public class TamedRat extends InventoryRat {
       try {
          return (Optional<GlobalPos>)this.getEntityData().get(BOUND_HOUSE_POS);
       } catch (RuntimeException var2) {
-         RatsMod.LOGGER.error("Не удалось получить привязанный домик крысы {}", this.getUUID(), var2);
+         RatsMod.LOGGER.error("Failed to get the bound house of rat {}", this.getUUID(), var2);
          throw var2;
       }
    }
@@ -1251,7 +1275,7 @@ public class TamedRat extends InventoryRat {
       try {
          this.getEntityData().set(BOUND_HOUSE_POS, Optional.ofNullable(pos));
       } catch (RuntimeException var3) {
-         RatsMod.LOGGER.error("Не удалось задать привязанный домик крысы {}", this.getUUID(), var3);
+         RatsMod.LOGGER.error("Failed to set the bound house of rat {}", this.getUUID(), var3);
          throw var3;
       }
    }
@@ -1332,17 +1356,17 @@ public class TamedRat extends InventoryRat {
          boolean hasExclusiveParent = motherVariant.isBreedingExclusive() || fatherVariant.isBreedingExclusive();
          if (hasExclusiveParent && this.getRandom().nextFloat() <= 0.16666667F) {
             RatVariant variant = this.getRandomDifferentColorVariant(true, motherVariant, fatherVariant);
-            RatsMod.LOGGER.info("Крыса получила редкую мутацию окраса потомства: {}", RatVariant.getVariantId(variant));
+            RatsMod.LOGGER.info("Rat got a rare offspring coat mutation: {}", RatVariant.getVariantId(variant));
             return variant;
          } else if (this.getRandom().nextFloat() <= 0.1F) {
             RatVariant variant = this.getRandomDifferentColorVariant(false, motherVariant, fatherVariant);
-            RatsMod.LOGGER.info("Крыса получила мутацию обычного окраса потомства: {}", RatVariant.getVariantId(variant));
+            RatsMod.LOGGER.info("Rat got a regular offspring coat mutation: {}", RatVariant.getVariantId(variant));
             return variant;
          } else {
             return this.getRandom().nextBoolean() ? fatherVariant : motherVariant;
          }
       } catch (RuntimeException var7) {
-         RatsMod.LOGGER.error("Не удалось выбрать окрас детёныша от родителей {} и {}", mother.getUUID(), father.getUUID(), var7);
+         RatsMod.LOGGER.error("Failed to pick the baby coat from parents {} and {}", mother.getUUID(), father.getUUID(), var7);
          throw var7;
       }
    }
@@ -1352,12 +1376,12 @@ public class TamedRat extends InventoryRat {
          List<RatVariant> variants = new ArrayList<>(RatVariantRegistry.RAT_VARIANT_REGISTRY.stream().toList());
          variants.removeIf(variant -> variant.isBreedingExclusive() != breedingExclusive || variant == motherVariant || variant == fatherVariant);
          if (variants.isEmpty()) {
-            throw new IllegalStateException("Нет доступных вариантов окраса для мутации, breedingExclusive=" + breedingExclusive);
+            throw new IllegalStateException("No coat variants available for mutation, breedingExclusive=" + breedingExclusive);
          } else {
             return variants.get(this.getRandom().nextInt(variants.size()));
          }
       } catch (RuntimeException var5) {
-         RatsMod.LOGGER.error("Не удалось выбрать случайный окрас мутации для крысы {}", this.getUUID(), var5);
+         RatsMod.LOGGER.error("Failed to pick a random mutation coat for rat {}", this.getUUID(), var5);
          throw var5;
       }
    }
@@ -1366,7 +1390,7 @@ public class TamedRat extends InventoryRat {
       try {
          return !this.getEntityData().get(RAT_GENES_INITIALIZED) ? 1.0F : this.calculateRatModelScale((Float)this.getEntityData().get(GENE_HEALTH));
       } catch (RuntimeException var2) {
-         RatsMod.LOGGER.error("Не удалось получить размер модели по генам крысы {}", this.getUUID(), var2);
+         RatsMod.LOGGER.error("Failed to get the model size from the genes of rat {}", this.getUUID(), var2);
          throw var2;
       }
    }
@@ -1375,7 +1399,7 @@ public class TamedRat extends InventoryRat {
       try {
          return this.getRatGene(GENE_REGEN);
       } catch (RuntimeException var2) {
-         RatsMod.LOGGER.error("Не удалось получить ген регенерации крысы {}", this.getUUID(), var2);
+         RatsMod.LOGGER.error("Failed to get the regeneration gene of rat {}", this.getUUID(), var2);
          throw var2;
       }
    }
@@ -1384,7 +1408,7 @@ public class TamedRat extends InventoryRat {
       try {
          return this.getRatGene(GENE_SPEED);
       } catch (RuntimeException var2) {
-         RatsMod.LOGGER.error("Не удалось получить ген скорости крысы {} для GUI", this.getUUID(), var2);
+         RatsMod.LOGGER.error("Failed to get the speed gene of rat {} for the GUI", this.getUUID(), var2);
          throw var2;
       }
    }
@@ -1393,7 +1417,7 @@ public class TamedRat extends InventoryRat {
       try {
          return this.getRatGene(GENE_HEALTH);
       } catch (RuntimeException var2) {
-         RatsMod.LOGGER.error("Не удалось получить ген здоровья крысы {} для GUI", this.getUUID(), var2);
+         RatsMod.LOGGER.error("Failed to get the health gene of rat {} for the GUI", this.getUUID(), var2);
          throw var2;
       }
    }
@@ -1402,7 +1426,7 @@ public class TamedRat extends InventoryRat {
       try {
          return this.getRatGene(GENE_ARMOR);
       } catch (RuntimeException var2) {
-         RatsMod.LOGGER.error("Не удалось получить ген брони крысы {} для GUI", this.getUUID(), var2);
+         RatsMod.LOGGER.error("Failed to get the armor gene of rat {} for the GUI", this.getUUID(), var2);
          throw var2;
       }
    }
@@ -1411,7 +1435,7 @@ public class TamedRat extends InventoryRat {
       try {
          return this.getRatGene(GENE_DAMAGE);
       } catch (RuntimeException var2) {
-         RatsMod.LOGGER.error("Не удалось получить ген урона крысы {} для GUI", this.getUUID(), var2);
+         RatsMod.LOGGER.error("Failed to get the damage gene of rat {} for the GUI", this.getUUID(), var2);
          throw var2;
       }
    }
@@ -1420,7 +1444,7 @@ public class TamedRat extends InventoryRat {
       try {
          return this.getRatGene(GENE_REGEN);
       } catch (RuntimeException var2) {
-         RatsMod.LOGGER.error("Не удалось получить ген регенерации крысы {} для GUI", this.getUUID(), var2);
+         RatsMod.LOGGER.error("Failed to get the regeneration gene of rat {} for the GUI", this.getUUID(), var2);
          throw var2;
       }
    }
@@ -1432,14 +1456,14 @@ public class TamedRat extends InventoryRat {
             this.setCustomName(null);
             this.setCustomNameVisible(false);
          } else if (trimmedName.length() > 48) {
-            throw new IllegalArgumentException("Имя крысы длиннее 48 символов: " + trimmedName.length());
+            throw new IllegalArgumentException("Rat name is longer than 48 characters: " + trimmedName.length());
          } else {
             this.setCustomName(Component.literal(trimmedName));
             this.setCustomNameVisible(true);
-            RatsMod.LOGGER.info("Крысе {} назначено имя '{}'", this.getUUID(), trimmedName);
+            RatsMod.LOGGER.info("Rat {} was named '{}'", this.getUUID(), trimmedName);
          }
       } catch (RuntimeException var3) {
-         RatsMod.LOGGER.error("Не удалось назначить имя крысе {}: {}", this.getUUID(), name, var3);
+         RatsMod.LOGGER.error("Failed to name rat {}: {}", this.getUUID(), name, var3);
          throw var3;
       }
    }
@@ -1448,7 +1472,7 @@ public class TamedRat extends InventoryRat {
       try {
          return !stack.isEmpty() && (stack.is(RatsItemTags.CHEESE_ITEMS) || stack.is((Item)RatsItemRegistry.CREATIVE_CHEESE.get()));
       } catch (RuntimeException var2) {
-         RatsMod.LOGGER.error("Не удалось проверить сырный стек крысы {}", stack, var2);
+         RatsMod.LOGGER.error("Failed to check the cheese stack of rat {}", stack, var2);
          throw var2;
       }
    }
@@ -1458,7 +1482,7 @@ public class TamedRat extends InventoryRat {
          if (Math.floorMod(this.tickCount + this.getId(), 20) == 0) {
             this.resetRatHungerDayIfNeeded();
             if (this.needsCheeseNow()) {
-               this.consumeCheeseFromReserve("личный запас");
+               this.consumeCheeseFromReserve("personal stock");
             }
 
             if (Math.floorMod(this.tickCount + this.getId(), 100) == 0) {
@@ -1466,7 +1490,7 @@ public class TamedRat extends InventoryRat {
             }
          }
       } catch (RuntimeException var2) {
-         RatsMod.LOGGER.error("Не удалось обработать голод крысы {}", this.getUUID(), var2);
+         RatsMod.LOGGER.error("Failed to process hunger of rat {}", this.getUUID(), var2);
          throw var2;
       }
    }
@@ -1475,7 +1499,7 @@ public class TamedRat extends InventoryRat {
       try {
          return this.level().getGameTime() / 24000L;
       } catch (RuntimeException var2) {
-         RatsMod.LOGGER.error("Не удалось получить день голода крысы {}", this.getUUID(), var2);
+         RatsMod.LOGGER.error("Failed to get the hunger day of rat {}", this.getUUID(), var2);
          throw var2;
       }
    }
@@ -1493,11 +1517,11 @@ public class TamedRat extends InventoryRat {
                this.cachedHungerEfficiencyTick = this.tickCount;
                this.cachedHungerEfficiency = 0.0F;
                this.syncRatHungerData();
-               RatsMod.LOGGER.debug("Крыса {} начала новый день голода {}", this.getUUID(), currentDay);
+               RatsMod.LOGGER.debug("Rat {} started a new hunger day {}", this.getUUID(), currentDay);
             }
          }
       } catch (RuntimeException var3) {
-         RatsMod.LOGGER.error("Не удалось сбросить день голода крысы {}", this.getUUID(), var3);
+         RatsMod.LOGGER.error("Failed to reset the hunger day of rat {}", this.getUUID(), var3);
          throw var3;
       }
    }
@@ -1507,7 +1531,7 @@ public class TamedRat extends InventoryRat {
          this.getEntityData().set(CHEESE_EATEN_TODAY_SYNC, this.cheeseEatenToday);
          this.getEntityData().set(LAST_FEED_DAY_SYNC, Mth.clamp((int)this.lastFeedDay, -1, Integer.MAX_VALUE));
       } catch (RuntimeException var2) {
-         RatsMod.LOGGER.error("Не удалось синхронизировать голод крысы {}", this.getUUID(), var2);
+         RatsMod.LOGGER.error("Failed to sync hunger of rat {}", this.getUUID(), var2);
          throw var2;
       }
    }
@@ -1516,7 +1540,7 @@ public class TamedRat extends InventoryRat {
       try {
          return 4;
       } catch (RuntimeException var2) {
-         RatsMod.LOGGER.error("Не удалось получить норму сыра крысы {}", this.getUUID(), var2);
+         RatsMod.LOGGER.error("Failed to get the cheese quota of rat {}", this.getUUID(), var2);
          throw var2;
       }
    }
@@ -1526,7 +1550,7 @@ public class TamedRat extends InventoryRat {
          this.resetRatHungerDayIfNeeded();
          return this.cheeseEatenToday;
       } catch (RuntimeException var2) {
-         RatsMod.LOGGER.error("Не удалось получить счётчик сыра крысы {}", this.getUUID(), var2);
+         RatsMod.LOGGER.error("Failed to get the cheese counter of rat {}", this.getUUID(), var2);
          throw var2;
       }
    }
@@ -1539,7 +1563,7 @@ public class TamedRat extends InventoryRat {
             this.resetRatHungerDayIfNeeded();
             int requirement = this.getDailyCheeseRequirement();
             if (requirement <= 0) {
-               throw new IllegalStateException("Суточная норма сыра должна быть положительной");
+               throw new IllegalStateException("The daily cheese quota must be positive");
             } else {
                float efficiency = Mth.clamp((float)this.cheeseEatenToday / (float)requirement, 0.0F, 1.0F);
                if (!this.level().isClientSide()) {
@@ -1551,7 +1575,7 @@ public class TamedRat extends InventoryRat {
             }
          }
       } catch (RuntimeException var3) {
-         RatsMod.LOGGER.error("Не удалось получить сытость крысы {}", this.getUUID(), var3);
+         RatsMod.LOGGER.error("Failed to get the satiety of rat {}", this.getUUID(), var3);
          throw var3;
       }
    }
@@ -1560,7 +1584,7 @@ public class TamedRat extends InventoryRat {
       try {
          return this.getRatHungerEfficiency() > 0.0F;
       } catch (RuntimeException var2) {
-         RatsMod.LOGGER.error("Не удалось проверить работу по сытости крысы {}", this.getUUID(), var2);
+         RatsMod.LOGGER.error("Failed to check satiety-based work of rat {}", this.getUUID(), var2);
          throw var2;
       }
    }
@@ -1568,13 +1592,13 @@ public class TamedRat extends InventoryRat {
    public double getHungerAdjustedWorkSpeed(double baseSpeed) {
       try {
          if (baseSpeed <= 0.0) {
-            throw new IllegalArgumentException("Базовая скорость рабочей цели должна быть положительной: " + baseSpeed);
+            throw new IllegalArgumentException("The base speed of a work goal must be positive: " + baseSpeed);
          } else {
             float efficiency = this.getRatHungerEfficiency();
             return efficiency <= 0.0F ? 0.0 : baseSpeed * (double)efficiency;
          }
       } catch (RuntimeException var4) {
-         RatsMod.LOGGER.error("Не удалось рассчитать скорость работы крысы {}", this.getUUID(), var4);
+         RatsMod.LOGGER.error("Failed to compute the work speed of rat {}", this.getUUID(), var4);
          throw var4;
       }
    }
@@ -1590,7 +1614,7 @@ public class TamedRat extends InventoryRat {
             return this.getNavigation().moveTo(x, y, z, speed);
          }
       } catch (RuntimeException var10) {
-         RatsMod.LOGGER.error("Крыса {} не смогла плавно пойти к {}, {}, {}", this.getUUID(), x, y, z, var10);
+         RatsMod.LOGGER.error("Rat {} failed to move smoothly to {}, {}, {}", this.getUUID(), x, y, z, var10);
          throw var10;
       }
    }
@@ -1606,7 +1630,7 @@ public class TamedRat extends InventoryRat {
             return this.getNavigation().moveTo(target, speed);
          }
       } catch (RuntimeException var5) {
-         RatsMod.LOGGER.error("Крыса {} не смогла плавно пойти к сущности {}", this.getUUID(), target.getUUID(), var5);
+         RatsMod.LOGGER.error("Rat {} failed to move smoothly to entity {}", this.getUUID(), target.getUUID(), var5);
          throw var5;
       }
    }
@@ -1623,7 +1647,7 @@ public class TamedRat extends InventoryRat {
             return this.getNavigation().moveTo(path, speed);
          }
       } catch (RuntimeException var5) {
-         RatsMod.LOGGER.error("Крыса {} не смогла плавно пойти по готовому пути", this.getUUID(), var5);
+         RatsMod.LOGGER.error("Rat {} failed to move smoothly along a ready path", this.getUUID(), var5);
          throw var5;
       }
    }
@@ -1632,7 +1656,7 @@ public class TamedRat extends InventoryRat {
       try {
          return this.hasQuarryUpgradeForNavigation || this.navigatorType == 2 || this.navigatorType == 5;
       } catch (RuntimeException var2) {
-         RatsMod.LOGGER.error("Крыса {} не смогла проверить режим плавной навигации", this.getUUID(), var2);
+         RatsMod.LOGGER.error("Rat {} failed to check the smooth navigation mode", this.getUUID(), var2);
          throw var2;
       }
    }
@@ -1648,7 +1672,7 @@ public class TamedRat extends InventoryRat {
             return false;
          }
       } catch (RuntimeException var13) {
-         RatsMod.LOGGER.error("Крыса {} не смогла проверить повторное использование пути", this.getUUID(), var13);
+         RatsMod.LOGGER.error("Rat {} failed to check path reuse", this.getUUID(), var13);
          throw var13;
       }
    }
@@ -1661,7 +1685,7 @@ public class TamedRat extends InventoryRat {
          this.lastSmoothMoveZ = z;
          this.lastSmoothMoveEntity = target;
       } catch (RuntimeException var9) {
-         RatsMod.LOGGER.error("Крыса {} не смогла запомнить цель плавного движения", this.getUUID(), var9);
+         RatsMod.LOGGER.error("Rat {} failed to remember the smooth movement target", this.getUUID(), var9);
          throw var9;
       }
    }
@@ -1671,7 +1695,7 @@ public class TamedRat extends InventoryRat {
          this.resetRatHungerDayIfNeeded();
          int requirement = this.getDailyCheeseRequirement();
          if (requirement <= 0) {
-            throw new IllegalStateException("Суточная норма сыра должна быть положительной");
+            throw new IllegalStateException("The daily cheese quota must be positive");
          } else {
             long dayProgress = this.level().getGameTime() % 24000L;
             int interval = Math.max(1, 24000 / requirement);
@@ -1679,7 +1703,7 @@ public class TamedRat extends InventoryRat {
             return this.cheeseEatenToday < requiredByNow;
          }
       } catch (RuntimeException var6) {
-         RatsMod.LOGGER.error("Не удалось проверить потребность в сыре крысы {}", this.getUUID(), var6);
+         RatsMod.LOGGER.error("Failed to check the cheese need of rat {}", this.getUUID(), var6);
          throw var6;
       }
    }
@@ -1687,7 +1711,7 @@ public class TamedRat extends InventoryRat {
    public boolean consumeCheeseFromReserve(String sourceName) {
       try {
          if (this.getInventory() == null) {
-            throw new IllegalStateException("У крысы нет инвентаря для личного запаса сыра");
+            throw new IllegalStateException("The rat has no inventory for a personal cheese stock");
          } else {
             ItemStack reserve = this.getInventory().getItem(2);
             if (reserve.isEmpty()) {
@@ -1708,7 +1732,7 @@ public class TamedRat extends InventoryRat {
             }
          }
       } catch (RuntimeException var4) {
-         RatsMod.LOGGER.error("Не удалось съесть сыр из личного запаса крысы {}", this.getUUID(), var4);
+         RatsMod.LOGGER.error("Failed to eat cheese from the personal stock of rat {}", this.getUUID(), var4);
          throw var4;
       }
    }
@@ -1717,7 +1741,7 @@ public class TamedRat extends InventoryRat {
       try {
          return 16;
       } catch (RuntimeException var2) {
-         RatsMod.LOGGER.error("Не удалось получить максимум личного запаса сыра крысы {}", this.getUUID(), var2);
+         RatsMod.LOGGER.error("Failed to get the personal cheese stock maximum of rat {}", this.getUUID(), var2);
          throw var2;
       }
    }
@@ -1725,13 +1749,13 @@ public class TamedRat extends InventoryRat {
    public int getCheeseReserveCount() {
       try {
          if (this.getInventory() == null) {
-            throw new IllegalStateException("У крысы нет инвентаря для подсчёта сыра");
+            throw new IllegalStateException("The rat has no inventory to count cheese");
          } else {
             ItemStack reserve = this.getInventory().getItem(2);
             return isCheeseReserveItem(reserve) ? reserve.getCount() : 0;
          }
       } catch (RuntimeException var2) {
-         RatsMod.LOGGER.error("Не удалось посчитать личный сыр крысы {}", this.getUUID(), var2);
+         RatsMod.LOGGER.error("Failed to count the personal cheese of rat {}", this.getUUID(), var2);
          throw var2;
       }
    }
@@ -1739,9 +1763,9 @@ public class TamedRat extends InventoryRat {
    public int getCheeseReserveFreeSpace(ItemStack stack) {
       try {
          if (!isCheeseReserveItem(stack)) {
-            throw new IllegalArgumentException("Проверка места в запасе получила не сыр: " + stack);
+            throw new IllegalArgumentException("The stock space check received something that is not cheese: " + stack);
          } else if (this.getInventory() == null) {
-            throw new IllegalStateException("У крысы нет инвентаря для личного запаса сыра");
+            throw new IllegalStateException("The rat has no inventory for a personal cheese stock");
          } else {
             ItemStack reserve = this.getInventory().getItem(2);
             if (reserve.isEmpty()) {
@@ -1753,7 +1777,7 @@ public class TamedRat extends InventoryRat {
             }
          }
       } catch (RuntimeException var3) {
-         RatsMod.LOGGER.error("Не удалось проверить место под сыр в запасе крысы {}", this.getUUID(), var3);
+         RatsMod.LOGGER.error("Failed to check cheese space in the stock of rat {}", this.getUUID(), var3);
          throw var3;
       }
    }
@@ -1761,13 +1785,13 @@ public class TamedRat extends InventoryRat {
    public boolean hasCheeseReserveSpace() {
       try {
          if (this.getInventory() == null) {
-            throw new IllegalStateException("У крысы нет инвентаря для проверки запаса сыра");
+            throw new IllegalStateException("The rat has no inventory to check the cheese stock");
          } else {
             ItemStack reserve = this.getInventory().getItem(2);
             return reserve.isEmpty() ? true : isCheeseReserveItem(reserve) && reserve.getCount() < this.getMaxCheeseReserve();
          }
       } catch (RuntimeException var2) {
-         RatsMod.LOGGER.error("Не удалось проверить свободное место запаса сыра крысы {}", this.getUUID(), var2);
+         RatsMod.LOGGER.error("Failed to check free cheese stock space of rat {}", this.getUUID(), var2);
          throw var2;
       }
    }
@@ -1776,7 +1800,7 @@ public class TamedRat extends InventoryRat {
       try {
          return this.hasCheeseReserveSpace() && this.getCheeseReserveCount() <= 2;
       } catch (RuntimeException var2) {
-         RatsMod.LOGGER.error("Не удалось проверить порог пополнения сыра крысы {}", this.getUUID(), var2);
+         RatsMod.LOGGER.error("Failed to check the cheese refill threshold of rat {}", this.getUUID(), var2);
          throw var2;
       }
    }
@@ -1784,9 +1808,9 @@ public class TamedRat extends InventoryRat {
    public int addCheeseToReserve(ItemStack source) {
       try {
          if (!isCheeseReserveItem(source)) {
-            throw new IllegalArgumentException("В личный запас крысы можно положить только сыр: " + source);
+            throw new IllegalArgumentException("Only cheese can be put into the rat's personal stock: " + source);
          } else if (this.getInventory() == null) {
-            throw new IllegalStateException("У крысы нет инвентаря для пополнения сыра");
+            throw new IllegalStateException("The rat has no inventory to refill cheese");
          } else {
             int space = this.getCheeseReserveFreeSpace(source);
             if (space <= 0) {
@@ -1808,7 +1832,7 @@ public class TamedRat extends InventoryRat {
             }
          }
       } catch (RuntimeException var6) {
-         RatsMod.LOGGER.error("Не удалось пополнить личный запас сыра крысы {}", this.getUUID(), var6);
+         RatsMod.LOGGER.error("Failed to refill the personal cheese stock of rat {}", this.getUUID(), var6);
          throw var6;
       }
    }
@@ -1816,9 +1840,9 @@ public class TamedRat extends InventoryRat {
    public ItemStack takeCheeseFromReserve(int amount) {
       try {
          if (amount <= 0) {
-            throw new IllegalArgumentException("Количество забираемого сыра должно быть положительным: " + amount);
+            throw new IllegalArgumentException("The amount of cheese to take must be positive: " + amount);
          } else if (this.getInventory() == null) {
-            throw new IllegalStateException("У крысы нет инвентаря для выдачи сыра");
+            throw new IllegalStateException("The rat has no inventory to hand out cheese");
          } else {
             ItemStack reserve = this.getInventory().getItem(2);
             if (!isCheeseReserveItem(reserve)) {
@@ -1835,7 +1859,7 @@ public class TamedRat extends InventoryRat {
             }
          }
       } catch (RuntimeException var4) {
-         RatsMod.LOGGER.error("Не удалось забрать сыр из личного запаса крысы {}", this.getUUID(), var4);
+         RatsMod.LOGGER.error("Failed to take cheese from the personal stock of rat {}", this.getUUID(), var4);
          throw var4;
       }
    }
@@ -1868,7 +1892,7 @@ public class TamedRat extends InventoryRat {
 
                      RatsMod.LOGGER
                         .debug(
-                           "Крыса {} поделилась сыром с крысой {}: донор={}, получатель={}",
+                           "Rat {} shared cheese with rat {}: donor={}, recipient={}",
                            this.getUUID(),
                            receiver.getUUID(),
                            this.getCheeseReserveCount(),
@@ -1879,7 +1903,7 @@ public class TamedRat extends InventoryRat {
             }
          }
       } catch (RuntimeException var4) {
-         RatsMod.LOGGER.error("Не удалось поделиться сыром у крысы {}", this.getUUID(), var4);
+         RatsMod.LOGGER.error("Failed to share cheese for rat {}", this.getUUID(), var4);
          throw var4;
       }
    }
@@ -1889,7 +1913,7 @@ public class TamedRat extends InventoryRat {
          if (stack.isEmpty()) {
             return false;
          } else if (!isCheeseReserveItem(stack)) {
-            throw new IllegalArgumentException("Крыса может есть только сыр, получен стек: " + stack);
+            throw new IllegalArgumentException("A rat can only eat cheese, got stack: " + stack);
          } else if (!this.needsCheeseNow()) {
             return false;
          } else {
@@ -1898,7 +1922,7 @@ public class TamedRat extends InventoryRat {
             return true;
          }
       } catch (RuntimeException var4) {
-         RatsMod.LOGGER.error("Не удалось накормить крысу {} из источника {}", this.getUUID(), sourceName, var4);
+         RatsMod.LOGGER.error("Failed to feed rat {} from source {}", this.getUUID(), sourceName, var4);
          throw var4;
       }
    }
@@ -1911,9 +1935,9 @@ public class TamedRat extends InventoryRat {
          this.cachedHungerEfficiencyTick = -1000;
          this.syncRatHungerData();
          this.playSound(SoundEvents.GENERIC_EAT, 0.6F, 0.9F + this.getRandom().nextFloat() * 0.2F);
-         RatsMod.LOGGER.debug("Крыса {} съела сыр из источника '{}': {}/{}", this.getUUID(), sourceName, this.cheeseEatenToday, requirement);
+         RatsMod.LOGGER.debug("Rat {} ate cheese from source '{}': {}/{}", this.getUUID(), sourceName, this.cheeseEatenToday, requirement);
       } catch (RuntimeException var3) {
-         RatsMod.LOGGER.error("Не удалось записать кормление крысы {}", this.getUUID(), var3);
+         RatsMod.LOGGER.error("Failed to record feeding of rat {}", this.getUUID(), var3);
          throw var3;
       }
    }
@@ -1924,7 +1948,7 @@ public class TamedRat extends InventoryRat {
             this.initializeRandomRatGenes(reason);
          }
       } catch (RuntimeException var3) {
-         RatsMod.LOGGER.error("Не удалось проверить гены крысы {} по причине {}", this.getUUID(), reason, var3);
+         RatsMod.LOGGER.error("Failed to check genes of rat {} for reason {}", this.getUUID(), reason, var3);
          throw var3;
       }
    }
@@ -1941,8 +1965,8 @@ public class TamedRat extends InventoryRat {
          );
          this.onUpgradeChanged();
          RatsMod.LOGGER
-            .info(
-               "Крыса {} получила случайные гены при {}: скорость={}, здоровье={}, броня={}, урон={}, регенерация={}",
+            .debug(
+               "Rat {} got random genes on {}: speed={}, health={}, armor={}, damage={}, regeneration={}",
                this.getUUID(),
                reason,
                this.getRatGene(GENE_SPEED),
@@ -1952,7 +1976,7 @@ public class TamedRat extends InventoryRat {
                this.getRatGene(GENE_REGEN)
             );
       } catch (RuntimeException var3) {
-         RatsMod.LOGGER.error("Не удалось создать случайные гены крысы {} при {}", this.getUUID(), reason, var3);
+         RatsMod.LOGGER.error("Failed to create random genes for rat {} on {}", this.getUUID(), reason, var3);
          throw var3;
       }
    }
@@ -1971,7 +1995,7 @@ public class TamedRat extends InventoryRat {
          this.onUpgradeChanged();
          RatsMod.LOGGER
             .info(
-               "Крыса {} унаследовала гены: скорость={}, здоровье={}, броня={}, урон={}, регенерация={}",
+               "Rat {} inherited genes: speed={}, health={}, armor={}, damage={}, regeneration={}",
                this.getUUID(),
                this.getRatGene(GENE_SPEED),
                this.getRatGene(GENE_HEALTH),
@@ -1980,7 +2004,7 @@ public class TamedRat extends InventoryRat {
                this.getRatGene(GENE_REGEN)
             );
       } catch (RuntimeException var4) {
-         RatsMod.LOGGER.error("Не удалось унаследовать гены крысы {} от родителей {} и {}", this.getUUID(), mother.getUUID(), father.getUUID(), var4);
+         RatsMod.LOGGER.error("Failed to inherit genes of rat {} from parents {} and {}", this.getUUID(), mother.getUUID(), father.getUUID(), var4);
          throw var4;
       }
    }
@@ -1996,7 +2020,7 @@ public class TamedRat extends InventoryRat {
 
          return this.clampRatGene(mixed);
       } catch (RuntimeException var7) {
-         RatsMod.LOGGER.error("Не удалось смешать ген {} для крысы {}", geneName, this.getUUID(), var7);
+         RatsMod.LOGGER.error("Failed to mix gene {} for rat {}", geneName, this.getUUID(), var7);
          throw var7;
       }
    }
@@ -2011,11 +2035,11 @@ public class TamedRat extends InventoryRat {
          } else {
             boolean mutateUp = canMutateUp && (!canMutateDown || this.getRandom().nextBoolean());
             float mutated = mutateUp ? parentMax + mutation : parentMin - mutation;
-            RatsMod.LOGGER.debug("Мутация гена {} у крысы {}: {} -> {}", geneName, this.getUUID(), mixed, mutated);
+            RatsMod.LOGGER.debug("Gene {} mutation in rat {}: {} -> {}", geneName, this.getUUID(), mixed, mutated);
             return this.clampRatGene(mutated);
          }
       } catch (RuntimeException var10) {
-         RatsMod.LOGGER.error("Не удалось мутировать ген {} у крысы {}", geneName, this.getUUID(), var10);
+         RatsMod.LOGGER.error("Failed to mutate gene {} in rat {}", geneName, this.getUUID(), var10);
          throw var10;
       }
    }
@@ -2030,7 +2054,7 @@ public class TamedRat extends InventoryRat {
          this.getEntityData().set(RAT_GENES_INITIALIZED, true);
          this.refreshDimensions();
       } catch (RuntimeException var7) {
-         RatsMod.LOGGER.error("Не удалось записать гены крысы {}", this.getUUID(), var7);
+         RatsMod.LOGGER.error("Failed to write genes of rat {}", this.getUUID(), var7);
          throw var7;
       }
    }
@@ -2047,7 +2071,7 @@ public class TamedRat extends InventoryRat {
             tag.put("RatGenes", genes);
          }
       } catch (RuntimeException var3) {
-         RatsMod.LOGGER.error("Не удалось сохранить гены крысы {}", this.getUUID(), var3);
+         RatsMod.LOGGER.error("Failed to save genes of rat {}", this.getUUID(), var3);
          throw var3;
       }
    }
@@ -2061,7 +2085,7 @@ public class TamedRat extends InventoryRat {
             this.setRatGenes(genes.getFloat("Speed"), genes.getFloat("Health"), genes.getFloat("Armor"), genes.getFloat("Damage"), genes.getFloat("Regen"));
          }
       } catch (RuntimeException var3) {
-         RatsMod.LOGGER.error("Не удалось загрузить гены крысы {}", this.getUUID(), var3);
+         RatsMod.LOGGER.error("Failed to load genes of rat {}", this.getUUID(), var3);
          throw var3;
       }
    }
@@ -2076,7 +2100,7 @@ public class TamedRat extends InventoryRat {
             this.addRatGeneAttributeModifier(Attributes.ATTACK_DAMAGE, "gene_damage", this.getRatGene(GENE_DAMAGE));
          }
       } catch (RuntimeException var2) {
-         RatsMod.LOGGER.error("Не удалось применить гены к атрибутам крысы {}", this.getUUID(), var2);
+         RatsMod.LOGGER.error("Failed to apply genes to the attributes of rat {}", this.getUUID(), var2);
          throw var2;
       }
    }
@@ -2085,7 +2109,7 @@ public class TamedRat extends InventoryRat {
       try {
          AttributeInstance attributeInstance = this.getAttribute(attribute);
          if (attributeInstance == null) {
-            throw new IllegalStateException("У крысы нет атрибута " + modifierName);
+            throw new IllegalStateException("The rat has no attribute " + modifierName);
          } else {
             AttributeModifier modifier = new AttributeModifier(
                ResourceLocation.fromNamespaceAndPath("rats", modifierName), (double)multiplier - 1.0, Operation.ADD_MULTIPLIED_BASE
@@ -2094,7 +2118,7 @@ public class TamedRat extends InventoryRat {
             this.attributeChanges.put(attribute, modifier);
          }
       } catch (RuntimeException var6) {
-         RatsMod.LOGGER.error("Не удалось добавить генетический модификатор {} крысе {}", modifierName, this.getUUID(), var6);
+         RatsMod.LOGGER.error("Failed to add genetic modifier {} to rat {}", modifierName, this.getUUID(), var6);
          throw var6;
       }
    }
@@ -2103,7 +2127,7 @@ public class TamedRat extends InventoryRat {
       try {
          return !this.getEntityData().get(RAT_GENES_INITIALIZED) ? 1.0F : this.clampRatGene((Float)this.getEntityData().get(gene));
       } catch (RuntimeException var3) {
-         RatsMod.LOGGER.error("Не удалось прочитать ген крысы {}", this.getUUID(), var3);
+         RatsMod.LOGGER.error("Failed to read a gene of rat {}", this.getUUID(), var3);
          throw var3;
       }
    }
@@ -2112,7 +2136,7 @@ public class TamedRat extends InventoryRat {
       try {
          return Mth.clamp(value, 0.5F, 2.5F);
       } catch (RuntimeException var3) {
-         RatsMod.LOGGER.error("Не удалось ограничить ген крысы {} со значением {}", this.getUUID(), value, var3);
+         RatsMod.LOGGER.error("Failed to clamp gene of rat {} with value {}", this.getUUID(), value, var3);
          throw var3;
       }
    }
@@ -2122,7 +2146,7 @@ public class TamedRat extends InventoryRat {
          float normalized = (this.clampRatGene(healthGene) - 0.5F) / 2.0F;
          return 0.75F + normalized * 0.75F;
       } catch (RuntimeException var3) {
-         RatsMod.LOGGER.error("Не удалось посчитать размер модели крысы {} по гену здоровья {}", this.getUUID(), healthGene, var3);
+         RatsMod.LOGGER.error("Failed to compute model size of rat {} from health gene {}", this.getUUID(), healthGene, var3);
          throw var3;
       }
    }
@@ -2527,7 +2551,7 @@ public class TamedRat extends InventoryRat {
       try {
          this.setTame(tamed, true);
       } catch (RuntimeException var3) {
-         RatsMod.LOGGER.error("Не удалось изменить приручение крысы {} на {}", this.getUUID(), tamed, var3);
+         RatsMod.LOGGER.error("Failed to change taming of rat {} to {}", this.getUUID(), tamed, var3);
          throw var3;
       }
    }
@@ -2540,11 +2564,11 @@ public class TamedRat extends InventoryRat {
          }
 
          super.setTame(tamed, applyTamingSideEffects);
-         if (tamed && !this.level().isClientSide()) {
+         if (tamed && !this.level().isClientSide() && !this.loadingSaveData) {
             this.ensureRatGenesInitialized("taming");
          }
       } catch (RuntimeException var4) {
-         RatsMod.LOGGER.error("Не удалось изменить приручение крысы {} на {}", this.getUUID(), tamed, var4);
+         RatsMod.LOGGER.error("Failed to change taming of rat {} to {}", this.getUUID(), tamed, var4);
          throw var4;
       }
    }
@@ -2557,13 +2581,13 @@ public class TamedRat extends InventoryRat {
       try {
          if (source.is(DamageTypes.FALL) && dist < 5.0F) {
             this.resetFallDistance();
-            RatsMod.LOGGER.debug("Крыса {} безопасно упала с высоты {} в {}", this.getUUID(), dist, this.blockPosition());
+            RatsMod.LOGGER.debug("Rat {} safely fell from height {} at {}", this.getUUID(), dist, this.blockPosition());
             return false;
          } else {
             return !this.isInvulnerableTo(source) && !this.isPassenger() ? super.causeFallDamage(dist, mult, source) : false;
          }
       } catch (RuntimeException var5) {
-         RatsMod.LOGGER.error("Не удалось обработать падение крысы {} с высоты {}", this.getUUID(), dist, var5);
+         RatsMod.LOGGER.error("Failed to handle the fall of rat {} from height {}", this.getUUID(), dist, var5);
          throw var5;
       }
    }
@@ -2844,7 +2868,7 @@ public class TamedRat extends InventoryRat {
          this.hasWorkerUpgradeCached = any && RatUpgradeUtils.hasUpgrade(this, (Item)RatsItemRegistry.RAT_UPGRADE_WORKER.get());
          this.hasFlightUpgradeCached = any && RatUpgradeUtils.forEachUpgradeBool(this, stack -> stack.canFly(this), false);
       } catch (RuntimeException var6) {
-         RatsMod.LOGGER.error("Не удалось пересчитать кеш улучшений крысы {}", this.getUUID(), var6);
+         RatsMod.LOGGER.error("Failed to recompute the upgrade cache of rat {}", this.getUUID(), var6);
          throw var6;
       }
    }
@@ -2856,7 +2880,7 @@ public class TamedRat extends InventoryRat {
          ResourceLocation modifierId = ResourceLocation.fromNamespaceAndPath("rats", safeName + "_" + statPath);
          AttributeInstance attributeInstance = this.getAttribute(stat);
          if (attributeInstance == null) {
-            RatsMod.LOGGER.error("tryIncreaseStat: у крысы {} нет атрибута {}", this.getUUID(), statPath);
+            RatsMod.LOGGER.error("tryIncreaseStat: rat {} has no attribute {}", this.getUUID(), statPath);
             return;
          }
 
@@ -2864,7 +2888,7 @@ public class TamedRat extends InventoryRat {
          attributeInstance.addTransientModifier(modifier);
          this.attributeChanges.put(stat, modifier);
       } catch (Exception var10) {
-         RatsMod.LOGGER.error("tryIncreaseStat: сбой для улучшения {}: {}", itemName, var10.getMessage(), var10);
+         RatsMod.LOGGER.error("tryIncreaseStat: failure for upgrade {}: {}", itemName, var10.getMessage(), var10);
       }
    }
 

@@ -17,11 +17,11 @@ public class RatProtectedTreeBlocksData extends SavedData {
 	private static final String IDENTIFIER = "rats_protected_tree_blocks";
 	private final Set<Long> protectedBlocks = new HashSet<>();
 
-	// Создаёт пустое хранилище защищённых блоков дерева; параметров нет.
+	// Creates empty storage for protected tree blocks; no parameters.
 	public RatProtectedTreeBlocksData() {
 	}
 
-	// Возвращает данные защищённых блоков для серверного мира; принимает уровень, отдаёт данные или null на клиенте.
+	// Returns the protected block data for a server level; takes the level, returns the data or null on the client.
 	@Nullable
 	public static RatProtectedTreeBlocksData get(Level level) {
 		try {
@@ -33,57 +33,57 @@ public class RatProtectedTreeBlocksData extends SavedData {
 					IDENTIFIER
 			);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось получить список защищённых древесных блоков для {}", level.dimension().location(), exception);
+			RatsMod.LOGGER.error("Failed to get the protected wood block list for {}", level.dimension().location(), exception);
 			throw exception;
 		}
 	}
 
-	// Загружает список защищённых древесных блоков; принимает NBT и реестры, отдаёт заполненные данные.
+	// Loads the protected wood block list; takes NBT and registries, returns the filled data.
 	public static RatProtectedTreeBlocksData load(CompoundTag tag, HolderLookup.Provider provider) {
 		try {
 			RatProtectedTreeBlocksData data = new RatProtectedTreeBlocksData();
 			Arrays.stream(tag.getLongArray("ProtectedTreeBlocks")).forEach(data.protectedBlocks::add);
 			return data;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось загрузить список защищённых древесных блоков", exception);
+			RatsMod.LOGGER.error("Failed to load the protected wood block list", exception);
 			throw exception;
 		}
 	}
 
-	// Помечает блок как поставленный игроком; принимает позицию, ничего не отдаёт.
+	// Marks a block as player-placed; takes the position, returns nothing.
 	public void protect(BlockPos pos) {
 		try {
 			this.protectedBlocks.add(pos.asLong());
 			this.setDirty();
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось защитить древесный блок {}", pos, exception);
+			RatsMod.LOGGER.error("Failed to protect wood block {}", pos, exception);
 			throw exception;
 		}
 	}
 
-	// Снимает защиту с блока; принимает позицию, ничего не отдаёт.
+	// Removes protection from a block; takes the position, returns nothing.
 	public void unprotect(BlockPos pos) {
 		try {
 			if (this.protectedBlocks.remove(pos.asLong())) {
 				this.setDirty();
 			}
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось снять защиту с древесного блока {}", pos, exception);
+			RatsMod.LOGGER.error("Failed to remove protection from wood block {}", pos, exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет защиту блока от лесоруба; принимает позицию, отдаёт true если блок поставлен игроком.
+	// Checks a block's protection from the lumberjack; takes the position, returns true if the block was placed by a player.
 	public boolean isProtected(BlockPos pos) {
 		try {
 			return this.protectedBlocks.contains(pos.asLong());
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить защиту древесного блока {}", pos, exception);
+			RatsMod.LOGGER.error("Failed to check protection of wood block {}", pos, exception);
 			throw exception;
 		}
 	}
 
-	// Сохраняет защищённые блоки в NBT; принимает тег и реестры, отдаёт тег.
+	// Saves protected blocks to NBT; takes the tag and registries, returns the tag.
 	@Override
 	public CompoundTag save(CompoundTag tag, HolderLookup.Provider provider) {
 		try {
@@ -91,7 +91,7 @@ public class RatProtectedTreeBlocksData extends SavedData {
 			tag.putLongArray("ProtectedTreeBlocks", blocks);
 			return tag;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось сохранить список защищённых древесных блоков", exception);
+			RatsMod.LOGGER.error("Failed to save the protected wood block list", exception);
 			throw exception;
 		}
 	}

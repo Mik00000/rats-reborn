@@ -104,7 +104,7 @@ import java.util.List;
 public class ForgeEvents {
 
 
-	// Поднимает живую сущность вдоль боковой грани rat_house; принимает сущность, ничего не возвращает.
+	// Lifts a living entity along the side face of a rat_house; takes the entity, returns nothing.
 	private static void applyRatHouseClimbAssist(LivingEntity living) {
 		try {
 			if (!living.horizontalCollision || living.isSpectator()) {
@@ -121,12 +121,12 @@ public class ForgeEvents {
 				living.setDeltaMovement(movement.x * 0.75D, lift, movement.z * 0.75D);
 			}
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось обработать подъём сущности {} по домику крысы", living.getUUID(), exception);
+			RatsMod.LOGGER.error("Failed to handle entity {} climbing the rat house", living.getUUID(), exception);
 			throw exception;
 		}
 	}
 
-	// Ищет соседний домик, в боковую грань которого упёрлась сущность; принимает сущность, отдаёт позицию домика или null.
+	// Finds a neighbouring house whose side face the entity bumped into; takes the entity, returns the house position or null.
 	private static BlockPos findTouchedRatHouse(LivingEntity living) {
 		try {
 			BlockPos feet = living.blockPosition();
@@ -141,12 +141,12 @@ public class ForgeEvents {
 			}
 			return null;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось найти домик рядом с сущностью {}", living.getUUID(), exception);
+			RatsMod.LOGGER.error("Failed to find a house next to entity {}", living.getUUID(), exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет боковую оболочку домика; принимает сущность и позицию домика, отдаёт true если сущность стоит у боковой грани.
+	// Checks the side shell of the house; takes the entity and house position, returns true if the entity stands at a side face.
 	private static boolean isBesideRatHouse(LivingEntity living, BlockPos housePos) {
 		try {
 			double localX = living.getX() - housePos.getX();
@@ -156,7 +156,7 @@ public class ForgeEvents {
 			boolean nearHeight = living.getY() >= housePos.getY() - 0.35D && living.getY() <= housePos.getY() + 1.85D;
 			return nearHorizontalBounds && outsideBody && nearHeight;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить боковую грань домика {} для сущности {}", housePos, living.getUUID(), exception);
+			RatsMod.LOGGER.error("Failed to check side face of house {} for entity {}", housePos, living.getUUID(), exception);
 			throw exception;
 		}
 	}
@@ -227,17 +227,17 @@ public class ForgeEvents {
 	}
 
 
-	// Перехватывает смерть привязанной к домику крысы; принимает событие смерти, запускает таймер респавна или пропускает обычную смерть.
+	// Intercepts the death of a rat bound to a house; takes the death event, starts the respawn timer or lets a regular death through.
 
-	// Логирует смерть крысы от падения; принимает событие смерти, ничего не отдаёт.
+	// Logs a rat death from falling; takes the death event, returns nothing.
 	@SubscribeEvent(priority = EventPriority.LOW)
 	public static void logRatFallDeath(LivingDeathEvent event) {
 		try {
 			if (event.getEntity() instanceof TamedRat rat && event.getSource().is(DamageTypes.FALL)) {
-				RatsMod.LOGGER.warn("Крыса {} умерла от падения: fallDistance={}, позиция={}", rat.getUUID(), rat.fallDistance, rat.blockPosition());
+				RatsMod.LOGGER.warn("Rat {} died from falling: fallDistance={}, position={}", rat.getUUID(), rat.fallDistance, rat.blockPosition());
 			}
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось залогировать смерть крысы от падения", exception);
+			RatsMod.LOGGER.error("Failed to log a rat fall death", exception);
 			throw exception;
 		}
 	}
@@ -254,7 +254,7 @@ public class ForgeEvents {
 			BlockPos housePos = rat.getBoundHousePos().get().pos();
 			BlockEntity blockEntity = rat.level().getBlockEntity(housePos);
 			if (!(blockEntity instanceof RatHouseBlockEntity house)) {
-				RatsMod.LOGGER.warn("Крыса {} умерла с привязкой к {}, но домика там нет", rat.getUUID(), housePos);
+				RatsMod.LOGGER.warn("Rat {} died bound to {}, but there is no house there", rat.getUUID(), housePos);
 				return;
 			}
 			if (!house.beginRespawn(rat, 1200)) {
@@ -267,7 +267,7 @@ public class ForgeEvents {
 			}
 			rat.discard();
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось отправить крысу на респавн у домика", exception);
+			RatsMod.LOGGER.error("Failed to send the rat to respawn at the house", exception);
 			throw exception;
 		}
 	}
@@ -574,7 +574,7 @@ public class ForgeEvents {
 		}
 	}
 
-	// Обходит карьеры в соседних чанках; принимает уровень, позицию и обработчик, ничего не возвращает.
+	// Visits quarries in neighbouring chunks; takes the level, position and handler, returns nothing.
 	private static void forNearbyQuarries(Level level, BlockPos pos, java.util.function.Consumer<RatQuarryBlockEntity> consumer) {
 		int chunkX = pos.getX() >> 4;
 		int chunkZ = pos.getZ() >> 4;
@@ -593,7 +593,7 @@ public class ForgeEvents {
 		}
 	}
 
-	// Помечает блоки, поставленные игроком в зоне карьера, чтобы крысы их не брали в добычу; принимает событие установки блока, ничего не возвращает.
+	// Marks blocks placed by a player in the quarry area so rats do not mine them; takes the block place event, returns nothing.
 	@SubscribeEvent
 	public static void onQuarryPlayerBlockPlace(BlockEvent.EntityPlaceEvent event) {
 		try {
@@ -604,12 +604,12 @@ public class ForgeEvents {
 			BlockPos placedPos = event.getPos();
 			forNearbyQuarries(level, placedPos, quarry -> quarry.markPlayerPlacedBlock(level, placedPos));
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось обработать установку блока игроком в карьере на {}", event.getPos(), exception);
+			RatsMod.LOGGER.error("Failed to handle a player placing a block in the quarry at {}", event.getPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Помечает поставленные игроком брёвна и листву, чтобы лесоруб их не трогал; принимает событие установки блока, ничего не возвращает.
+	// Marks player-placed logs and leaves so the lumberjack leaves them alone; takes the block place event, returns nothing.
 	@SubscribeEvent
 	public static void onTreeBlockPlacedByPlayer(BlockEvent.EntityPlaceEvent event) {
 		try {
@@ -623,17 +623,17 @@ public class ForgeEvents {
 			Level level = (Level) event.getLevel();
 			RatProtectedTreeBlocksData data = RatProtectedTreeBlocksData.get(level);
 			if (data == null) {
-				throw new IllegalStateException("Список защищённых древесных блоков недоступен на сервере");
+				throw new IllegalStateException("The protected wood block list is not available on the server");
 			}
 			data.protect(event.getPos());
-			RatsMod.LOGGER.debug("Блок {} в {} защищён от лесоруба как поставленный игроком", placedState.getBlock(), event.getPos());
+			RatsMod.LOGGER.debug("Block {} at {} is protected from the lumberjack as player-placed", placedState.getBlock(), event.getPos());
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось пометить древесный блок игрока {}", event.getPos(), exception);
+			RatsMod.LOGGER.error("Failed to mark player wood block {}", event.getPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Запрещает ломать неубиваемую лестницу карьера; принимает событие разрушения блока, ничего не возвращает.
+	// Prevents breaking the indestructible quarry ladder; takes the block break event, returns nothing.
 	@SubscribeEvent
 	public static void onQuarryLadderBreak(BlockEvent.BreakEvent event) {
 		try {
@@ -645,16 +645,16 @@ public class ForgeEvents {
 			forNearbyQuarries(level, brokenPos, quarry -> {
 				if (quarry.isQuarryLadderProtected(level, brokenPos)) {
 					event.setCanceled(true);
-					RatsMod.LOGGER.warn("Карьер {} запретил разрушение защищённой лестницы на {}", quarry.getBlockPos(), brokenPos);
+					RatsMod.LOGGER.warn("Quarry {} prevented breaking the protected ladder at {}", quarry.getBlockPos(), brokenPos);
 				}
 			});
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось обработать защиту лестницы карьера на {}", event.getPos(), exception);
+			RatsMod.LOGGER.error("Failed to handle quarry ladder protection at {}", event.getPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Снимает пометку блока игрока после разрушения; принимает событие разрушения блока, ничего не возвращает.
+	// Clears the player block mark after breaking; takes the block break event, returns nothing.
 	@SubscribeEvent
 	public static void onQuarryPlayerBlockBreak(BlockEvent.BreakEvent event) {
 		try {
@@ -665,12 +665,12 @@ public class ForgeEvents {
 			BlockPos brokenPos = event.getPos();
 			forNearbyQuarries(level, brokenPos, quarry -> quarry.clearPlayerPlacedBlock(brokenPos));
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось обработать разрушение блока игроком в карьере на {}", event.getPos(), exception);
+			RatsMod.LOGGER.error("Failed to handle a player breaking a block in the quarry at {}", event.getPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Снимает защиту лесоруба после разрушения брёвен или листвы; принимает событие разрушения блока, ничего не возвращает.
+	// Removes lumberjack protection after logs or leaves are broken; takes the block break event, returns nothing.
 	@SubscribeEvent
 	public static void onProtectedTreeBlockBreak(BlockEvent.BreakEvent event) {
 		try {
@@ -684,11 +684,11 @@ public class ForgeEvents {
 			Level level = (Level) event.getLevel();
 			RatProtectedTreeBlocksData data = RatProtectedTreeBlocksData.get(level);
 			if (data == null) {
-				throw new IllegalStateException("Список защищённых древесных блоков недоступен на сервере");
+				throw new IllegalStateException("The protected wood block list is not available on the server");
 			}
 			data.unprotect(event.getPos());
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось снять защиту древесного блока {}", event.getPos(), exception);
+			RatsMod.LOGGER.error("Failed to remove protection of wood block {}", event.getPos(), exception);
 			throw exception;
 		}
 	}

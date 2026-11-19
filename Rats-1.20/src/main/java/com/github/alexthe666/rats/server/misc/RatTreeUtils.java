@@ -55,7 +55,7 @@ public class RatTreeUtils {
 		}
 	}
 
-	// Сканирует связное дерево от стартового бревна: собирает брёвна, листву и пни; принимает мир и позицию, отдаёт результат обхода.
+	// Scans the connected tree from the starting log: collects logs, leaves and stumps; takes the level and position, returns the traversal result.
 	public static TreeScanResult scanTree(Level level, BlockPos start) {
 		try {
 			BlockState startState = level.getBlockState(start);
@@ -88,12 +88,12 @@ public class RatTreeUtils {
 			List<BlockPos> stumps = collectStumpBlocks(level, logs, startState);
 			return new TreeScanResult(logs, leaves, stumps, highestLeafY, true);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось просканировать дерево в {}: {}", start, exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Failed to scan the tree at {}: {}", start, exception.getMessage(), exception);
 			throw exception;
 		}
 	}
 
-	// Оценивает размер дерева для выбора цели; принимает мир и позицию бревна, отдаёт число брёвен или -1 если это не дерево.
+	// Estimates tree size for target selection; takes the level and log position, returns the number of logs or -1 if it is not a tree.
 	public static int calculateLogAmount(Level level, BlockPos pos) {
 		try {
 			TreeScanResult scan = scanTree(level, pos);
@@ -104,12 +104,12 @@ public class RatTreeUtils {
 			highestleaf.put(pos.immutable(), scan.highestLeafY());
 			return scan.logs().size();
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось посчитать брёвна дерева в {}: {}", pos, exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Failed to count tree logs at {}: {}", pos, exception.getMessage(), exception);
 			throw exception;
 		}
 	}
 
-	// Собирает пни дерева у земли; принимает мир, список брёвен и тип опорного бревна, отдаёт позиции для посадки саженцев.
+	// Collects tree stumps at ground level; takes the level, log list and base log type, returns positions for planting saplings.
 	public static List<BlockPos> getAllStumpBlocks(Level level, BlockPos pos, BlockState logtype) {
 		try {
 			TreeScanResult scan = scanTree(level, pos);
@@ -118,12 +118,12 @@ public class RatTreeUtils {
 			}
 			return scan.stumps();
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось собрать пни дерева в {}: {}", pos, exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Failed to collect tree stumps at {}: {}", pos, exception.getMessage(), exception);
 			throw exception;
 		}
 	}
 
-	// Извлекает саженец из таблицы добычи листвы; принимает серверный мир и блок листвы, отдаёт блок саженца или null.
+	// Gets a sapling from the leaves loot table; takes the server level and leaves block, returns the sapling block or null.
 	@Nullable
 	public static Block getSaplingFromLeaves(ServerLevel level, Block leaves) {
 		try {
@@ -144,12 +144,12 @@ public class RatTreeUtils {
 			}
 			return null;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось получить саженец из листвы {}: {}", BuiltInRegistries.BLOCK.getKey(leaves), exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Failed to get a sapling from leaves {}: {}", BuiltInRegistries.BLOCK.getKey(leaves), exception.getMessage(), exception);
 			throw exception;
 		}
 	}
 
-	// Собирает все связные брёвна дерева для срубки; принимает мир, опорную позицию и уже известный список, отдаёт список брёвен.
+	// Collects all connected tree logs to chop; takes the level, base position and already known list, returns the list of logs.
 	public static List<BlockPos> getLogsToBreak(Level level, BlockPos pos, List<BlockPos> logsToBreak, BlockState logType) {
 		try {
 			TreeScanResult scan = scanTree(level, pos);
@@ -163,12 +163,12 @@ public class RatTreeUtils {
 			}
 			return logsToBreak;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось собрать брёвна для срубки в {}: {}", pos, exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Failed to collect logs to chop at {}: {}", pos, exception.getMessage(), exception);
 			throw exception;
 		}
 	}
 
-	// Возвращает горизонтальный и вертикальный радиус обхода листвы по числу брёвен; принимает logcount, отдаёт пару радиусов.
+	// Returns the horizontal and vertical leaf traversal radius based on the log count; takes logcount, returns a pair of radii.
 	public static Pair<Integer, Integer> getHorizontalAndVerticalValue(int logcount) {
 		int horizontal = 6;
 		int vertical = 6;
@@ -188,7 +188,7 @@ public class RatTreeUtils {
 		return new Pair<>(horizontal, vertical);
 	}
 
-	// Проверяет, есть ли рядом с листвой брёвна; принимает мир и стартовую позицию листвы, отдаёт флаг связи и список просмотренных блоков.
+	// Checks whether there are logs near the leaves; takes the level and leaf start position, returns a connection flag and the list of visited blocks.
 	public static Pair<Boolean, List<BlockPos>> isConnectedToLogs(Level level, BlockPos startpos) {
 		try {
 			List<BlockPos> connected = getBlocksNextToEachOtherMaterial(level, startpos, 12);
@@ -199,17 +199,17 @@ public class RatTreeUtils {
 			}
 			return new Pair<>(false, connected);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить связь листвы с брёвнами в {}: {}", startpos, exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Failed to check leaf-to-log connection at {}: {}", startpos, exception.getMessage(), exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет, является ли блок бревном или корнем мангров; принимает состояние блока, отдаёт true для древесины.
+	// Checks whether a block is a log or mangrove roots; takes the block state, returns true for wood.
 	public static boolean isTreeLog(BlockState block) {
 		return block.is(BlockTags.LOGS) || isTreeRoot(block);
 	}
 
-	// Сравнивает два блока бревна одного дерева с учётом модовых вариантов; принимает два состояния, отдаёт true если это одна порода.
+	// Compares two log blocks of the same tree including modded variants; takes two states, returns true if they are the same wood type.
 	public static boolean areEqualLogTypes(BlockState one, BlockState two) {
 		if (!isTreeLog(one) || !isTreeLog(two)) {
 			return false;
@@ -223,43 +223,43 @@ public class RatTreeUtils {
 		return getWoodFamilyKey(one).equals(getWoodFamilyKey(two));
 	}
 
-	// Проверяет, является ли блок корнем мангров; принимает состояние блока, отдаёт true для MangroveRootsBlock.
+	// Checks whether a block is mangrove roots; takes the block state, returns true for MangroveRootsBlock.
 	public static boolean isTreeRoot(BlockState block) {
 		return block.getBlock() instanceof MangroveRootsBlock;
 	}
 
-	// Проверяет, относится ли блок к семейству мангровых брёвен; принимает состояние блока, отдаёт true для мангров.
+	// Checks whether a block belongs to the mangrove log family; takes the block state, returns true for mangroves.
 	public static boolean isMangroveRootOrLog(BlockState block) {
 		return block.getBlock() instanceof MangroveRootsBlock || block.is(BlockTags.MANGROVE_LOGS);
 	}
 
-	// Проверяет, является ли блок листвой или декоративной кроной; принимает состояние блока, отдаёт true для листвы.
+	// Checks whether a block is leaves or a decorative canopy; takes the block state, returns true for leaves.
 	public static boolean isTreeLeaf(BlockState block) {
 		return block.is(BlockTags.LEAVES) || block.is(BlockTags.WART_BLOCKS) || block.is(Blocks.SHROOMLIGHT);
 	}
 
-	// Проверяет, защищён ли древесный блок как поставленный игроком; принимает мир и позицию, отдаёт true для защищённых блоков.
+	// Checks whether a wood block is protected as player-placed; takes the level and position, returns true for protected blocks.
 	public static boolean isPlayerProtectedTreeBlock(Level level, BlockPos pos) {
 		try {
 			RatProtectedTreeBlocksData data = RatProtectedTreeBlocksData.get(level);
 			return data != null && data.isProtected(pos);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить защиту древесного блока {}", pos, exception);
+			RatsMod.LOGGER.error("Failed to check protection of wood block {}", pos, exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет, можно ли лесорубу считать бревно частью дерева; принимает мир и позицию, отдаёт true только для незащищённого бревна.
+	// Checks whether the lumberjack may count a log as part of the tree; takes the level and position, returns true only for an unprotected log.
 	public static boolean isHarvestableTreeLog(Level level, BlockPos pos) {
 		try {
 			return isTreeLog(level.getBlockState(pos)) && !isPlayerProtectedTreeBlock(level, pos);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить доступность бревна {} для лесоруба", pos, exception);
+			RatsMod.LOGGER.error("Failed to check availability of log {} for the lumberjack", pos, exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет, является ли листва натуральной для лесоруба; принимает состояние, отдаёт false для постоянной листвы игрока.
+	// Checks whether leaves are natural for the lumberjack; takes the state, returns false for persistent player leaves.
 	public static boolean isNaturalTreeLeaf(BlockState state) {
 		try {
 			if (!isTreeLeaf(state)) {
@@ -267,22 +267,22 @@ public class RatTreeUtils {
 			}
 			return !state.hasProperty(LeavesBlock.PERSISTENT) || !state.getValue(LeavesBlock.PERSISTENT);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить натуральность листвы {}", state, exception);
+			RatsMod.LOGGER.error("Failed to check whether leaves {} are natural", state, exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет, можно ли лесорубу ломать листву; принимает мир и позицию, отдаёт true только для натуральной незащищённой листвы.
+	// Checks whether the lumberjack may break leaves; takes the level and position, returns true only for natural unprotected leaves.
 	public static boolean isHarvestableTreeLeaf(Level level, BlockPos pos) {
 		try {
 			return isNaturalTreeLeaf(level.getBlockState(pos)) && !isPlayerProtectedTreeBlock(level, pos);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить доступность листвы {} для лесоруба", pos, exception);
+			RatsMod.LOGGER.error("Failed to check availability of leaves {} for the lumberjack", pos, exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет, стоит ли бревно у основания дерева на пригодном грунте; принимает мир и позицию, отдаёт true если это основание.
+	// Checks whether a log is at the base of a tree on suitable ground; takes the level and position, returns true if it is the base.
 	public static boolean isTreeBase(Level level, BlockPos logPos) {
 		try {
 			BlockPos basePos = findLowestLogColumn(level, logPos);
@@ -293,12 +293,12 @@ public class RatTreeUtils {
 			}
 			return belowState.canOcclude() && !isTreeLog(belowState) && !isTreeLeaf(belowState);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить основание дерева в {}: {}", logPos, exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Failed to check the tree base at {}: {}", logPos, exception.getMessage(), exception);
 			throw exception;
 		}
 	}
 
-	// Собирает связные блоки листвы и брёвен в радиусе; принимает мир, старт и максимальную дистанцию, отдаёт список позиций.
+	// Collects connected leaf and log blocks within a radius; takes the level, start and maximum distance, returns a list of positions.
 	public static List<BlockPos> getBlocksNextToEachOtherMaterial(Level level, BlockPos startpos, int maxDistance) {
 		try {
 			List<BlockPos> checkedBlocks = new ArrayList<>();
@@ -333,7 +333,7 @@ public class RatTreeUtils {
 			}
 			return foundBlocks;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось собрать соседние блоки дерева от {}: {}", startpos, exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Failed to collect neighbouring tree blocks from {}: {}", startpos, exception.getMessage(), exception);
 			throw exception;
 		}
 	}
@@ -373,7 +373,7 @@ public class RatTreeUtils {
 		}
 
 		if (logs.size() >= MAX_TREE_LOGS) {
-			RatsMod.LOGGER.warn("Дерево в {} превысило лимит брёвен {} — срубка будет частичной", start, MAX_TREE_LOGS);
+			RatsMod.LOGGER.warn("Tree at {} exceeded the log limit {} - chopping will be partial", start, MAX_TREE_LOGS);
 		}
 		return logs;
 	}
@@ -450,7 +450,7 @@ public class RatTreeUtils {
 		}
 
 		if (leaves.size() >= MAX_TREE_LEAVES) {
-			RatsMod.LOGGER.warn("Крона дерева превысила лимит листвы {} — часть листвы останется", MAX_TREE_LEAVES);
+			RatsMod.LOGGER.warn("Tree canopy exceeded the leaf limit {} - some leaves will remain", MAX_TREE_LEAVES);
 		}
 		return leaves;
 	}

@@ -45,7 +45,7 @@ public class RatHarvestTreesGoal extends BaseRatHarvestGoal {
 		return this.getTargetBlock() != null;
 	}
 
-	// Ищет ближайшее дерево в радиусе крысы; принимает nothing, отдаёт nothing, выставляет цель через setTargetBlock.
+	// Finds the nearest tree within the rat's radius; takes nothing, returns nothing, sets the target via setTargetBlock.
 	private void resetTarget() {
 		try {
 			Level level = this.rat.level();
@@ -102,7 +102,7 @@ public class RatHarvestTreesGoal extends BaseRatHarvestGoal {
 				this.treeScan = null;
 			}
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось выбрать дерево для лесоруба {}: {}", this.rat.getUUID(), exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Failed to pick a tree for lumberjack {}: {}", this.rat.getUUID(), exception.getMessage(), exception);
 			throw exception;
 		}
 	}
@@ -118,11 +118,11 @@ public class RatHarvestTreesGoal extends BaseRatHarvestGoal {
 			}
 			this.treeScan = RatTreeUtils.scanTree(this.rat.level(), target);
 			if (!this.treeScan.valid()) {
-				RatsMod.LOGGER.warn("Лесоруб {} не смог просканировать дерево в {}", this.rat.getUUID(), target);
+				RatsMod.LOGGER.warn("Lumberjack {} failed to scan the tree at {}", this.rat.getUUID(), target);
 				this.treeScan = null;
 			}
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось начать срубку дерева крысой {}: {}", this.rat.getUUID(), exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Failed to start chopping a tree with rat {}: {}", this.rat.getUUID(), exception.getMessage(), exception);
 			throw exception;
 		}
 	}
@@ -214,12 +214,12 @@ public class RatHarvestTreesGoal extends BaseRatHarvestGoal {
 			this.fellTree();
 			this.stop();
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Ошибка цикла лесоруба у крысы {}: {}", this.rat.getUUID(), exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Lumberjack cycle error for rat {}: {}", this.rat.getUUID(), exception.getMessage(), exception);
 			throw exception;
 		}
 	}
 
-	// Срубает всё дерево, листву и пни; принимает nothing, отдаёт nothing, изменяет мир вокруг цели.
+	// Chops the whole tree, leaves and stumps; takes nothing, returns nothing, modifies the world around the target.
 	private void fellTree() {
 		try {
 			if (this.treeScan == null || !this.treeScan.valid()) {
@@ -264,7 +264,7 @@ public class RatHarvestTreesGoal extends BaseRatHarvestGoal {
 				RatTreeUtils.highestleaf.remove(target);
 			}
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось срубить дерево крысой {}: {}", this.rat.getUUID(), exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Failed to chop a tree with rat {}: {}", this.rat.getUUID(), exception.getMessage(), exception);
 			throw exception;
 		}
 	}

@@ -37,13 +37,13 @@ public class RatlantisArmorItem extends ArmorItem {
 		tooltip.add(Component.translatable("item.rats.ratlantis_armor.desc2").withStyle(ChatFormatting.GRAY));
 	}
 
-	// Возвращает текстуру надетой брони Ратлантиса; принимает предмет, сущность, слот, слой материала и признак внутреннего слоя, отдаёт путь к png-текстуре.
+	// Returns the texture of worn Ratlantis armor; takes the item, entity, slot, material layer and inner-layer flag, returns the png texture path.
 	@Override
 	public ResourceLocation getArmorTexture(ItemStack stack, Entity entity, EquipmentSlot slot, ArmorMaterial.Layer layer, boolean innerModel) {
 		try {
 			return slot == EquipmentSlot.LEGS || innerModel ? INNER_ARMOR_TEXTURE : OUTER_ARMOR_TEXTURE;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось выбрать текстуру брони Ратлантиса для слота {}: {}", slot, exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Failed to pick the Ratlantis armor texture for slot {}: {}", slot, exception.getMessage(), exception);
 			throw exception;
 		}
 	}

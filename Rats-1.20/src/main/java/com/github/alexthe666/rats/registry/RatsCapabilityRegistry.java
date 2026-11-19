@@ -17,7 +17,7 @@ public class RatsCapabilityRegistry {
 	public static final EntityCapability<SelectedRat, Void> SELECTED_RAT = EntityCapability.createVoid(SelectedRat.ID, SelectedRat.class);
 	private static final Map<Player, SelectedRatCapability> SELECTED_RAT_BY_PLAYER = Collections.synchronizedMap(new WeakHashMap<>());
 
-	// Регистрирует capability-поставщики Rats для NeoForge 1.21.1; принимает событие регистрации и ничего не возвращает.
+	// Registers Rats capability providers for NeoForge 1.21.1; takes the registration event and returns nothing.
 	public static void registerCapabilities(RegisterCapabilitiesEvent event) {
 		try {
 			event.registerEntity(SELECTED_RAT, EntityType.PLAYER, (player, context) -> getSelectedRatCapability((Player) player));
@@ -35,12 +35,12 @@ public class RatsCapabilityRegistry {
 
 			event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, RatsBlockEntityRegistry.RAT_CAGE_WHEEL.get(), (wheel, side) -> wheel.getEnergyStorage());
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось зарегистрировать capability Rats для NeoForge 1.21.1", exception);
+			RatsMod.LOGGER.error("Failed to register Rats capabilities for NeoForge 1.21.1", exception);
 			throw exception;
 		}
 	}
 
-	// Возвращает capability выбранной крысы для игрока; принимает игрока, отдаёт объект состояния выбранной крысы.
+	// Returns the selected-rat capability for a player; takes the player, returns the selected rat state object.
 	public static SelectedRatCapability getSelectedRatCapability(Player player) {
 		try {
 			return SELECTED_RAT_BY_PLAYER.computeIfAbsent(player, key -> {
@@ -49,7 +49,7 @@ public class RatsCapabilityRegistry {
 				return capability;
 			});
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось получить capability выбранной крысы для игрока {}", player.getGameProfile().getName(), exception);
+			RatsMod.LOGGER.error("Failed to get the selected-rat capability for player {}", player.getGameProfile().getName(), exception);
 			throw exception;
 		}
 	}

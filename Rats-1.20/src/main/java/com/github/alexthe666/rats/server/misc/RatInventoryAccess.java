@@ -15,43 +15,43 @@ public final class RatInventoryAccess {
 	private static final Direction[] DIRECTIONS = Direction.values();
 	private static final Direction[][] ORDERED_SIDES = createOrderedSides();
 
-	// Запрещает создание сервиса; ничего не принимает и всегда сообщает об ошибке.
+	// Prevents instantiating the service; takes nothing and always reports an error.
 	private RatInventoryAccess() {
-		throw new IllegalStateException("Сервис доступа к инвентарям не создаётся как объект");
+		throw new IllegalStateException("The inventory access service cannot be instantiated");
 	}
 
-	// Проверяет вставку предметов; принимает мир, позицию, сторону, стек, крысу и действие, отдаёт true если контейнер примет часть стека.
+	// Checks item insertion; takes the level, position, side, stack, rat and action, returns true if the container will accept part of the stack.
 	public static boolean canInsert(Level level, BlockPos pos, Direction preferredSide, ItemStack stack, TamedRat rat, String action) {
 		try {
 			if (stack.isEmpty()) {
-				RatsMod.LOGGER.debug("Крыса {} не проверяет вставку в {}: стек пустой, действие {}", rat.getUUID(), pos, action);
+				RatsMod.LOGGER.debug("Rat {} does not check insertion into {}: the stack is empty, action {}", rat.getUUID(), pos, action);
 				return false;
 			}
 			for (Direction side : orderedSides(preferredSide)) {
 				IItemHandler handler = level.getCapability(Capabilities.ItemHandler.BLOCK, pos, side);
 				if (handler == null) {
-					RatsMod.LOGGER.debug("Крыса {}: у блока {} нет инвентаря со стороны {} для {}", rat.getUUID(), pos, side, action);
+					RatsMod.LOGGER.debug("Rat {}: block {} has no inventory on side {} for {}", rat.getUUID(), pos, side, action);
 					continue;
 				}
 				ItemStack simulated = ItemHandlerHelper.insertItem(handler, stack.copy(), true);
 				if (simulated.getCount() < stack.getCount()) {
-					RatsMod.LOGGER.debug("Крыса {}: блок {} примет предметы со стороны {} для {}", rat.getUUID(), pos, side, action);
+					RatsMod.LOGGER.debug("Rat {}: block {} will accept items from side {} for {}", rat.getUUID(), pos, side, action);
 					return true;
 				}
-				RatsMod.LOGGER.debug("Крыса {}: блок {} отказал во вставке {} со стороны {} для {}", rat.getUUID(), pos, stack, side, action);
+				RatsMod.LOGGER.debug("Rat {}: block {} refused inserting {} from side {} for {}", rat.getUUID(), pos, stack, side, action);
 			}
 			if (canUseCreateProxy(level, pos, rat, action)) {
-				RatsMod.LOGGER.debug("Крыса {}: блок Create {} будет использован как ручная точка вставки для {}", rat.getUUID(), pos, action);
+				RatsMod.LOGGER.debug("Rat {}: Create block {} will be used as a manual insertion point for {}", rat.getUUID(), pos, action);
 				return true;
 			}
 			return false;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Крыса {} не смогла проверить вставку предметов в блок {} для {}", rat.getUUID(), pos, action, exception);
+			RatsMod.LOGGER.error("Rat {} failed to check inserting items into block {} for {}", rat.getUUID(), pos, action, exception);
 			throw exception;
 		}
 	}
 
-	// Вставляет предметы в контейнер; принимает мир, позицию, сторону, стек, крысу и действие, отдаёт остаток стека.
+	// Inserts items into a container; takes the level, position, side, stack, rat and action, returns the stack remainder.
 	public static ItemStack insert(Level level, BlockPos pos, Direction preferredSide, ItemStack stack, TamedRat rat, String action) {
 		try {
 			if (stack.isEmpty()) {
@@ -61,14 +61,14 @@ public final class RatInventoryAccess {
 			for (Direction side : orderedSides(preferredSide)) {
 				IItemHandler handler = level.getCapability(Capabilities.ItemHandler.BLOCK, pos, side);
 				if (handler == null) {
-					RatsMod.LOGGER.debug("Крыса {}: нельзя вставить в {} со стороны {} для {}: нет обработчика", rat.getUUID(), pos, side, action);
+					RatsMod.LOGGER.debug("Rat {}: cannot insert into {} from side {} for {}: no handler", rat.getUUID(), pos, side, action);
 					continue;
 				}
 				ItemStack before = remaining.copy();
 				remaining = ItemHandlerHelper.insertItem(handler, remaining, false);
 				int moved = before.getCount() - remaining.getCount();
 				if (moved > 0) {
-					RatsMod.LOGGER.debug("Крыса {} положила {} предметов в {} через сторону {} для {}", rat.getUUID(), moved, pos, side, action);
+					RatsMod.LOGGER.debug("Rat {} put {} items into {} via side {} for {}", rat.getUUID(), moved, pos, side, action);
 				}
 				if (remaining.isEmpty()) {
 					return ItemStack.EMPTY;
@@ -78,66 +78,66 @@ public final class RatInventoryAccess {
 			if (createRemaining.getCount() < remaining.getCount()) {
 				return createRemaining;
 			}
-			RatsMod.LOGGER.debug("Крыса {} не смогла полностью положить предметы в {} для {}, остаток {}", rat.getUUID(), pos, action, remaining);
+			RatsMod.LOGGER.debug("Rat {} could not fully put items into {} for {}, remainder {}", rat.getUUID(), pos, action, remaining);
 			return remaining;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Крыса {} не смогла вставить предметы в блок {} для {}", rat.getUUID(), pos, action, exception);
+			RatsMod.LOGGER.error("Rat {} failed to insert items into block {} for {}", rat.getUUID(), pos, action, exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет извлечение подходящих предметов; принимает мир, позицию, сторону, крысу и действие, отдаёт true если есть подходящий слот.
+	// Checks extraction of suitable items; takes the level, position, side, rat and action, returns true if there is a suitable slot.
 	public static boolean canExtract(Level level, BlockPos pos, Direction preferredSide, TamedRat rat, String action) {
 		try {
 			for (Direction side : orderedSides(preferredSide)) {
 				IItemHandler handler = level.getCapability(Capabilities.ItemHandler.BLOCK, pos, side);
 				if (handler == null) {
-					RatsMod.LOGGER.debug("Крыса {}: у блока {} нет инвентаря со стороны {} для {}", rat.getUUID(), pos, side, action);
+					RatsMod.LOGGER.debug("Rat {}: block {} has no inventory on side {} for {}", rat.getUUID(), pos, side, action);
 					continue;
 				}
 				int slot = RatUtils.getItemSlotFromItemHandler(rat, handler, level.getRandom());
 				if (slot >= 0) {
-					RatsMod.LOGGER.debug("Крыса {}: блок {} отдаст предметы со стороны {} из слота {} для {}", rat.getUUID(), pos, side, slot, action);
+					RatsMod.LOGGER.debug("Rat {}: block {} will provide items from side {} from slot {} for {}", rat.getUUID(), pos, side, slot, action);
 					return true;
 				}
-				RatsMod.LOGGER.debug("Крыса {}: в блоке {} нет подходящих предметов со стороны {} для {}", rat.getUUID(), pos, side, action);
+				RatsMod.LOGGER.debug("Rat {}: block {} has no suitable items on side {} for {}", rat.getUUID(), pos, side, action);
 			}
 			if (canUseCreateProxy(level, pos, rat, action)) {
-				RatsMod.LOGGER.debug("Крыса {}: блок Create {} будет использован как ручная точка забора для {}", rat.getUUID(), pos, action);
+				RatsMod.LOGGER.debug("Rat {}: Create block {} will be used as a manual pickup point for {}", rat.getUUID(), pos, action);
 				return true;
 			}
 			return false;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Крыса {} не смогла проверить извлечение предметов из блока {} для {}", rat.getUUID(), pos, action, exception);
+			RatsMod.LOGGER.error("Rat {} failed to check extracting items from block {} for {}", rat.getUUID(), pos, action, exception);
 			throw exception;
 		}
 	}
 
-	// Извлекает подходящие предметы; принимает мир, позицию, сторону, крысу, размер стека и действие, отдаёт извлечённый стек.
+	// Extracts suitable items; takes the level, position, side, rat, stack size and action, returns the extracted stack.
 	public static ItemStack extract(Level level, BlockPos pos, Direction preferredSide, TamedRat rat, int amount, String action) {
 		try {
 			if (amount <= 0) {
-				throw new IllegalArgumentException("Количество извлечения должно быть положительным: " + amount);
+				throw new IllegalArgumentException("The extraction amount must be positive: " + amount);
 			}
 			for (Direction side : orderedSides(preferredSide)) {
 				IItemHandler handler = level.getCapability(Capabilities.ItemHandler.BLOCK, pos, side);
 				if (handler == null) {
-					RatsMod.LOGGER.debug("Крыса {}: нельзя забрать из {} со стороны {} для {}: нет обработчика", rat.getUUID(), pos, side, action);
+					RatsMod.LOGGER.debug("Rat {}: cannot take from {} on side {} for {}: no handler", rat.getUUID(), pos, side, action);
 					continue;
 				}
 				int slot = RatUtils.getItemSlotFromItemHandler(rat, handler, level.getRandom());
 				if (slot < 0) {
-					RatsMod.LOGGER.debug("Крыса {}: нет подходящего слота в {} со стороны {} для {}", rat.getUUID(), pos, side, action);
+					RatsMod.LOGGER.debug("Rat {}: no suitable slot in {} on side {} for {}", rat.getUUID(), pos, side, action);
 					continue;
 				}
 				ItemStack simulated = handler.extractItem(slot, amount, true);
 				if (simulated.isEmpty()) {
-					RatsMod.LOGGER.debug("Крыса {}: слот {} в {} со стороны {} отказал в извлечении для {}", rat.getUUID(), slot, pos, side, action);
+					RatsMod.LOGGER.debug("Rat {}: slot {} in {} on side {} refused extraction for {}", rat.getUUID(), slot, pos, side, action);
 					continue;
 				}
 				ItemStack extracted = handler.extractItem(slot, amount, false);
 				if (!extracted.isEmpty()) {
-					RatsMod.LOGGER.debug("Крыса {} забрала {} предметов из {} через сторону {} для {}", rat.getUUID(), extracted.getCount(), pos, side, action);
+					RatsMod.LOGGER.debug("Rat {} took {} items from {} via side {} for {}", rat.getUUID(), extracted.getCount(), pos, side, action);
 					return extracted;
 				}
 			}
@@ -147,22 +147,22 @@ public final class RatInventoryAccess {
 			}
 			return ItemStack.EMPTY;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Крыса {} не смогла извлечь предметы из блока {} для {}", rat.getUUID(), pos, action, exception);
+			RatsMod.LOGGER.error("Rat {} failed to extract items from block {} for {}", rat.getUUID(), pos, action, exception);
 			throw exception;
 		}
 	}
 
-	// Формирует порядок сторон; принимает предпочитаемую сторону, отдаёт массив с ней первой и остальными после неё.
+	// Builds the side order; takes the preferred side, returns an array with it first and the rest after it.
 	private static Direction[] orderedSides(Direction preferredSide) {
 		try {
 			return ORDERED_SIDES[preferredSide.ordinal()];
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось собрать порядок сторон инвентаря, предпочитаемая сторона {}", preferredSide, exception);
+			RatsMod.LOGGER.error("Failed to build the inventory side order, preferred side {}", preferredSide, exception);
 			throw exception;
 		}
 	}
 
-	// Создаёт кеш порядка сторон для каждой предпочтительной стороны; ничего не принимает, отдаёт таблицу направлений.
+	// Builds the side order cache for every preferred side; takes nothing, returns a direction table.
 	private static Direction[][] createOrderedSides() {
 		try {
 			Direction[][] ordered = new Direction[DIRECTIONS.length][DIRECTIONS.length];
@@ -178,27 +178,27 @@ public final class RatInventoryAccess {
 			}
 			return ordered;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось создать кеш порядка сторон инвентаря", exception);
+			RatsMod.LOGGER.error("Failed to build the inventory side order cache", exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет ручной Create-доступ; принимает мир, позицию, крысу и действие, отдаёт true если работяга может использовать блок.
+	// Checks manual Create access; takes the level, position, rat and action, returns true if the worker can use the block.
 	private static boolean canUseCreateProxy(Level level, BlockPos pos, TamedRat rat, String action) {
 		try {
 			boolean canUse = rat.hasWorkerUpgrade()
 					&& CreateCompat.canWorkerUse(level.getBlockState(pos));
 			if (!canUse) {
-				RatsMod.LOGGER.debug("Крыса {} не использует Create-прокси для {}: нет улучшения работяги или блок не поддержан", rat.getUUID(), action);
+				RatsMod.LOGGER.debug("Rat {} does not use the Create proxy for {}: no worker upgrade or the block is not supported", rat.getUUID(), action);
 			}
 			return canUse;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Крыса {} не смогла проверить Create-прокси блока {} для {}", rat.getUUID(), pos, action, exception);
+			RatsMod.LOGGER.error("Rat {} failed to check the Create proxy of block {} for {}", rat.getUUID(), pos, action, exception);
 			throw exception;
 		}
 	}
 
-	// Вставляет предмет через ручное действие Create; принимает мир, позицию, стек, крысу и действие, отдаёт остаток.
+	// Inserts an item via a manual Create action; takes the level, position, stack, rat and action, returns the remainder.
 	private static ItemStack insertWithCreateProxy(Level level, BlockPos pos, ItemStack stack, TamedRat rat, String action) {
 		try {
 			if (!canUseCreateProxy(level, pos, rat, action)) {
@@ -208,17 +208,17 @@ public final class RatInventoryAccess {
 			boolean worked = CreateCompat.workBlock(rat, pos);
 			ItemStack remaining = rat.getMainHandItem().copy();
 			if (worked && remaining.getCount() < stack.getCount()) {
-				RatsMod.LOGGER.debug("Крыса {} положила предметы в Create-блок {} через ручное действие для {}", rat.getUUID(), pos, action);
+				RatsMod.LOGGER.debug("Rat {} put items into Create block {} via a manual action for {}", rat.getUUID(), pos, action);
 				return remaining;
 			}
 			return stack;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Крыса {} не смогла вставить предметы через Create-прокси {} для {}", rat.getUUID(), pos, action, exception);
+			RatsMod.LOGGER.error("Rat {} failed to insert items via Create proxy {} for {}", rat.getUUID(), pos, action, exception);
 			throw exception;
 		}
 	}
 
-	// Забирает предмет через ручное действие Create; принимает мир, позицию, крысу, количество и действие, отдаёт полученный стек.
+	// Takes an item via a manual Create action; takes the level, position, rat, amount and action, returns the obtained stack.
 	private static ItemStack extractWithCreateProxy(Level level, BlockPos pos, TamedRat rat, int amount, String action) {
 		try {
 			if (!canUseCreateProxy(level, pos, rat, action)) {
@@ -234,12 +234,12 @@ public final class RatInventoryAccess {
 					rat.spawnAtLocation(remainder, 0.0F);
 					return limited;
 				}
-				RatsMod.LOGGER.debug("Крыса {} забрала предметы из Create-блока {} через ручное действие для {}", rat.getUUID(), pos, action);
+				RatsMod.LOGGER.debug("Rat {} took items from Create block {} via a manual action for {}", rat.getUUID(), pos, action);
 				return extracted;
 			}
 			return ItemStack.EMPTY;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Крыса {} не смогла забрать предметы через Create-прокси {} для {}", rat.getUUID(), pos, action, exception);
+			RatsMod.LOGGER.error("Rat {} failed to take items via Create proxy {} for {}", rat.getUUID(), pos, action, exception);
 			throw exception;
 		}
 	}

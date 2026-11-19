@@ -137,7 +137,7 @@ public class RatUtils {
                } else {
                   Player nearestPlayer = level.getNearestPlayer(itemEntity, 16.0);
                   if (nearestPlayer != null) {
-                     RatsMod.LOGGER.info("Игрок для кормления крысы определён по ближайшему к сыру: {}", nearestPlayer.getGameProfile().getName());
+                     RatsMod.LOGGER.info("Player for feeding the rat determined as the closest to the cheese: {}", nearestPlayer.getGameProfile().getName());
                      return Optional.of(nearestPlayer);
                   } else {
                      return Optional.empty();
@@ -148,7 +148,7 @@ public class RatUtils {
             return Optional.empty();
          }
       } catch (Exception var7) {
-         RatsMod.LOGGER.error("Не удалось определить игрока для предмета на земле: {}", var7.getMessage(), var7);
+         RatsMod.LOGGER.error("Failed to determine the player for a ground item: {}", var7.getMessage(), var7);
          return Optional.empty();
       }
    }
@@ -160,7 +160,7 @@ public class RatUtils {
          throwerField.setAccessible(true);
          return (UUID)throwerField.get(itemEntity);
       } catch (ReflectiveOperationException var2) {
-         RatsMod.LOGGER.error("Поле thrower у ItemEntity недоступно: {}", var2.getMessage(), var2);
+         RatsMod.LOGGER.error("ItemEntity thrower field is not accessible: {}", var2.getMessage(), var2);
          return null;
       }
    }
@@ -174,7 +174,7 @@ public class RatUtils {
             rat.cheeseFeedings++;
             rat.level().broadcastEntityEvent(rat, (byte)82);
             RatsMod.LOGGER
-               .info("Прогресс приручения крысы: игрок={}, сыр={}/{}, доверие={}", player.getGameProfile().getName(), rat.cheeseFeedings, 5, rat.wildTrust);
+               .info("Rat taming progress: player={}, cheese={}/{}, trust={}", player.getGameProfile().getName(), rat.cheeseFeedings, 5, rat.wildTrust);
             if ((rat.wildTrust < 50 || rat.getRandom().nextInt(2) != 0) && rat.cheeseFeedings < 5) {
                return null;
             } else {
@@ -182,15 +182,15 @@ public class RatUtils {
                tamedRat.level().broadcastEntityEvent(rat, (byte)83);
                tamedRat.tame(player);
                tamedRat.setCommand(RatCommand.SIT);
-               RatsMod.LOGGER.info("Крыса приручена игроком {}", player.getGameProfile().getName());
+               RatsMod.LOGGER.info("Rat tamed by player {}", player.getGameProfile().getName());
                return tamedRat;
             }
          } else {
             return null;
          }
       } catch (Exception var3) {
-         RatsMod.LOGGER.error("Ошибка приручения дикой крысы игроком {}: {}", player.getGameProfile().getName(), var3.getMessage(), var3);
-         throw new IllegalStateException("Ошибка приручения дикой крысы: " + var3.getMessage(), var3);
+         RatsMod.LOGGER.error("Error taming a wild rat by player {}: {}", player.getGameProfile().getName(), var3.getMessage(), var3);
+         throw new IllegalStateException("Error taming a wild rat: " + var3.getMessage(), var3);
       }
    }
 

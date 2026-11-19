@@ -45,18 +45,18 @@ import java.util.stream.IntStream;
 public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements WorldlyContainer {
 	private static final int[] STACKS = IntStream.range(0, 64).toArray();
 	private static final int RESERVATION_TIMEOUT_TICKS = 200;
-	// Возраст брони, после которого цель слоя считается зависшей и снимается для добивки слоя.
+	// Reservation age after which a layer target is considered stuck and released for the layer cleanup pass.
 	private static final int STALE_LAYER_RESERVATION_TICKS = 80;
-	// Порог оставшихся блоков слоя, при котором включается режим добивки с поиском любой достижимой стойки.
+	// Remaining layer block threshold that enables the cleanup mode, which searches for any reachable standing spot.
 	private static final int LAYER_CLEANUP_UNMINED_THRESHOLD = 6;
-	// Максимум одновременно назначенных крыс на добычу одного слоя карьера.
+	// Maximum number of rats assigned to mine one quarry layer at the same time.
 	private static final int MAX_PARALLEL_LAYER_WORKERS = 10;
-	// Максимальная дистанция добычи блока слоя от позиции ног крысы при добивке.
+	// Maximum distance from the rat's feet to a layer block during the cleanup pass.
 	private static final double LAYER_CLEANUP_REACH_DISTANCE_SQR = 20.0D;
-	// Дополнительный радиус герметизации жидкостей вокруг рабочей области 5x5: даёт защитный контур 7x7.
+	// Extra fluid sealing radius around the 5x5 work area: gives a 7x7 protective ring.
 	private static final int FLUID_SEAL_EXTRA_RADIUS = 1;
 	private static final String TAG_PLAYER_PLACED_BLOCKS = "PlayerPlacedBlocks";
-	// Допуск по высоте, в пределах которого крыса сходит с шахты обычной навигацией, без привязки к столбу.
+	// Height tolerance within which a rat steps off the shaft with regular navigation, without snapping to the pillar.
 	public static final int COLUMN_EXIT_HEIGHT_DELTA = 1;
 	private final IItemHandler topItemHandler = new SidedInvWrapper(this, Direction.UP);
 	private final IItemHandler bottomItemHandler = new SidedInvWrapper(this, Direction.DOWN);
@@ -201,11 +201,11 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 		return false;
 	}
 
-	// Возвращает предметный обработчик карьера для указанной стороны; принимает сторону, отдаёт IItemHandler.
+	// Returns the quarry item handler for the given side; takes the side, returns an IItemHandler.
 	public IItemHandler getItemHandler(@Nullable Direction facing) {
 		try {
 			if (this.remove) {
-				throw new IllegalStateException("Нельзя получить item capability удалённого карьера");
+				throw new IllegalStateException("Cannot get the item capability of a removed quarry");
 			}
 			if (facing == Direction.UP) {
 				return this.topItemHandler;
@@ -215,7 +215,7 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 			}
 			return this.sideItemHandler;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось получить item capability карьера на {}", this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to get the quarry item capability at {}", this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
@@ -239,7 +239,7 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 		return 2;
 	}
 
-	// Проверяет, находится ли позиция в рабочем объёме карьера; принимает позицию блока, отдаёт true для зоны 5x5 под карьером.
+	// Checks whether a position is inside the quarry work volume; takes the block position, returns true for the 5x5 area below the quarry.
 	public boolean isInsideWorkVolume(BlockPos pos) {
 		try {
 			BlockPos quarry = this.getBlockPos();
@@ -248,12 +248,12 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 					&& Math.abs(pos.getX() - quarry.getX()) <= radius
 					&& Math.abs(pos.getZ() - quarry.getZ()) <= radius;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить рабочий объём карьера {} для {}", this.getBlockPos(), pos, exception);
+			RatsMod.LOGGER.error("Failed to check the work volume of quarry {} for {}", this.getBlockPos(), pos, exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет объём герметизации жидкостей; принимает позицию блока, отдаёт true для защитного контура 7x7 под карьером.
+	// Checks the fluid sealing volume; takes the block position, returns true for the 7x7 protective ring below the quarry.
 	public boolean isInsideFluidSealVolume(BlockPos pos) {
 		try {
 			BlockPos quarry = this.getBlockPos();
@@ -262,12 +262,12 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 					&& Math.abs(pos.getX() - quarry.getX()) <= radius
 					&& Math.abs(pos.getZ() - quarry.getZ()) <= radius;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить объём герметизации карьера {} для {}", this.getBlockPos(), pos, exception);
+			RatsMod.LOGGER.error("Failed to check the sealing volume of quarry {} for {}", this.getBlockPos(), pos, exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет служебный блок карьера; принимает позицию, отдаёт true для карьера, платформы или столба поддержки.
+	// Checks for a quarry service block; takes the position, returns true for the quarry, platform or support pillar.
 	public boolean isQuarryServiceBlock(Level level, BlockPos pos) {
 		try {
 			if (pos.equals(this.getBlockPos())) {
@@ -278,22 +278,22 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 			}
 			return level.getBlockState(pos).is(RatsBlockRegistry.RAT_QUARRY_PLATFORM.get());
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить служебный блок {} карьера {}", pos, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to check service block {} of quarry {}", pos, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет блок, поставленный игроком в зоне карьера; принимает позицию, отдаёт true если крысы должны его пропускать.
+	// Checks for a player-placed block in the quarry area; takes the position, returns true if rats should skip it.
 	public boolean isPlayerPlacedBlock(BlockPos pos) {
 		try {
 			return this.playerPlacedBlocks.contains(pos.asLong());
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить блок игрока {} карьера {}", pos, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to check player block {} of quarry {}", pos, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Запоминает блок, поставленный игроком в рабочей зоне; принимает уровень и позицию, ничего не возвращает.
+	// Remembers a block placed by a player in the work area; takes the level and position, returns nothing.
 	public void markPlayerPlacedBlock(Level level, BlockPos pos) {
 		try {
 			if (!this.isInsideWorkVolume(pos) || this.isQuarryServiceBlock(level, pos)) {
@@ -302,27 +302,27 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 			if (this.playerPlacedBlocks.add(pos.asLong())) {
 				this.reservedTargets.entrySet().removeIf(entry -> entry.getValue().equals(pos));
 				this.setChanged();
-				RatsMod.LOGGER.info("Карьер {} пропускает блок игрока на {}", this.getBlockPos(), pos);
+				RatsMod.LOGGER.info("Quarry {} skips the player block at {}", this.getBlockPos(), pos);
 			}
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось пометить блок игрока {} для карьера {}", pos, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to mark player block {} for quarry {}", pos, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Снимает пометку блока игрока после разрушения; принимает позицию, ничего не возвращает.
+	// Clears the player block mark after it is broken; takes the position, returns nothing.
 	public void clearPlayerPlacedBlock(BlockPos pos) {
 		try {
 			if (this.playerPlacedBlocks.remove(pos.asLong())) {
 				this.setChanged();
 			}
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось снять пометку блока игрока {} у карьера {}", pos, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to clear player block mark {} of quarry {}", pos, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Находит безопасный горизонтальный шаг внутри карьера; принимает уровень, текущую и целевую позиции ног, отдаёт соседнюю клетку или null.
+	// Finds a safe horizontal step inside the quarry; takes the level, current and target foot positions, returns a neighbouring cell or null.
 	public @Nullable BlockPos findSafeHorizontalGridStep(Level level, BlockPos current, BlockPos target) {
 		try {
 			if (current.equals(target)) {
@@ -360,12 +360,12 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 			}
 			return null;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось найти горизонтальный шаг карьера {} из {} к {}", this.getBlockPos(), current, target, exception);
+			RatsMod.LOGGER.error("Failed to find a horizontal step for quarry {} from {} to {}", this.getBlockPos(), current, target, exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет безопасную клетку для сеточного шага; принимает уровень и позицию ног, отдаёт true если шаг допустим.
+	// Checks a safe cell for a grid step; takes the level and foot position, returns true if the step is allowed.
 	private boolean isValidGridStep(Level level, BlockPos next) {
 		try {
 			if (this.isAccessColumnStandPos(next)) {
@@ -373,34 +373,34 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 			}
 			return this.isSafeQuarryStandPos(level, next);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить сеточный шаг {} карьера {}", next, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to check grid step {} of quarry {}", next, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Удаляет устаревшие брони целей; принимает уровень, ничего не возвращает.
+	// Removes stale target reservations; takes the level, returns nothing.
 	private void cleanupReservations(Level level) {
 		try {
 			this.reservedAges.replaceAll((id, age) -> age + 20);
 			this.reservedAges.entrySet().removeIf(entry -> entry.getValue() > RESERVATION_TIMEOUT_TICKS || !this.isReservedTargetStillValid(level, this.reservedTargets.get(entry.getKey()), entry.getKey()));
 			this.reservedTargets.keySet().removeIf(id -> !this.reservedAges.containsKey(id));
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось очистить брони целей карьера {}", this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to clear target reservations of quarry {}", this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет защиту столба поддержки; принимает позицию, отдаёт true для служебного блока карьера.
+	// Checks support pillar protection; takes the position, returns true for a quarry service block.
 	public boolean isQuarryProtected(BlockPos pos) {
 		try {
 			return this.isSupportColumnPos(pos);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить защиту карьера на {}", pos, exception);
+			RatsMod.LOGGER.error("Failed to check quarry protection at {}", pos, exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет защиту лестницы любым карьером в соседних чанках; принимает уровень и позицию, отдаёт true если блок нельзя ломать.
+	// Checks ladder protection by any quarry in neighbouring chunks; takes the level and position, returns true if the block must not be broken.
 	public static boolean isProtectedByNearbyQuarry(Level level, BlockPos pos) {
 		try {
 			int chunkX = pos.getX() >> 4;
@@ -419,22 +419,22 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 			}
 			return false;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить защиту лестницы карьера на {}", pos, exception);
+			RatsMod.LOGGER.error("Failed to check quarry ladder protection at {}", pos, exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет защиту платформ лестницы; принимает уровень и позицию, отдаёт true только для rat_quarry_platform на координатах шахты (блок карьера не защищается).
+	// Checks ladder platform protection; takes the level and position, returns true only for rat_quarry_platform at shaft coordinates (the quarry block itself is not protected).
 	public boolean isQuarryLadderProtected(Level level, BlockPos pos) {
 		try {
 			return level.getBlockState(pos).is(RatsBlockRegistry.RAT_QUARRY_PLATFORM.get()) && this.isSupportColumnXZ(pos);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить защиту лестницы карьера {} на {}", this.getBlockPos(), pos, exception);
+			RatsMod.LOGGER.error("Failed to check ladder protection of quarry {} at {}", this.getBlockPos(), pos, exception);
 			throw exception;
 		}
 	}
 
-	// Бронирует следующую задачу для крысы; принимает уровень, UUID и позицию ног крысы, отдаёт позицию блока или null.
+	// Reserves the next task for a rat; takes the level, UUID and rat foot position, returns a block position or null.
 	public @Nullable BlockPos claimNextTarget(Level level, UUID ratId, BlockPos ratPos) {
 		try {
 			BlockPos existing = this.reservedTargets.get(ratId);
@@ -464,7 +464,7 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 					return this.reserveTarget(ratId, fluidTarget);
 				}
 				if (this.countActiveLayerReservations(level, y, ratId) >= MAX_PARALLEL_LAYER_WORKERS) {
-					RatsMod.LOGGER.info("Карьер {} уже держит {} крыс на слое {}, крыса {} ждёт свободную цель", this.getBlockPos(), MAX_PARALLEL_LAYER_WORKERS, y, ratId);
+					RatsMod.LOGGER.info("Quarry {} already holds {} rats on layer {}, rat {} is waiting for a free target", this.getBlockPos(), MAX_PARALLEL_LAYER_WORKERS, y, ratId);
 					return null;
 				}
 				BlockPos layerTarget = this.findNextSnakeTarget(level, y, ratId, ratPos);
@@ -478,18 +478,18 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 					return this.reserveTarget(ratId, layerTarget);
 				}
 				if (this.layerHasPendingWork(level, y)) {
-					RatsMod.LOGGER.warn("Карьер {} не смог выдать достижимую цель на слое {} (осталось {} блоков и {} жидкостей), крыса {} ждёт", this.getBlockPos(), y, this.countUnminedBlocksOnLayer(level, y), this.countFluidSealTargetsOnLayer(level, y), ratId);
+					RatsMod.LOGGER.warn("Quarry {} could not hand out a reachable target on layer {} ({} blocks and {} fluids left), rat {} is waiting", this.getBlockPos(), y, this.countUnminedBlocksOnLayer(level, y), this.countFluidSealTargetsOnLayer(level, y), ratId);
 					return null;
 				}
 			}
 			return null;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось выдать цель карьера {} крысе {}", this.getBlockPos(), ratId, exception);
+			RatsMod.LOGGER.error("Failed to hand out a target of quarry {} to rat {}", this.getBlockPos(), ratId, exception);
 			throw exception;
 		}
 	}
 
-	// Снимает бронь крысы с недостижимой цели и освобождает слой для добивки; принимает уровень, UUID и позицию, ничего не возвращает.
+	// Releases a rat's reservation on an unreachable target and frees the layer for cleanup; takes the level, UUID and position, returns nothing.
 	public void abandonTarget(Level level, UUID ratId, BlockPos target) {
 		try {
 			if (target != null) {
@@ -497,35 +497,35 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 			}
 			this.releaseTarget(ratId);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось сбросить цель {} карьера {} для крысы {}", target, this.getBlockPos(), ratId, exception);
+			RatsMod.LOGGER.error("Failed to reset target {} of quarry {} for rat {}", target, this.getBlockPos(), ratId, exception);
 			throw exception;
 		}
 	}
 
-	// Освобождает бронь цели крысы; принимает UUID крысы, ничего не возвращает.
+	// Releases a rat's target reservation; takes the rat UUID, returns nothing.
 	public void releaseTarget(UUID ratId) {
 		try {
 			this.reservedTargets.remove(ratId);
 			this.reservedAges.remove(ratId);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось освободить бронь цели карьера {} для крысы {}", this.getBlockPos(), ratId, exception);
+			RatsMod.LOGGER.error("Failed to release the target reservation of quarry {} for rat {}", this.getBlockPos(), ratId, exception);
 			throw exception;
 		}
 	}
 
-	// Завершает цель крысы; принимает UUID и позицию, снимает бронь при совпадении.
+	// Completes a rat's target; takes the UUID and position, releases the reservation on a match.
 	public void completeTarget(UUID ratId, BlockPos target) {
 		try {
 			if (target.equals(this.reservedTargets.get(ratId))) {
 				this.releaseTarget(ratId);
 			}
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось завершить цель {} карьера {} для крысы {}", target, this.getBlockPos(), ratId, exception);
+			RatsMod.LOGGER.error("Failed to complete target {} of quarry {} for rat {}", target, this.getBlockPos(), ratId, exception);
 			throw exception;
 		}
 	}
 
-	// Принудительно восстанавливает всю шахту поддержки; принимает уровень, ничего не возвращает.
+	// Forcibly restores the whole support shaft; takes the level, returns nothing.
 	private void maintainSupportShaft(Level level) {
 		try {
 			int topY = this.getBlockPos().getY() - 1;
@@ -539,15 +539,15 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 				}
 			}
 			if (restored > 0) {
-				RatsMod.LOGGER.info("Карьер {} принудительно восстановил {} платформ шахты между Y {} и {}", this.getBlockPos(), restored, bottomY, topY);
+				RatsMod.LOGGER.info("Quarry {} forcibly restored {} shaft platforms between Y {} and {}", this.getBlockPos(), restored, bottomY, topY);
 			}
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось принудительно восстановить шахту карьера {}", this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to forcibly restore the shaft of quarry {}", this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Возвращает нижнюю границу принудительного обслуживания шахты; принимает уровень, отдаёт Y самого глубокого обслуживаемого слоя.
+	// Returns the lower bound of forced shaft maintenance; takes the level, returns the Y of the deepest maintained layer.
 	private int getShaftMaintenanceBottomY(Level level) {
 		try {
 			BlockPos quarry = this.getBlockPos();
@@ -570,12 +570,12 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 			}
 			return bottom;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось вычислить нижнюю границу обслуживания шахты карьера {}", this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to compute the shaft maintenance lower bound of quarry {}", this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Находит недостающую платформу для параллельного ремонта; принимает уровень, UUID и позицию крысы, отдаёт ближайшую свободную цель или null.
+	// Finds a missing platform for parallel repair; takes the level, UUID and rat position, returns the nearest free target or null.
 	private @Nullable BlockPos findSupportRepairTarget(Level level, @Nullable UUID ratId, BlockPos ratPos) {
 		try {
 			List<BlockPos> candidates = this.collectSupportRepairCandidates(level, ratId);
@@ -594,16 +594,16 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 				}
 			}
 			if (best != null) {
-				RatsMod.LOGGER.info("Карьер {} выдал крысе {} ремонт лестницы {} со стойки {}", this.getBlockPos(), ratId, best, this.getSupportPlacementStandPos(level, best, ratPos));
+				RatsMod.LOGGER.info("Quarry {} assigned rat {} to repair ladder {} from standing spot {}", this.getBlockPos(), ratId, best, this.getSupportPlacementStandPos(level, best, ratPos));
 			}
 			return best;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось найти ремонт лестницы карьера {}", this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to find a ladder repair for quarry {}", this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Собирает все цели ремонта шахты; принимает уровень и UUID крысы, отдаёт список позиций без чужой брони.
+	// Collects all shaft repair targets; takes the level and rat UUID, returns positions not reserved by others.
 	private List<BlockPos> collectSupportRepairCandidates(Level level, @Nullable UUID ratId) {
 		try {
 			List<BlockPos> candidates = new ArrayList<>();
@@ -618,12 +618,12 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 			}
 			return candidates;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось собрать цели ремонта шахты карьера {}", this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to collect shaft repair targets of quarry {}", this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Находит верхний слой, где ещё есть работа; принимает уровень, отдаёт Y слоя или minBuildHeight - 1.
+	// Finds the top layer that still has work; takes the level, returns the layer Y or minBuildHeight - 1.
 	private int findTopPendingWorkLayer(Level level) {
 		try {
 			for (int y = this.getBlockPos().getY() - 1; y > level.getMinBuildHeight(); y--) {
@@ -633,12 +633,12 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 			}
 			return level.getMinBuildHeight() - 1;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось найти верхний рабочий слой карьера {}", this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to find the top work layer of quarry {}", this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет, нужна ли починка платформы; принимает уровень, позицию и UUID крысы, отдаёт true для свободной ремонтной цели.
+	// Checks whether a platform needs repair; takes the level, position and rat UUID, returns true for a free repair target.
 	private boolean needsSupportRepair(Level level, BlockPos support, @Nullable UUID ratId) {
 		try {
 			BlockState state = level.getBlockState(support);
@@ -647,12 +647,12 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 					&& this.canReplaceWithSupport(level, support, state)
 					&& this.getSupportPlacementStandPos(level, support, null) != null;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить починку платформы {} карьера {}", support, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to check platform repair {} of quarry {}", support, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Возвращает безопасную стойку для установки платформы; принимает уровень, цель и позицию крысы, отдаёт стойку снизу или сверху.
+	// Returns a safe standing spot for placing a platform; takes the level, target and rat position, returns the spot below or above.
 	public @Nullable BlockPos getSupportPlacementStandPos(Level level, BlockPos support, BlockPos ratPos) {
 		try {
 			if (!this.isSupportColumnPos(support)) {
@@ -696,12 +696,12 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 			}
 			return best;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось найти стойку установки поддержки {} карьера {}", support, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to find a standing spot to place support {} for quarry {}", support, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет, может ли крыса поставить платформу с позиции ног; принимает стойку и цель, отдаёт true при досягаемости.
+	// Checks whether a rat can place a platform from its foot position; takes the standing spot and target, returns true if within reach.
 	public boolean canPlaceSupportFromStand(BlockPos standPos, BlockPos support) {
 		try {
 			if (standPos.equals(support)) {
@@ -712,12 +712,12 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 			int dz = Math.abs(support.getZ() - standPos.getZ());
 			return dx <= 1 && dz <= 1 && dy >= -1 && dy <= 1;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить установку поддержки {} с позиции {} карьера {}", support, standPos, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to check placing support {} from position {} for quarry {}", support, standPos, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Ставит крысу на только что установленную платформу; принимает уровень, крысу и позицию поддержки, ничего не возвращает.
+	// Puts the rat onto the newly placed platform; takes the level, rat and support position, returns nothing.
 	public void snapRatOntoSupportPlatform(Level level, net.minecraft.world.entity.Entity rat, BlockPos support) {
 		try {
 			BlockPos stand = support.above();
@@ -725,15 +725,15 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 			rat.fallDistance = 0.0F;
 			rat.setPos(stand.getX() + 0.5D, stand.getY(), stand.getZ() + 0.5D);
 			if (!level.getBlockState(stand.below()).is(RatsBlockRegistry.RAT_QUARRY_PLATFORM.get())) {
-				RatsMod.LOGGER.warn("Карьер {} не нашёл платформу под крысой после установки на {}", this.getBlockPos(), support);
+				RatsMod.LOGGER.warn("Quarry {} found no platform under the rat after placing at {}", this.getBlockPos(), support);
 			}
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось поставить крысу на платформу {} карьера {}", support, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to put the rat onto platform {} of quarry {}", support, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет, есть ли под стойкой платформа шахты; принимает уровень и позицию ног, отдаёт true для безопасной клетки колонны.
+	// Checks for a shaft platform under the standing spot; takes the level and foot position, returns true for a safe column cell.
 	public boolean hasAccessColumnPlatformBelow(Level level, BlockPos standPos) {
 		try {
 			if (!this.isAccessColumnStandPos(standPos)) {
@@ -741,12 +741,12 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 			}
 			return level.getBlockState(standPos.below()).is(RatsBlockRegistry.RAT_QUARRY_PLATFORM.get());
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить опору колонны {} карьера {}", standPos, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to check column support {} of quarry {}", standPos, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Ставит поддержку в столбе; принимает уровень и позицию, отдаёт true если поддержка стоит.
+	// Places a support in the pillar; takes the level and position, returns true if the support is in place.
 	public boolean placeSupport(Level level, BlockPos pos) {
 		try {
 			BlockState state = level.getBlockState(pos);
@@ -754,7 +754,7 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 				return true;
 			}
 			if (!this.canReplaceWithSupport(level, pos, state)) {
-				RatsMod.LOGGER.warn("Столб поддержки карьера {} заблокирован на {} блоком {}", this.getBlockPos(), pos, state.getBlock());
+				RatsMod.LOGGER.warn("Support pillar of quarry {} is blocked at {} by block {}", this.getBlockPos(), pos, state.getBlock());
 				return false;
 			}
 			level.setBlockAndUpdate(pos, RatsBlockRegistry.RAT_QUARRY_PLATFORM.get().defaultBlockState());
@@ -762,68 +762,68 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 			level.playSound(null, pos, SoundEvents.BAMBOO_PLACE, SoundSource.BLOCKS);
 			return true;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось поставить поддержку карьера {} на {}", this.getBlockPos(), pos, exception);
+			RatsMod.LOGGER.error("Failed to place support of quarry {} at {}", this.getBlockPos(), pos, exception);
 			throw exception;
 		}
 	}
 
-	// Заменяет целевую жидкость булыжником; принимает уровень и позицию, отдаёт true если на позиции стоит твёрдая пробка.
+	// Replaces the target fluid with cobblestone; takes the level and position, returns true if a solid plug is at the position.
 	public boolean sealFluidBlock(Level level, BlockPos pos) {
 		try {
 			BlockState state = level.getBlockState(pos);
 			if (!this.isFluidSealTarget(level, pos)) {
-				RatsMod.LOGGER.warn("Карьер {} не стал герметизировать {}, потому что там нет жидкости в объёме 7x7: {}", this.getBlockPos(), pos, state.getBlock());
+				RatsMod.LOGGER.warn("Quarry {} did not seal {} because there is no fluid in the 7x7 volume: {}", this.getBlockPos(), pos, state.getBlock());
 				return false;
 			}
 			level.setBlockAndUpdate(pos, Blocks.COBBLESTONE.defaultBlockState());
 			level.playSound(null, pos, SoundEvents.STONE_PLACE, SoundSource.BLOCKS);
 			this.clearPlayerPlacedBlock(pos);
-			RatsMod.LOGGER.info("Карьер {} закупорил жидкость булыжником на {}", this.getBlockPos(), pos);
+			RatsMod.LOGGER.info("Quarry {} plugged fluid with cobblestone at {}", this.getBlockPos(), pos);
 			return true;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось герметизировать жидкость карьером {} на {}", this.getBlockPos(), pos, exception);
+			RatsMod.LOGGER.error("Failed to seal fluid with quarry {} at {}", this.getBlockPos(), pos, exception);
 			throw exception;
 		}
 	}
 
-	// Герметизирует жидкости, открытые добычей; принимает уровень и позицию добычи, отдаёт true если поставлена хотя бы одна пробка.
+	// Seals fluids exposed by mining; takes the level and mined position, returns true if at least one plug was placed.
 	public boolean sealExposedFluidsAfterMining(Level level, BlockPos minedPos) {
 		try {
 			boolean sealed = false;
-			sealed |= this.sealFluidForSafety(level, minedPos.below(), "под выкопанным блоком");
-			sealed |= this.sealFluidForSafety(level, minedPos, "в ячейке добычи после обновления жидкости");
+			sealed |= this.sealFluidForSafety(level, minedPos.below(), "below the mined block");
+			sealed |= this.sealFluidForSafety(level, minedPos, "in the mined cell after the fluid update");
 			for (Direction direction : Direction.Plane.HORIZONTAL) {
-				sealed |= this.sealFluidForSafety(level, minedPos.relative(direction), "рядом с выкопанным блоком");
-				sealed |= this.sealFluidForSafety(level, minedPos.below().relative(direction), "рядом с жидкостью под выкопанным блоком");
+				sealed |= this.sealFluidForSafety(level, minedPos.relative(direction), "next to the mined block");
+				sealed |= this.sealFluidForSafety(level, minedPos.below().relative(direction), "next to the fluid below the mined block");
 			}
 			if (sealed) {
-				RatsMod.LOGGER.info("Карьер {} экстренно закрыл жидкость вокруг выкопанного блока {}", this.getBlockPos(), minedPos);
+				RatsMod.LOGGER.info("Quarry {} emergency-sealed fluid around mined block {}", this.getBlockPos(), minedPos);
 			}
 			return sealed;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось закрыть жидкости вокруг выкопанного блока {} карьера {}", minedPos, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to seal fluids around mined block {} of quarry {}", minedPos, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Герметизирует жидкость вокруг платформы поддержки; принимает уровень и позицию платформы, отдаёт true если поставлена пробка.
+	// Seals fluid around a support platform; takes the level and platform position, returns true if a plug was placed.
 	private boolean sealFluidsAroundSupport(Level level, BlockPos supportPos) {
 		try {
 			boolean sealed = false;
-			sealed |= this.sealFluidForSafety(level, supportPos.below(), "под платформой поддержки");
-			sealed |= this.sealFluidForSafety(level, supportPos.above(), "над платформой поддержки");
+			sealed |= this.sealFluidForSafety(level, supportPos.below(), "below the support platform");
+			sealed |= this.sealFluidForSafety(level, supportPos.above(), "above the support platform");
 			for (Direction direction : Direction.Plane.HORIZONTAL) {
-				sealed |= this.sealFluidForSafety(level, supportPos.relative(direction), "рядом с платформой поддержки");
-				sealed |= this.sealFluidForSafety(level, supportPos.below().relative(direction), "рядом с основанием платформы поддержки");
+				sealed |= this.sealFluidForSafety(level, supportPos.relative(direction), "next to the support platform");
+				sealed |= this.sealFluidForSafety(level, supportPos.below().relative(direction), "next to the support platform base");
 			}
 			return sealed;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось закрыть жидкости вокруг платформы {} карьера {}", supportPos, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to seal fluids around platform {} of quarry {}", supportPos, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Ставит булыжник вместо аварийной жидкости; принимает уровень, позицию и причину, отдаёт true если блок заменён.
+	// Places cobblestone instead of an emergency fluid; takes the level, position and reason, returns true if the block was replaced.
 	private boolean sealFluidForSafety(Level level, BlockPos pos, String reason) {
 		try {
 			BlockState state = level.getBlockState(pos);
@@ -832,40 +832,40 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 			}
 			level.setBlockAndUpdate(pos, Blocks.COBBLESTONE.defaultBlockState());
 			this.clearPlayerPlacedBlock(pos);
-			RatsMod.LOGGER.info("Карьер {} поставил аварийную пробку из булыжника на {}: {}", this.getBlockPos(), pos, reason);
+			RatsMod.LOGGER.info("Quarry {} placed an emergency cobblestone plug at {}: {}", this.getBlockPos(), pos, reason);
 			return true;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось поставить аварийную пробку на {} карьером {}", pos, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to place an emergency plug at {} with quarry {}", pos, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет, можно ли заменить блок поддержкой; принимает уровень, позицию и состояние.
+	// Checks whether a block can be replaced with a support; takes the level, position and state.
 	public boolean canReplaceWithSupport(Level level, BlockPos pos, BlockState state) {
 		try {
 			return level.getBlockEntity(pos) == null && (state.isAir() || state.canBeReplaced() || state.liquid() || state.getDestroySpeed(level, pos) >= 0.0F);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить замену блока {} поддержкой карьера {}", pos, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to check replacing block {} with support of quarry {}", pos, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет, является ли цель поддержкой; принимает позицию, отдаёт true для единственного столба.
+	// Checks whether the target is a support; takes the position, returns true for the single pillar.
 	public boolean isSupportTarget(BlockPos pos) {
 		try {
 			return this.isSupportColumnPos(pos);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить цель поддержки {} карьера {}", pos, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to check support target {} of quarry {}", pos, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Возвращает позицию стойки для работы с целью; принимает цель, отдаёт место ног крысы.
+	// Returns the standing spot for working on a target; takes the target, returns the rat foot position.
 	public BlockPos getStandPosForTarget(BlockPos target) {
 		return this.getSupportStandPosForTarget(target);
 	}
 
-	// Возвращает позицию стойки для работы с целью; принимает уровень, цель и текущую позицию крысы.
+	// Returns the standing spot for working on a target; takes the level, target and current rat position.
 	public BlockPos getStandPosForTarget(Level level, BlockPos target, BlockPos ratPos) {
 		try {
 			if (this.isSupportTarget(target)) {
@@ -878,7 +878,7 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 			if (this.isFluidSealTarget(level, target)) {
 				BlockPos fluidStand = this.findReachableFluidSealStand(level, target, ratPos);
 				if (fluidStand == null) {
-					throw new IllegalStateException("Нет достижимой стойки для герметизации жидкости " + target + " карьером " + this.getBlockPos());
+					throw new IllegalStateException("No reachable standing spot for sealing fluid " + target + " with quarry " + this.getBlockPos());
 				}
 				return fluidStand;
 			}
@@ -902,7 +902,7 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 				if (cleanupStand != null) {
 					return cleanupStand;
 				}
-				RatsMod.LOGGER.warn("Карьер {} не нашёл достижимую стойку добивки для блока {} на слое {}", this.getBlockPos(), target, target.getY());
+				RatsMod.LOGGER.warn("Quarry {} found no reachable cleanup standing spot for block {} on layer {}", this.getBlockPos(), target, target.getY());
 			}
 			BlockPos pathStandFloor = this.getNextSnakePathFloor(target);
 			if (pathStandFloor != null) {
@@ -910,7 +910,7 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 				if (this.isSafeMiningStandPos(level, pathStand) && this.canReachLayerBlockFromStand(pathStand, target)) {
 					return pathStand;
 				}
-				RatsMod.LOGGER.warn("Карьер {} не смог использовать следующую точку змейки {} для цели {}", this.getBlockPos(), pathStand, target);
+				RatsMod.LOGGER.warn("Quarry {} could not use the next serpentine point {} for target {}", this.getBlockPos(), pathStand, target);
 			}
 			BlockPos reachable = this.findReachableMiningStand(level, target, ratPos);
 			if (reachable != null) {
@@ -924,24 +924,24 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 			if (adjacentStand != null) {
 				return adjacentStand;
 			}
-			throw new IllegalStateException("Нет достижимой стойки на слое для блока " + target + " карьером " + this.getBlockPos());
+			throw new IllegalStateException("No reachable standing spot on the layer for block " + target + " with quarry " + this.getBlockPos());
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось вычислить позицию крысы для цели {} карьера {}", target, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to compute the rat position for target {} of quarry {}", target, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет, нужен ли режим добивки слоя для выбора стойки; принимает уровень и цель, отдаёт true при малом остатке или без следующей клетки змейки.
+	// Checks whether layer cleanup mode is needed to pick a standing spot; takes the level and target, returns true when few blocks remain or there is no next serpentine cell.
 	private boolean shouldUseLayerCleanupStand(Level level, BlockPos target) {
 		try {
 			return this.getNextSnakePathFloor(target) == null || this.countUnminedBlocksOnLayer(level, target.getY()) <= LAYER_CLEANUP_UNMINED_THRESHOLD;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить режим добивки для {} карьера {}", target, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to check cleanup mode for {} of quarry {}", target, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Считает недобытые блоки на слое; принимает уровень и Y, отдаёт количество.
+	// Counts unmined blocks on a layer; takes the level and Y, returns the count.
 	private int countUnminedBlocksOnLayer(Level level, int layerY) {
 		try {
 			int count = 0;
@@ -959,32 +959,32 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 			}
 			return count;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось посчитать блоки слоя {} карьера {}", layerY, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to count blocks on layer {} of quarry {}", layerY, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет, есть ли на слое любая работа карьера; принимает уровень и Y, отдаёт true для жидкости 7x7 или добычи 5x5.
+	// Checks whether the layer has any quarry work; takes the level and Y, returns true for fluid in 7x7 or mining in 5x5.
 	private boolean layerHasPendingWork(Level level, int y) {
 		try {
 			return this.layerHasFluidSealTargets(level, y) || this.layerHasUnminedBlocks(level, y);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить работу слоя {} карьера {}", y, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to check work on layer {} of quarry {}", y, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет жидкость на слое защитного контура; принимает уровень и Y, отдаёт true если есть вода или лава в 7x7.
+	// Checks for fluid on the protective ring layer; takes the level and Y, returns true if there is water or lava in 7x7.
 	private boolean layerHasFluidSealTargets(Level level, int y) {
 		try {
 			return this.countFluidSealTargetsOnLayer(level, y) > 0;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить жидкости слоя {} карьера {}", y, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to check fluids on layer {} of quarry {}", y, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Считает жидкие блоки на слое защитного контура; принимает уровень и Y, отдаёт количество целей герметизации.
+	// Counts fluid blocks on the protective ring layer; takes the level and Y, returns the number of sealing targets.
 	private int countFluidSealTargetsOnLayer(Level level, int layerY) {
 		try {
 			int count = 0;
@@ -1000,12 +1000,12 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 			}
 			return count;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось посчитать жидкости слоя {} карьера {}", layerY, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to count fluids on layer {} of quarry {}", layerY, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет, есть ли достижимая стойка для добычи блока; принимает уровень и цель, отдаёт true если крыса может подойти и копать.
+	// Checks for a reachable standing spot to mine a block; takes the level and target, returns true if the rat can walk up and dig.
 	public boolean hasReachableStandForTarget(Level level, BlockPos target) {
 		try {
 			if (this.isFluidSealTarget(level, target)) {
@@ -1015,12 +1015,12 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 					|| this.getColumnAdjacentMiningStandPos(level, target) != null
 					|| this.findReachableMiningStand(level, target, target) != null;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить достижимую стойку для {} карьера {}", target, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to check a reachable standing spot for {} of quarry {}", target, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет досягаемость жидкого блока с позиции ног; принимает стойку и цель, отдаёт true если крыса может поставить булыжник.
+	// Checks whether a fluid block is reachable from the foot position; takes the standing spot and target, returns true if the rat can place cobblestone.
 	public boolean canReachFluidSealBlockFromStand(BlockPos standPos, BlockPos target) {
 		try {
 			if (!this.isInsideFluidSealVolume(target) || (!this.isInsideWorkVolume(standPos.below()) && !this.isAccessColumnStandPos(standPos))) {
@@ -1034,12 +1034,12 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 			double reachZ = target.getZ() + 0.5D - (standPos.getZ() + 0.5D);
 			return reachX * reachX + reachY * reachY + reachZ * reachZ <= LAYER_CLEANUP_REACH_DISTANCE_SQR;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить досягаемость жидкости {} с позиции {} карьера {}", target, standPos, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to check fluid reach {} from position {} of quarry {}", target, standPos, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Находит достижимую стойку для герметизации жидкости; принимает уровень, цель и опорную позицию, отдаёт ноги крысы или null.
+	// Finds a reachable standing spot for sealing fluid; takes the level, target and reference position, returns the rat feet or null.
 	private @Nullable BlockPos findReachableFluidSealStand(Level level, BlockPos target, BlockPos referencePos) {
 		try {
 			BlockPos best = null;
@@ -1056,12 +1056,12 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 			}
 			return best;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось найти стойку герметизации для {} карьера {}", target, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to find a sealing standing spot for {} of quarry {}", target, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Собирает кандидатов стоек для герметизации жидкости; принимает цель, отдаёт список позиций ног внутри карьера.
+	// Collects standing spot candidates for sealing fluid; takes the target, returns a list of foot positions inside the quarry.
 	private List<BlockPos> collectFluidSealStandCandidates(BlockPos target) {
 		try {
 			List<BlockPos> candidates = new ArrayList<>();
@@ -1082,12 +1082,12 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 			}
 			return candidates;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось собрать стойки герметизации для {} карьера {}", target, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to collect sealing standing spots for {} of quarry {}", target, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет стойку герметизации жидкости; принимает уровень, ноги крысы и цель, отдаёт true если можно безопасно поставить булыжник.
+	// Checks a fluid sealing standing spot; takes the level, rat feet and target, returns true if cobblestone can be placed safely.
 	private boolean isValidFluidSealStandPos(Level level, BlockPos standPos, BlockPos target) {
 		try {
 			if (!this.isInsideFluidSealVolume(target) || (!this.isInsideWorkVolume(standPos.below()) && !this.isAccessColumnStandPos(standPos))) {
@@ -1111,12 +1111,12 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 			}
 			return this.isInsideWorkVolume(floor) && !floorState.isAir() && floorState.getFluidState().isEmpty() && floorState.isFaceSturdy(level, floor, Direction.UP);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить стойку {} для герметизации {} карьером {}", standPos, target, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to check standing spot {} for sealing {} with quarry {}", standPos, target, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Возвращает стойку на колонне лестницы для соседнего блока слоя; принимает уровень и цель, отдаёт ноги крысы или null.
+	// Returns a standing spot on the ladder column for a neighbouring layer block; takes the level and target, returns the rat feet or null.
 	private @Nullable BlockPos getColumnAdjacentMiningStandPos(Level level, BlockPos target) {
 		try {
 			if (!this.isInsideWorkVolume(target) || this.isSupportColumnPos(target)) {
@@ -1137,12 +1137,12 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 			}
 			return null;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось найти стойку у колонны для блока {} карьера {}", target, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to find a column standing spot for block {} of quarry {}", target, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Находит стойку на соседней клетке слоя (не на столбе); принимает уровень, цель и опорную позицию, отдаёт ноги крысы или null.
+	// Finds a standing spot on a neighbouring layer cell (not on the pillar); takes the level, target and reference position, returns the rat feet or null.
 	public @Nullable BlockPos findAdjacentLayerMiningStand(Level level, BlockPos target, BlockPos referencePos) {
 		try {
 			BlockPos best = null;
@@ -1163,12 +1163,12 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 			}
 			return best;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось найти соседнюю стойку слоя для {} карьера {}", target, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to find a neighbouring layer standing spot for {} of quarry {}", target, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Находит ближайшую достижимую стойку для добычи блока слоя; принимает уровень, цель и опорную позицию, отдаёт ноги крысы или null.
+	// Finds the nearest reachable standing spot to mine a layer block; takes the level, target and reference position, returns the rat feet or null.
 	public @Nullable BlockPos findReachableMiningStand(Level level, BlockPos target, BlockPos referencePos) {
 		try {
 			BlockPos best = null;
@@ -1194,12 +1194,12 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 			}
 			return best;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось найти достижимую стойку для {} карьера {}", target, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to find a reachable standing spot for {} of quarry {}", target, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Собирает кандидатов стоек вокруг блока слоя; принимает цель, отдаёт список позиций ног.
+	// Collects standing spot candidates around a layer block; takes the target, returns a list of foot positions.
 	private List<BlockPos> collectLayerStandCandidates(BlockPos target) {
 		try {
 			List<BlockPos> candidates = new ArrayList<>();
@@ -1226,19 +1226,19 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 			}
 			return candidates;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось собрать кандидатов стоек для {} карьера {}", target, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to collect standing spot candidates for {} of quarry {}", target, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Добавляет уникальную позицию стойки в список; принимает список, множество и позицию, ничего не возвращает.
+	// Adds a unique standing spot position to the list; takes the list, set and position, returns nothing.
 	private void addStandCandidate(List<BlockPos> candidates, Set<Long> seen, BlockPos candidate) {
 		if (seen.add(candidate.asLong())) {
 			candidates.add(candidate);
 		}
 	}
 
-	// Проверяет допустимую стойку при добивке слоя; принимает уровень, ноги крысы и цель, отдаёт true если можно стоять и копать.
+	// Checks a valid standing spot during layer cleanup; takes the level, rat feet and target, returns true if the rat can stand and dig.
 	private boolean isValidLayerCleanupStandPos(Level level, BlockPos standPos, BlockPos target) {
 		try {
 			if (!this.isInsideWorkVolume(target) || (!this.isInsideWorkVolume(standPos.below()) && !this.isAccessColumnStandPos(standPos))) {
@@ -1257,12 +1257,12 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 			}
 			return this.hasLayerMiningFooting(level, standPos, target);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить стойку добивки {} для цели {} карьера {}", standPos, target, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to check cleanup standing spot {} for target {} of quarry {}", standPos, target, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет досягаемость блока слоя с позиции ног; принимает стойку и цель, отдаёт true если блок в радиусе добычи.
+	// Checks whether a layer block is reachable from the foot position; takes the standing spot and target, returns true if the block is within mining radius.
 	public boolean canReachLayerBlockFromStand(BlockPos standPos, BlockPos target) {
 		try {
 			if (!this.isInsideWorkVolume(target) || (!this.isInsideWorkVolume(standPos.below()) && !this.isAccessColumnStandPos(standPos))) {
@@ -1282,12 +1282,12 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 			double reachZ = target.getZ() + 0.5D - (standPos.getZ() + 0.5D);
 			return reachX * reachX + reachY * reachY + reachZ * reachZ <= LAYER_CLEANUP_REACH_DISTANCE_SQR;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить досягаемость {} с стойки {} карьера {}", target, standPos, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to check reach of {} from standing spot {} of quarry {}", target, standPos, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Ищет достижимую стойку обходом по безопасным клеткам слоя; принимает уровень, цель и опорную позицию, отдаёт ноги крысы или null.
+	// Searches for a reachable standing spot by walking safe layer cells; takes the level, target and reference position, returns the rat feet or null.
 	private @Nullable BlockPos findReachableMiningStandByWalk(Level level, BlockPos target, BlockPos referencePos) {
 		try {
 			int feetY = target.getY() + 1;
@@ -1326,12 +1326,12 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 			}
 			return best;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось найти стойку обходом для {} карьера {}", target, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to find a standing spot by search for {} of quarry {}", target, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет, можно ли выдать блок слоя крысе; принимает уровень, позицию, UUID, отдаёт true если цель добываема и достижима.
+	// Checks whether a layer block can be assigned to a rat; takes the level, position and UUID, returns true if the target is mineable and reachable.
 	private boolean isAssignableLayerTarget(Level level, BlockPos pos, @Nullable UUID ratId) {
 		try {
 			return !this.isSupportColumnPos(pos)
@@ -1339,33 +1339,33 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 					&& !this.hasReservationConflictForCandidate(level, pos, ratId)
 					&& this.hasReachableStandForTarget(level, pos);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить назначение цели {} карьера {} крысе {}", pos, this.getBlockPos(), ratId, exception);
+			RatsMod.LOGGER.error("Failed to check assigning target {} of quarry {} to rat {}", pos, this.getBlockPos(), ratId, exception);
 			throw exception;
 		}
 	}
 
-	// Возвращает стойку на поддержке слоя; принимает цель, отдаёт позицию ног над столбом.
+	// Returns the standing spot on the layer support; takes the target, returns the foot position above the pillar.
 	private BlockPos getSupportStandPosForTarget(BlockPos target) {
 		try {
 			return this.isSupportTarget(target) ? target.above() : this.getSupportColumnPos(target.getY()).above();
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось вычислить стойку поддержки для цели {} карьера {}", target, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to compute the support standing spot for target {} of quarry {}", target, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет, что стойка на одной клетке по горизонтали с целью слоя; принимает ноги и цель, отдаёт true для соседней клетки.
+	// Checks that the standing spot is one cell horizontally from the layer target; takes the feet and target, returns true for an adjacent cell.
 	private boolean isHorizontalAdjacentLayerStand(BlockPos standPos, BlockPos target) {
 		try {
 			return standPos.getY() == target.getY() + 1
 					&& Math.abs(standPos.getX() - target.getX()) + Math.abs(standPos.getZ() - target.getZ()) == 1;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить соседство стойки {} и цели {} карьера {}", standPos, target, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to check adjacency of standing spot {} and target {} of quarry {}", standPos, target, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет опору под ногами на слое (включая клетку над выкопанным соседом); принимает уровень, ноги и цель, отдаёт true если крыса может стоять.
+	// Checks the floor under the feet on the layer (including the cell above a mined neighbour); takes the level, feet and target, returns true if the rat can stand.
 	private boolean hasLayerMiningFooting(Level level, BlockPos standPos, BlockPos target) {
 		try {
 			BlockPos floor = standPos.below();
@@ -1392,12 +1392,12 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 			}
 			return false;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить опору стойки {} для цели {} карьера {}", standPos, target, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to check standing spot support {} for target {} of quarry {}", standPos, target, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет безопасную позицию рядом с добываемым блоком; принимает уровень и позицию ног.
+	// Checks a safe position next to the block being mined; takes the level and foot position.
 	private boolean isSafeMiningStandPos(Level level, BlockPos standPos) {
 		try {
 			BlockState feet = level.getBlockState(standPos);
@@ -1418,33 +1418,33 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 			}
 			return !floorState.isAir() && !floorState.liquid() && floorState.isFaceSturdy(level, floor, Direction.UP);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить позицию добычи {} карьера {}", standPos, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to check mining position {} of quarry {}", standPos, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет безопасную клетку движения внутри карьера; принимает уровень и позицию ног, отдаёт true если крыса может стоять.
+	// Checks a safe movement cell inside the quarry; takes the level and foot position, returns true if the rat can stand.
 	public boolean isSafeQuarryStandPos(Level level, BlockPos standPos) {
 		try {
 			return this.isSafeMiningStandPos(level, standPos);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить безопасную клетку карьера {} на {}", this.getBlockPos(), standPos, exception);
+			RatsMod.LOGGER.error("Failed to check safe cell of quarry {} at {}", this.getBlockPos(), standPos, exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет, является ли блок последним в порядке змейки на слое; принимает позицию цели, отдаёт true для финального блока слоя.
+	// Checks whether a block is the last in serpentine order on the layer; takes the target position, returns true for the final layer block.
 	public boolean isLastSnakeBlockOnLayer(BlockPos target) {
 		try {
 			BlockPos last = this.getLastSnakeBlockOnLayer(target.getY());
 			return last != null && last.equals(target);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить последний блок змейки {} карьера {}", target, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to check the last serpentine block {} of quarry {}", target, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Возвращает последний блок слоя в порядке змейки; принимает Y слоя, отдаёт позицию или null.
+	// Returns the last layer block in serpentine order; takes the layer Y, returns a position or null.
 	private @Nullable BlockPos getLastSnakeBlockOnLayer(int layerY) {
 		try {
 			BlockPos quarry = this.getBlockPos();
@@ -1462,22 +1462,22 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 			}
 			return last;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось найти последний блок змейки слоя {} карьера {}", layerY, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to find the last serpentine block of layer {} of quarry {}", layerY, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Возвращает стойку на угловом столбе для добычи последнего блока слоя; принимает цель, отдаёт позицию ног над платформой столба.
+	// Returns the standing spot on the corner pillar for mining the last layer block; takes the target, returns the foot position above the pillar platform.
 	public BlockPos getColumnLayerMiningStandPos(BlockPos target) {
 		try {
 			return this.getPrimaryAccessColumnStandPos(target.getY() + 1);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось вычислить стойку столба для последнего блока {} карьера {}", target, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to compute the pillar standing spot for the last block {} of quarry {}", target, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Возвращает пол стойки для проверки конфликтов брони; принимает цель, отдаёт следующую клетку змейки или пол столба для последнего блока.
+	// Returns the standing spot floor for reservation conflict checks; takes the target, returns the next serpentine cell or the pillar floor for the last block.
 	private @Nullable BlockPos getSnakeStandFloorForConflict(BlockPos target) {
 		try {
 			BlockPos next = this.getNextSnakePathFloor(target);
@@ -1489,12 +1489,12 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 			}
 			return null;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось вычислить пол стойки для конфликта {} карьера {}", target, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to compute the standing spot floor for conflict {} of quarry {}", target, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Возвращает следующий блок змейки как пол для крысы; принимает цель, отдаёт пол стойки или null для последнего блока слоя.
+	// Returns the next serpentine block as the rat's floor; takes the target, returns the standing floor or null for the last layer block.
 	private @Nullable BlockPos getNextSnakePathFloor(BlockPos target) {
 		try {
 			BlockPos quarry = this.getBlockPos();
@@ -1518,12 +1518,12 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 			}
 			return null;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось найти следующую точку змейки для цели {} карьера {}", target, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to find the next serpentine point for target {} of quarry {}", target, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Возвращает верхний незавершённый слой; принимает уровень, отдаёт Y или minBuildHeight - 1 если добывать нечего.
+	// Returns the top unfinished layer; takes the level, returns Y or minBuildHeight - 1 if there is nothing to mine.
 	public int getActiveLayerY(Level level) {
 		try {
 			BlockPos quarry = this.getBlockPos();
@@ -1534,12 +1534,12 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 			}
 			return level.getMinBuildHeight() - 1;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось найти активный слой карьера {}", this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to find the active layer of quarry {}", this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет, остались ли на слое недобытые блоки без учёта брони; принимает уровень и Y, отдаёт true если слой не закончен.
+	// Checks whether unmined blocks remain on the layer, ignoring reservations; takes the level and Y, returns true if the layer is not finished.
 	public boolean layerHasUnminedBlocks(Level level, int y) {
 		try {
 			BlockPos quarry = this.getBlockPos();
@@ -1556,12 +1556,12 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 			}
 			return false;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить недобитый слой {} карьера {}", y, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to check unfinished layer {} of quarry {}", y, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Снимает зависшие брони на слое, чтобы другие крысы могли добить оставшиеся блоки; принимает уровень и Y, ничего не возвращает.
+	// Releases stuck reservations on a layer so other rats can finish the remaining blocks; takes the level and Y, returns nothing.
 	private void releaseStaleLayerReservations(Level level, int y) {
 		try {
 			List<UUID> staleRats = new ArrayList<>();
@@ -1578,15 +1578,15 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 			for (UUID staleRat : staleRats) {
 				BlockPos released = this.reservedTargets.get(staleRat);
 				this.releaseTarget(staleRat);
-				RatsMod.LOGGER.warn("Карьер {} снял зависшую бронь крысы {} на слое {} для блока {}", this.getBlockPos(), staleRat, y, released);
+				RatsMod.LOGGER.warn("Quarry {} released a stuck reservation of rat {} on layer {} for block {}", this.getBlockPos(), staleRat, y, released);
 			}
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось снять зависшие брони слоя {} карьера {}", y, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to release stuck reservations on layer {} of quarry {}", y, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Находит оставшийся блок слоя для добивки; принимает уровень, слой и UUID, отдаёт позицию без учёта конфликта стоек.
+	// Finds a remaining layer block for cleanup; takes the level, layer and UUID, returns a position ignoring standing spot conflicts.
 	private @Nullable BlockPos findLayerStragglerTarget(Level level, int y, UUID ratId) {
 		try {
 			BlockPos columnAdjacent = this.findColumnAdjacentLayerTarget(level, y, ratId);
@@ -1607,12 +1607,12 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 			}
 			return null;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось найти блок добивки слоя {} карьера {}", y, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to find a cleanup block on layer {} of quarry {}", y, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Находит недобитый блок рядом с колонной лестницы; принимает уровень, слой и UUID, отдаёт позицию только внутри 5x5.
+	// Finds an unmined block next to the ladder column; takes the level, layer and UUID, returns a position only inside the 5x5.
 	private @Nullable BlockPos findColumnAdjacentLayerTarget(Level level, int y, UUID ratId) {
 		try {
 			for (BlockPos support : this.getSupportColumnPositions(y)) {
@@ -1625,12 +1625,12 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 			}
 			return null;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось найти блок рядом с лестницей слоя {} карьера {}", y, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to find a block next to the ladder on layer {} of quarry {}", y, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет блок рядом с колонной лестницы; принимает уровень, позицию и UUID, отдаёт true если его можно добить.
+	// Checks a block next to the ladder column; takes the level, position and UUID, returns true if it can be finished.
 	private boolean isAssignableColumnAdjacentLayerTarget(Level level, BlockPos candidate, @Nullable UUID ratId) {
 		try {
 			return this.isInsideWorkVolume(candidate)
@@ -1639,12 +1639,12 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 					&& !this.isReservedByOther(candidate, ratId)
 					&& this.getColumnAdjacentMiningStandPos(level, candidate) != null;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить блок рядом с лестницей {} карьера {}", candidate, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to check block next to ladder {} of quarry {}", candidate, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Принудительно выдаёт оставшийся блок слоя, снимая чужую бронь; принимает уровень, слой и UUID, отдаёт позицию или null.
+	// Forcibly hands out a remaining layer block, releasing another rat's reservation; takes the level, layer and UUID, returns a position or null.
 	private @Nullable BlockPos findLayerForcedCleanupTarget(Level level, int y, UUID ratId) {
 		try {
 			this.releaseStaleLayerReservations(level, y);
@@ -1676,59 +1676,59 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 				BlockPos reserved = this.reservedTargets.get(otherRat);
 				if (reserved != null && reserved.getY() == y && this.isLayerMineableState(level, reserved, level.getBlockState(reserved))) {
 					this.releaseTarget(otherRat);
-					RatsMod.LOGGER.warn("Карьер {} снял бронь крысы {} на слое {} для принудительной добивки {}", this.getBlockPos(), otherRat, y, reserved);
+					RatsMod.LOGGER.warn("Quarry {} released rat {}'s reservation on layer {} for forced cleanup of {}", this.getBlockPos(), otherRat, y, reserved);
 				}
 			}
 			return this.hasReachableStandForTarget(level, firstUnmined) && !this.isReservedByOther(firstUnmined, ratId) ? firstUnmined : null;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось принудительно выдать блок добивки слоя {} карьера {}", y, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to forcibly hand out a cleanup block on layer {} of quarry {}", y, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Возвращает глубину слоя относительно карьера; принимает Y слоя, отдаёт неотрицательную глубину.
+	// Returns the layer depth relative to the quarry; takes the layer Y, returns a non-negative depth.
 	public int getDepthForLayerY(int layerY) {
 		return Math.max(0, this.getBlockPos().getY() - 1 - layerY);
 	}
 
-	// Возвращает Y слоя по глубине; принимает глубину, отдаёт Y.
+	// Returns the layer Y for a depth; takes the depth, returns Y.
 	public int getLayerYForDepth(int depth) {
 		return this.getBlockPos().getY() - 1 - Math.max(0, depth);
 	}
 
-	// Возвращает позицию платформы поддержки для глубины; принимает глубину, отдаёт блок единственного столба.
+	// Returns the support platform position for a depth; takes the depth, returns the block of the single pillar.
 	public BlockPos getAccessPlatformForDepth(int depth) {
 		try {
 			return this.getSupportColumnPos(this.getLayerYForDepth(depth));
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось вычислить позицию пути карьера {}", this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to compute the path position of quarry {}", this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Возвращает позицию поддержки на слое; принимает Y слоя, отдаёт угол единственного столба.
+	// Returns the support position on a layer; takes the layer Y, returns the corner of the single pillar.
 	private BlockPos getSupportColumnPos(int layerY) {
 		try {
 			BlockPos quarry = this.getBlockPos();
 			return new BlockPos(quarry.getX() + this.getRadius(), layerY, quarry.getZ() + this.getRadius());
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось вычислить позицию столба карьера {} на слое {}", this.getBlockPos(), layerY, exception);
+			RatsMod.LOGGER.error("Failed to compute the pillar position of quarry {} on layer {}", this.getBlockPos(), layerY, exception);
 			throw exception;
 		}
 	}
 
-	// Возвращает позиции поддержек на слое; принимает Y слоя, отдаёт угол и две внутренние прилегающие колонны.
+	// Returns the support positions on a layer; takes the layer Y, returns the corner and two inner adjacent columns.
 	private BlockPos[] getSupportColumnPositions(int layerY) {
 		try {
 			BlockPos primary = this.getSupportColumnPos(layerY);
 			return new BlockPos[]{primary, primary.west(), primary.north()};
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось вычислить позиции столбов карьера {} на слое {}", this.getBlockPos(), layerY, exception);
+			RatsMod.LOGGER.error("Failed to compute the pillar positions of quarry {} on layer {}", this.getBlockPos(), layerY, exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет горизонтальную позицию шахты поддержки; принимает позицию, отдаёт true для любого из трёх столбов.
+	// Checks the horizontal position of the support shaft; takes the position, returns true for any of the three pillars.
 	private boolean isSupportColumnXZ(BlockPos pos) {
 		try {
 			for (BlockPos support : this.getSupportColumnPositions(Math.min(pos.getY(), this.getBlockPos().getY() - 1))) {
@@ -1738,53 +1738,53 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 			}
 			return false;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить горизонталь столба {} карьера {}", pos, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to check pillar horizontal {} of quarry {}", pos, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет позицию столба; принимает позицию, отдаёт true для одной из трёх поддержек.
+	// Checks a pillar position; takes the position, returns true for one of the three supports.
 	private boolean isSupportColumnPos(BlockPos pos) {
 		try {
 			return this.isSupportColumnXZ(pos) && pos.getY() <= this.getBlockPos().getY() - 1;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить позицию столба {} карьера {}", pos, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to check pillar position {} of quarry {}", pos, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет позицию ног в зоне шахты; принимает позицию, отдаёт true для угла и вспомогательных колонн.
+	// Checks a foot position in the shaft area; takes the position, returns true for the corner and helper columns.
 	public boolean isAccessColumnStandPos(BlockPos pos) {
 		try {
 			return this.isSupportColumnXZ(pos) && pos.getY() <= this.getBlockPos().getY();
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить позицию крысы на столбе карьера {} на {}", this.getBlockPos(), pos, exception);
+			RatsMod.LOGGER.error("Failed to check the rat position on the pillar of quarry {} at {}", this.getBlockPos(), pos, exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет угловую колонну подъёма; принимает позицию, отдаёт true только для основного углового столба.
+	// Checks the corner climbing column; takes the position, returns true only for the main corner pillar.
 	public boolean isPrimaryAccessColumnStandPos(BlockPos pos) {
 		try {
 			BlockPos primary = this.getSupportColumnPos(Math.min(pos.getY(), this.getBlockPos().getY() - 1));
 			return pos.getX() == primary.getX() && pos.getZ() == primary.getZ() && pos.getY() <= this.getBlockPos().getY();
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить угловую колонну карьера {} на {}", this.getBlockPos(), pos, exception);
+			RatsMod.LOGGER.error("Failed to check the corner column of quarry {} at {}", this.getBlockPos(), pos, exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет, можно ли сойти с шахты вниз; принимает текущую и целевую Y ног, отдаёт true в пределах ±1 блока при спуске.
+	// Checks whether the rat can step down off the shaft; takes the current and target foot Y, returns true within ±1 block when descending.
 	public boolean isWithinColumnExitHeight(int currentY, int targetY) {
 		try {
 			return targetY < currentY && Math.abs(currentY - targetY) <= COLUMN_EXIT_HEIGHT_DELTA;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить порог выхода с шахты карьера {} для Y {} -> {}", this.getBlockPos(), currentY, targetY, exception);
+			RatsMod.LOGGER.error("Failed to check the shaft exit threshold of quarry {} for Y {} -> {}", this.getBlockPos(), currentY, targetY, exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет, нужен ли пошаговый подъём или спуск по угловой колонне; принимает текущую и целевую Y ног, отдаёт true если нужна привязка.
+	// Checks whether a step-by-step climb or descent along the corner column is needed; takes the current and target foot Y, returns true if snapping is needed.
 	public boolean shouldUseColumnVerticalAssist(int currentY, int targetY) {
 		try {
 			if (targetY > currentY) {
@@ -1795,45 +1795,45 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 			}
 			return false;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить необходимость подъёма по шахте карьера {} для Y {} -> {}", this.getBlockPos(), currentY, targetY, exception);
+			RatsMod.LOGGER.error("Failed to check whether climbing the shaft of quarry {} is needed for Y {} -> {}", this.getBlockPos(), currentY, targetY, exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет, стоит ли крыса на угловой платформе подъёма; принимает уровень и позицию ног, отдаёт true только над угловым столбом.
+	// Checks whether the rat is standing on the corner climbing platform; takes the level and foot position, returns true only above the corner pillar.
 	public boolean isOnPrimaryAccessColumnSurface(Level level, BlockPos ratPos) {
 		try {
 			BlockPos floor = ratPos.below();
 			BlockPos primary = this.getSupportColumnPos(floor.getY());
 			return floor.getX() == primary.getX() && floor.getZ() == primary.getZ() && level.getBlockState(floor).is(RatsBlockRegistry.RAT_QUARRY_PLATFORM.get());
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить опору крысы на угловой шахте карьера {} на {}", this.getBlockPos(), ratPos, exception);
+			RatsMod.LOGGER.error("Failed to check rat support on the corner shaft of quarry {} at {}", this.getBlockPos(), ratPos, exception);
 			throw exception;
 		}
 	}
 
-	// Возвращает точку подъёма на угловой колонне; принимает целевую высоту ног, отдаёт позицию только углового столба.
+	// Returns the climbing point on the corner column; takes the target foot height, returns the position of the corner pillar only.
 	public BlockPos getPrimaryAccessColumnStandPos(int targetY) {
 		try {
 			BlockPos primary = this.getSupportColumnPos(Math.min(targetY, this.getBlockPos().getY() - 1));
 			return new BlockPos(primary.getX(), targetY, primary.getZ());
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось вычислить угловую колонну карьера {} на высоте {}", this.getBlockPos(), targetY, exception);
+			RatsMod.LOGGER.error("Failed to compute the corner column of quarry {} at height {}", this.getBlockPos(), targetY, exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет платформу вертикального столба; принимает позицию, отдаёт true для поддержки.
+	// Checks a vertical pillar platform; takes the position, returns true for a support.
 	public boolean isAccessColumnPlatform(BlockPos pos) {
 		try {
 			return this.isSupportColumnPos(pos);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить платформу столба карьера {} на {}", this.getBlockPos(), pos, exception);
+			RatsMod.LOGGER.error("Failed to check the pillar platform of quarry {} at {}", this.getBlockPos(), pos, exception);
 			throw exception;
 		}
 	}
 
-	// Находит следующую жидкость для герметизации; принимает уровень, слой и UUID крысы, отдаёт позицию воды или лавы в 7x7.
+	// Finds the next fluid to seal; takes the level, layer and rat UUID, returns a water or lava position in the 7x7.
 	private @Nullable BlockPos findNextFluidSealTarget(Level level, int y, @Nullable UUID ratId) {
 		try {
 			BlockPos quarry = this.getBlockPos();
@@ -1850,24 +1850,24 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 			}
 			return null;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось найти жидкость для герметизации карьером {} на слое {}", this.getBlockPos(), y, exception);
+			RatsMod.LOGGER.error("Failed to find fluid to seal with quarry {} on layer {}", this.getBlockPos(), y, exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет цель герметизации; принимает уровень, позицию и UUID, отдаёт true для достижимой воды или лавы без чужой брони.
+	// Checks a sealing target; takes the level, position and UUID, returns true for reachable water or lava not reserved by others.
 	private boolean isAssignableFluidSealTarget(Level level, BlockPos pos, @Nullable UUID ratId) {
 		try {
 			return this.isFluidSealTarget(level, pos)
 					&& !this.isReservedByOther(pos, ratId)
 					&& this.findReachableFluidSealStand(level, pos, pos) != null;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить жидкость {} для герметизации карьером {}", pos, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to check fluid {} for sealing with quarry {}", pos, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Находит следующую цель слоя для параллельной змейки; принимает уровень, слой, UUID и позицию крысы, отдаёт позицию или null.
+	// Finds the next layer target for the parallel serpentine; takes the level, layer, UUID and rat position, returns a position or null.
 	private @Nullable BlockPos findNextSnakeTarget(Level level, int y, @Nullable UUID ratId, BlockPos ratPos) {
 		try {
 			if (this.countActiveLayerReservations(level, y, ratId) >= MAX_PARALLEL_LAYER_WORKERS) {
@@ -1888,12 +1888,12 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 			}
 			return this.selectParallelLayerTarget(level, candidates, ratId, ratPos);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось найти цель змейкой для карьера {} на слое {}", this.getBlockPos(), y, exception);
+			RatsMod.LOGGER.error("Failed to find a serpentine target for quarry {} on layer {}", this.getBlockPos(), y, exception);
 			throw exception;
 		}
 	}
 
-	// Считает активные брони добычи слоя; принимает уровень, слой и текущую крысу, отдаёт количество других рабочих.
+	// Counts active mining reservations on the layer; takes the level, layer and current rat, returns the number of other workers.
 	private int countActiveLayerReservations(Level level, int y, @Nullable UUID ratId) {
 		try {
 			int count = 0;
@@ -1908,12 +1908,12 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 			}
 			return count;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось посчитать рабочих слоя {} карьера {}", y, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to count workers on layer {} of quarry {}", y, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Выбирает лучшую цель из пула слоя; принимает уровень, кандидатов, UUID и позицию крысы, отдаёт ближайшую цель с небольшим смещением по UUID.
+	// Picks the best target from the layer pool; takes the level, candidates, UUID and rat position, returns the nearest target with a small UUID-based offset.
 	private @Nullable BlockPos selectParallelLayerTarget(Level level, List<BlockPos> candidates, @Nullable UUID ratId, BlockPos ratPos) {
 		try {
 			if (candidates.isEmpty()) {
@@ -1940,16 +1940,16 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 				}
 			}
 			if (best != null) {
-				RatsMod.LOGGER.info("Карьер {} выдал крысе {} цель слоя {} со стойки {}", this.getBlockPos(), ratId, best, this.getStandPosForTarget(level, best, ratPos));
+				RatsMod.LOGGER.info("Quarry {} assigned rat {} layer target {} from standing spot {}", this.getBlockPos(), ratId, best, this.getStandPosForTarget(level, best, ratPos));
 			}
 			return best;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось выбрать параллельную цель карьера {} для крысы {}", this.getBlockPos(), ratId, exception);
+			RatsMod.LOGGER.error("Failed to pick a parallel target of quarry {} for rat {}", this.getBlockPos(), ratId, exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет конфликт брони цели и рабочей стойки; принимает уровень, кандидата и UUID, отдаёт true если крысы помешают друг другу.
+	// Checks for a conflict between a target reservation and a working standing spot; takes the level, candidate and UUID, returns true if the rats would get in each other's way.
 	private boolean hasReservationConflictForCandidate(Level level, BlockPos candidate, @Nullable UUID ratId) {
 		try {
 			if (this.countUnminedBlocksOnLayer(level, candidate.getY()) <= LAYER_CLEANUP_UNMINED_THRESHOLD) {
@@ -1977,12 +1977,12 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 			}
 			return false;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить конфликт брони {} карьера {} для крысы {}", candidate, this.getBlockPos(), ratId, exception);
+			RatsMod.LOGGER.error("Failed to check reservation conflict {} of quarry {} for rat {}", candidate, this.getBlockPos(), ratId, exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет цель герметизации жидкости; принимает уровень и позицию, отдаёт true для воды или лавы в защитном объёме 7x7.
+	// Checks a fluid sealing target; takes the level and position, returns true for water or lava in the 7x7 protective volume.
 	public boolean isFluidSealTarget(Level level, BlockPos pos) {
 		try {
 			BlockState state = level.getBlockState(pos);
@@ -1992,12 +1992,12 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 					&& !state.is(RatsBlockRegistry.RAT_QUARRY_PLATFORM.get())
 					&& level.getBlockEntity(pos) == null;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить жидкость {} карьера {}", pos, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to check fluid {} of quarry {}", pos, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет добываемый блок слоя; принимает уровень, позицию и состояние, отдаёт true только для обычной добычи.
+	// Checks a mineable layer block; takes the level, position and state, returns true only for regular mining.
 	private boolean isLayerMineableState(Level level, BlockPos pos, BlockState state) {
 		if (!this.isInsideWorkVolume(pos) || this.isSupportColumnPos(pos) || this.isPlayerPlacedBlock(pos) || state.isAir() || !state.getFluidState().isEmpty() || state.is(RatsBlockTags.QUARRY_IGNORABLES) || state.is(RatsBlockRegistry.RAT_QUARRY_PLATFORM.get()) || level.getBlockEntity(pos) != null) {
 			return false;
@@ -2006,19 +2006,19 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 		return hardness >= 0.0F && hardness <= RatConfig.ratStrengthThreshold;
 	}
 
-	// Проверяет чужую бронь цели; принимает позицию и UUID текущей крысы, отдаёт true если цель занята другой крысой.
+	// Checks another rat's reservation on a target; takes the position and the current rat UUID, returns true if the target is taken by another rat.
 	private boolean isReservedByOther(BlockPos pos, @Nullable UUID ratId) {
 		return this.reservedTargets.entrySet().stream().anyMatch(entry -> !entry.getKey().equals(ratId) && entry.getValue().equals(pos));
 	}
 
-	// Бронирует цель; принимает UUID и позицию, отдаёт эту же позицию.
+	// Reserves a target; takes the UUID and position, returns the same position.
 	private BlockPos reserveTarget(UUID ratId, BlockPos target) {
 		this.reservedTargets.put(ratId, target);
 		this.reservedAges.put(ratId, 0);
 		return target;
 	}
 
-	// Проверяет актуальность брони; принимает уровень, позицию и UUID, отдаёт true если цель ещё нужна.
+	// Checks whether a reservation is still valid; takes the level, position and UUID, returns true if the target is still needed.
 	private boolean isReservedTargetStillValid(Level level, @Nullable BlockPos target, UUID ratId) {
 		if (target == null || this.isReservedByOther(target, ratId)) {
 			return false;
@@ -2032,37 +2032,37 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 		return this.isLayerMineableState(level, target, level.getBlockState(target));
 	}
 
-	// Возвращает позицию у карьера для сдачи добычи; принимает уровень, отдаёт точку у блока карьера.
+	// Returns the position next to the quarry for delivering loot; takes the level, returns a point next to the quarry block.
 	public BlockPos getDepositApproachPos(Level level) {
 		try {
 			return this.getQuarryDepositWaitPos(level);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось найти точку сдачи у карьера {}", this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to find a delivery point at quarry {}", this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Возвращает позицию ног крысы для сдачи в карьер; принимает уровень, отдаёт точку рядом с блоком карьера на его высоте.
+	// Returns the rat foot position for delivering into the quarry; takes the level, returns a point next to the quarry block at its height.
 	public BlockPos getQuarryDepositStandPos(Level level) {
 		try {
 			return this.getQuarryDepositWaitPos(level);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось вычислить внутреннюю точку сдачи карьера {}", this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to compute the inner delivery point of quarry {}", this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Возвращает устойчивую точку ожидания сдачи; принимает уровень, отдаёт верхнюю точку дорожки у спуска.
+	// Returns a stable waiting point for delivery; takes the level, returns the top point of the path at the descent.
 	public BlockPos getQuarryDepositWaitPos(Level level) {
 		try {
 			return this.getPrimaryAccessColumnStandPos(this.getBlockPos().getY());
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось вычислить точку ожидания сдачи карьера {}", this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to compute the delivery waiting point of quarry {}", this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет допустимую позицию сдачи добычи; принимает уровень и позицию крысы, отдаёт true в верхней док-зоне столба.
+	// Checks a valid loot delivery position; takes the level and rat position, returns true in the top dock area of the pillar.
 	public boolean isValidQuarryDepositStand(Level level, BlockPos ratPos) {
 		try {
 			BlockPos waitPos = this.getQuarryDepositWaitPos(level);
@@ -2073,19 +2073,19 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 			int dz = Math.abs(ratPos.getZ() - waitPos.getZ());
 			return dx <= 1 && dz <= 1;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить позицию сдачи {} для карьера {}", ratPos, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to check delivery position {} for quarry {}", ratPos, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет опору под точкой сдачи; принимает уровень и позицию ног крысы, отдаёт true если крыса не висит в воздухе.
+	// Checks the floor under the delivery point; takes the level and rat foot position, returns true if the rat is not hanging in the air.
 	private boolean hasSafeDepositFloor(Level level, BlockPos ratPos) {
 		try {
 			BlockPos floorPos = ratPos.below();
 			BlockState floor = level.getBlockState(floorPos);
 			return floor.is(RatsBlockRegistry.RAT_QUARRY_PLATFORM.get()) || (!floor.isAir() && !floor.liquid() && floor.isFaceSturdy(level, floorPos, Direction.UP));
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить опору точки сдачи {} карьера {}", ratPos, this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to check delivery point support {} of quarry {}", ratPos, this.getBlockPos(), exception);
 			throw exception;
 		}
 	}

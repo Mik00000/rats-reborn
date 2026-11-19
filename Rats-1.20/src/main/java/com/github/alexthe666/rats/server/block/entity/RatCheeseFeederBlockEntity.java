@@ -38,38 +38,38 @@ public class RatCheeseFeederBlockEntity extends BaseContainerBlockEntity impleme
 	private final IItemHandler itemHandler = new SidedInvWrapper(this, Direction.UP);
 	private NonNullList<ItemStack> inventory = NonNullList.withSize(SLOT_COUNT, ItemStack.EMPTY);
 
-	// Создаёт хранилище кормушки; принимает позицию и состояние блока.
+	// Creates the feeder storage; takes the block position and state.
 	public RatCheeseFeederBlockEntity(BlockPos pos, BlockState state) {
 		super(RatsBlockEntityRegistry.RAT_CHEESE_FEEDER.get(), pos, state);
 	}
 
-	// Проверяет, является ли предмет допустимым сыром; принимает стек, отдаёт true для сырных предметов.
+	// Checks whether an item is valid cheese; takes the stack, returns true for cheese items.
 	public static boolean isAllowedCheese(ItemStack stack) {
 		try {
 			return !stack.isEmpty() && (stack.is(RatsItemTags.CHEESE_ITEMS) || stack.is(RatsItemRegistry.CREATIVE_CHEESE.get()));
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить сырный предмет {}", stack, exception);
+			RatsMod.LOGGER.error("Failed to check cheese item {}", stack, exception);
 			throw exception;
 		}
 	}
 
-	// Тикает кормушку; принимает мир, позицию, состояние и block entity, ничего не отдаёт.
+	// Ticks the feeder; takes the level, position, state and block entity, returns nothing.
 	public static void tick(Level level, BlockPos pos, BlockState state, RatCheeseFeederBlockEntity feeder) {
 		try {
 			if (!level.isClientSide() && state.getValue(RatCheeseFeederBlock.HAS_CHEESE) != feeder.hasCheese()) {
 				feeder.updateCheeseState();
 			}
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось обновить состояние кормушки {}", pos, exception);
+			RatsMod.LOGGER.error("Failed to update the feeder state {}", pos, exception);
 			throw exception;
 		}
 	}
 
-	// Добавляет сыр из стека игрока; принимает стек, отдаёт количество перемещённых предметов.
+	// Adds cheese from the player's stack; takes the stack, returns the number of items moved.
 	public int addCheeseFrom(ItemStack source) {
 		try {
 			if (!isAllowedCheese(source)) {
-				throw new IllegalArgumentException("Кормушка принимает только сыр: " + source);
+				throw new IllegalArgumentException("The feeder only accepts cheese: " + source);
 			}
 			int moved = 0;
 			for (int slot = 0; slot < this.getContainerSize() && !source.isEmpty(); slot++) {
@@ -92,42 +92,42 @@ public class RatCheeseFeederBlockEntity extends BaseContainerBlockEntity impleme
 			}
 			return moved;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось добавить сыр в кормушку {}", this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to add cheese to feeder {}", this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
-		// Забирает сыр для крысы; принимает нужное количество, отдаёт стек сыра или пустой стек.
+		// Takes cheese for a rat; takes the needed amount, returns a cheese stack or an empty stack.
 	public ItemStack takeCheeseForRat(int amount) {
 		try {
 			if (amount <= 0) {
-				throw new IllegalArgumentException("Количество сыра для выдачи должно быть положительным: " + amount);
+				throw new IllegalArgumentException("The amount of cheese to give must be positive: " + amount);
 			}
 			for (int slot = 0; slot < this.getContainerSize(); slot++) {
 				ItemStack stack = this.getItem(slot);
 				if (!stack.isEmpty() && isAllowedCheese(stack)) {
 					ItemStack removed = this.removeItem(slot, Math.min(amount, stack.getCount()));
 					if (removed.isEmpty()) {
-						throw new IllegalStateException("Кормушка показала сыр, но не смогла выдать его из слота " + slot);
+						throw new IllegalStateException("The feeder reported cheese but could not give it from the slot " + slot);
 					}
 					return removed;
 				}
 			}
 			return ItemStack.EMPTY;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось выдать сыр крысе из кормушки {}", this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to give cheese to a rat from feeder {}", this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Забирает один сыр для кормления крысы; ничего не принимает, отдаёт стек из одного сыра или пустой стек.
+	// Takes one cheese to feed a rat; takes nothing, returns a single-cheese stack or an empty stack.
 	public ItemStack takeOneCheeseForRat() {
 		try {
 			return this.takeCheeseForRat(1);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось выдать один сыр крысе из кормушки {}", this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to give one cheese to a rat from feeder {}", this.getBlockPos(), exception);
 			throw exception;
 		}
-	}// Проверяет наличие сыра в кормушке; ничего не принимает, отдаёт true если есть хотя бы один сыр.
+	}// Checks whether the feeder has cheese; takes nothing, returns true if there is at least one cheese.
 	public boolean hasCheese() {
 		try {
 			for (ItemStack stack : this.inventory) {
@@ -137,40 +137,40 @@ public class RatCheeseFeederBlockEntity extends BaseContainerBlockEntity impleme
 			}
 			return false;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить наличие сыра в кормушке {}", this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to check whether feeder {} has cheese", this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Возвращает предметный обработчик кормушки; принимает сторону, отдаёт IItemHandler.
+	// Returns the feeder item handler; takes the side, returns an IItemHandler.
 	public IItemHandler getItemHandler(@Nullable Direction side) {
 		try {
 			return this.itemHandler;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось получить item capability кормушки {}", this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to get the item capability of feeder {}", this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Возвращает число слотов кормушки; ничего не принимает.
+	// Returns the number of feeder slots; takes nothing.
 	@Override
 	public int getContainerSize() {
 		return this.inventory.size();
 	}
 
-	// Проверяет пустоту кормушки; ничего не принимает.
+	// Checks whether the feeder is empty; takes nothing.
 	@Override
 	public boolean isEmpty() {
 		return !this.hasCheese();
 	}
 
-	// Возвращает предмет из слота; принимает индекс слота.
+	// Returns the item in a slot; takes the slot index.
 	@Override
 	public ItemStack getItem(int index) {
 		return this.inventory.get(index);
 	}
 
-	// Удаляет часть предметов из слота; принимает индекс и количество.
+	// Removes some items from a slot; takes the index and count.
 	@Override
 	public ItemStack removeItem(int index, int count) {
 		try {
@@ -180,28 +180,28 @@ public class RatCheeseFeederBlockEntity extends BaseContainerBlockEntity impleme
 			}
 			return removed;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось забрать сыр из кормушки {}", this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to take cheese from feeder {}", this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Удаляет весь стек из слота без дополнительных проверок; принимает индекс слота.
+	// Removes the whole stack from a slot without extra checks; takes the slot index.
 	@Override
 	public ItemStack removeItemNoUpdate(int index) {
 		try {
 			return ContainerHelper.takeItem(this.inventory, index);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось тихо забрать сыр из кормушки {}", this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to silently take cheese from feeder {}", this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Записывает предмет в слот; принимает индекс и стек, ничего не отдаёт.
+	// Writes an item into a slot; takes the index and stack, returns nothing.
 	@Override
 	public void setItem(int index, ItemStack stack) {
 		try {
 			if (!stack.isEmpty() && !isAllowedCheese(stack)) {
-				throw new IllegalArgumentException("Кормушка принимает только сыр: " + stack);
+				throw new IllegalArgumentException("The feeder only accepts cheese: " + stack);
 			}
 			this.inventory.set(index, stack);
 			if (stack.getCount() > this.getMaxStackSize()) {
@@ -209,45 +209,45 @@ public class RatCheeseFeederBlockEntity extends BaseContainerBlockEntity impleme
 			}
 			this.setChanged();
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось положить предмет в кормушку {}", this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to put an item into feeder {}", this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет, можно ли положить предмет в слот; принимает индекс и стек.
+	// Checks whether an item may be placed into a slot; takes the index and stack.
 	@Override
 	public boolean canPlaceItem(int index, ItemStack stack) {
 		return isAllowedCheese(stack);
 	}
 
-	// Возвращает слоты, доступные со стороны; принимает сторону.
+	// Returns the slots accessible from a side; takes the side.
 	@Override
 	public int[] getSlotsForFace(Direction direction) {
 		return SLOTS;
 	}
 
-	// Проверяет вставку автоматизацией; принимает слот, стек и сторону.
+	// Checks automated insertion; takes the slot, stack and side.
 	@Override
 	public boolean canPlaceItemThroughFace(int index, ItemStack stack, @Nullable Direction direction) {
 		try {
 			boolean allowed = this.canPlaceItem(index, stack);
 			if (!allowed) {
-				RatsMod.LOGGER.debug("Кормушка {} отказала автоматизации со стороны {}: предмет {} не является сыром", this.getBlockPos(), direction, stack);
+				RatsMod.LOGGER.debug("Feeder {} refused automation from side {}: item {} is not cheese", this.getBlockPos(), direction, stack);
 			}
 			return allowed;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить вставку автоматизацией в кормушку {}", this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to check automated insertion into feeder {}", this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет извлечение автоматизацией; принимает слот, стек и сторону.
+	// Checks automated extraction; takes the slot, stack and side.
 	@Override
 	public boolean canTakeItemThroughFace(int index, ItemStack stack, Direction direction) {
 		return true;
 	}
 
-	// Проверяет доступ игрока к кормушке; принимает игрока.
+	// Checks player access to the feeder; takes the player.
 	@Override
 	public boolean stillValid(Player player) {
 		return this.getLevel() != null
@@ -255,31 +255,31 @@ public class RatCheeseFeederBlockEntity extends BaseContainerBlockEntity impleme
 				&& player.distanceToSqr(this.getBlockPos().getX() + 0.5D, this.getBlockPos().getY() + 0.5D, this.getBlockPos().getZ() + 0.5D) <= 64.0D;
 	}
 
-	// Очищает инвентарь кормушки; ничего не принимает.
+	// Clears the feeder inventory; takes nothing.
 	@Override
 	public void clearContent() {
 		try {
 			this.inventory.clear();
 			this.setChanged();
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось очистить кормушку {}", this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to clear feeder {}", this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Возвращает список предметов для BaseContainerBlockEntity; ничего не принимает.
+	// Returns the item list for BaseContainerBlockEntity; takes nothing.
 	@Override
 	protected NonNullList<ItemStack> getItems() {
 		return this.inventory;
 	}
 
-	// Заменяет список предметов при загрузке; принимает новый список, ничего не отдаёт.
+	// Replaces the item list on load; takes the new list, returns nothing.
 	@Override
 	protected void setItems(NonNullList<ItemStack> items) {
 		this.inventory = items;
 	}
 
-	// Загружает кормушку из NBT; принимает тег и доступ к реестрам, ничего не отдаёт.
+	// Loads the feeder from NBT; takes the tag and registry access, returns nothing.
 	@Override
 	protected void loadAdditional(CompoundTag compound, HolderLookup.Provider registries) {
 		try {
@@ -287,55 +287,55 @@ public class RatCheeseFeederBlockEntity extends BaseContainerBlockEntity impleme
 			this.inventory = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
 			ContainerHelper.loadAllItems(compound, this.inventory, registries);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось загрузить кормушку {}", this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to load feeder {}", this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Сохраняет кормушку в NBT; принимает тег и доступ к реестрам, ничего не отдаёт.
+	// Saves the feeder to NBT; takes the tag and registry access, returns nothing.
 	@Override
 	protected void saveAdditional(CompoundTag compound, HolderLookup.Provider registries) {
 		try {
 			super.saveAdditional(compound, registries);
 			ContainerHelper.saveAllItems(compound, this.inventory, registries);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось сохранить кормушку {}", this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to save feeder {}", this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Возвращает имя меню кормушки; ничего не принимает.
+	// Returns the feeder menu name; takes nothing.
 	@Override
 	protected Component getDefaultName() {
 		return Component.translatable("block.rats.rat_cheese_feeder");
 	}
 
-	// Создаёт серверное меню кормушки; принимает id и инвентарь игрока.
+	// Creates the server-side feeder menu; takes the id and player inventory.
 	@Override
 	protected AbstractContainerMenu createMenu(int id, Inventory player) {
 		return new ChestMenu(MenuType.GENERIC_9x1, id, player, this, 1);
 	}
 
-	// Создаёт меню для игрока; принимает id, инвентарь игрока и игрока.
+	// Creates the menu for a player; takes the id, player inventory and player.
 	@Nullable
 	@Override
 	public AbstractContainerMenu createMenu(int id, Inventory playerInventory, Player player) {
 		return new ChestMenu(MenuType.GENERIC_9x1, id, playerInventory, this, 1);
 	}
 
-	// Помечает кормушку изменённой и обновляет видимость сыра; ничего не принимает.
+	// Marks the feeder as changed and updates cheese visibility; takes nothing.
 	@Override
 	public void setChanged() {
 		super.setChanged();
 		try {
 			this.updateCheeseState();
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось применить состояние сыра кормушки {}", this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to apply the cheese state of feeder {}", this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Обновляет blockstate has_cheese по содержимому; ничего не принимает.
+	// Updates the has_cheese blockstate from the contents; takes nothing.
 	private void updateCheeseState() {
 		try {
 			Level level = this.getLevel();
@@ -344,33 +344,33 @@ public class RatCheeseFeederBlockEntity extends BaseContainerBlockEntity impleme
 			}
 			BlockState state = this.getBlockState();
 			if (!state.hasProperty(RatCheeseFeederBlock.HAS_CHEESE)) {
-				throw new IllegalStateException("У блока кормушки нет свойства has_cheese");
+				throw new IllegalStateException("The feeder block has no has_cheese property");
 			}
 			boolean hasCheese = this.hasCheese();
 			if (state.getValue(RatCheeseFeederBlock.HAS_CHEESE) != hasCheese) {
 				level.setBlock(this.getBlockPos(), state.setValue(RatCheeseFeederBlock.HAS_CHEESE, hasCheese), Block.UPDATE_ALL);
 			}
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось обновить модель кормушки {}", this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to update the model of feeder {}", this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Создаёт пакет синхронизации block entity; ничего не принимает.
+	// Creates the block entity sync packet; takes nothing.
 	@Nullable
 	@Override
 	public ClientboundBlockEntityDataPacket getUpdatePacket() {
 		return ClientboundBlockEntityDataPacket.create(this, BlockEntity::getUpdateTag);
 	}
 
-	// Обрабатывает пакет синхронизации block entity; принимает соединение, пакет и доступ к реестрам.
+	// Handles the block entity sync packet; takes the connection, packet and registry access.
 	@Override
 	public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket packet, HolderLookup.Provider registries) {
 		super.onDataPacket(net, packet, registries);
 		this.handleUpdateTag(packet.getTag(), registries);
 	}
 
-	// Возвращает тег синхронизации для клиента; принимает доступ к реестрам.
+	// Returns the sync tag for the client; takes registry access.
 	@Override
 	public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
 		return this.saveWithoutMetadata(registries);

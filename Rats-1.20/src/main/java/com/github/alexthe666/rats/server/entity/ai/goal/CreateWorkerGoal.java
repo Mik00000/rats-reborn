@@ -127,7 +127,7 @@ public class CreateWorkerGoal extends Goal implements RatWorkGoal {
 		}
 	}
 
-	// Быстро проверяет сохранённую цель Create без нового расчёта пути; принимает позицию, отдаёт true если цель ещё рабочая.
+	// Quickly checks the saved Create target without recalculating the path; takes the position, returns true if the target still works.
 	private boolean isCreateTargetStillValid(BlockPos pos) {
 		try {
 			BlockState state = this.rat.level().getBlockState(pos);
@@ -218,7 +218,7 @@ public class CreateWorkerGoal extends Goal implements RatWorkGoal {
 				return false;
 			}
 			if (this.rat.distanceToSqr(Vec3.atCenterOf(pos)) > (double) RatConfig.pathfindHomeWorkDistance * RatConfig.pathfindHomeWorkDistance) {
-				this.rat.setLastPathFailure("рабочая точка Create " + pos + " дальше лимита " + RatConfig.pathfindHomeWorkDistance);
+				this.rat.setLastPathFailure("Create work point " + pos + " beyond the limit " + RatConfig.pathfindHomeWorkDistance);
 				return false;
 			}
 			if (pos.equals(this.lastReachablePos)) {
@@ -233,7 +233,7 @@ public class CreateWorkerGoal extends Goal implements RatWorkGoal {
 			this.lastReachableTick = this.rat.tickCount;
 			this.lastReachableResult = reachable;
 			if (!reachable) {
-				this.rat.setLastPathFailure("нет пути к рабочей точке Create " + pos);
+				this.rat.setLastPathFailure("no path to the Create work point " + pos);
 			}
 			return reachable;
 		} catch (RuntimeException exception) {
@@ -335,7 +335,7 @@ public class CreateWorkerGoal extends Goal implements RatWorkGoal {
 		}
 	}
 
-	// Создаёт кеш порядка сторон для забора предметов; ничего не принимает, отдаёт таблицу направлений.
+	// Builds the side order cache for item pickup; takes nothing, returns a direction table.
 	private static Direction[][] createOrderedSides() {
 		try {
 			Direction[][] ordered = new Direction[DIRECTIONS.length][DIRECTIONS.length];
@@ -351,7 +351,7 @@ public class CreateWorkerGoal extends Goal implements RatWorkGoal {
 			}
 			return ordered;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось создать кеш порядка сторон Create-работяги", exception);
+			RatsMod.LOGGER.error("Failed to build the Create worker side order cache", exception);
 			throw exception;
 		}
 	}

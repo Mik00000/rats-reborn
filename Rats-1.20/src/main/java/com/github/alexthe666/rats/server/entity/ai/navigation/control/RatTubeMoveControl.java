@@ -95,7 +95,7 @@ public class RatTubeMoveControl extends RatMoveControl {
 				this.rat.setTubeClimbDirection(0);
 			}
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Ошибка движения крысы {} в трубе: {}", this.rat.getUUID(), exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Error moving rat {} in a tube: {}", this.rat.getUUID(), exception.getMessage(), exception);
 			throw exception;
 		}
 	}

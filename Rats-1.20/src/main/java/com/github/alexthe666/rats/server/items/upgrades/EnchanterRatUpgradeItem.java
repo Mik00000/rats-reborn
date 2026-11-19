@@ -30,19 +30,19 @@ public class EnchanterRatUpgradeItem extends BaseRatUpgradeItem implements TickR
 		super(properties, rarity, textLength);
 	}
 
-	// Запрещает крысе есть предметы, которые держит колдун; принимает крысу, отдаёт false.
+	// Prevents the rat from eating items the enchanter holds; takes the rat, returns false.
 	@Override
 	public boolean isRatHoldingFood(TamedRat rat) {
 		return false;
 	}
 
-	// Решает, можно ли сдавать предмет в склад; принимает крысу и стек, отдаёт false для предметов, которые колдун должен обработать.
+	// Decides whether the item may be delivered to the deposit; takes the rat and stack, returns false for items the enchanter must process.
 	@Override
 	public boolean shouldDepositItem(TamedRat rat, ItemStack stack) {
 		return !this.canProcessStack(rat, stack, this == RatsItemRegistry.RAT_UPGRADE_DISENCHANTER.get());
 	}
 
-	// Выполняет тик улучшения колдуна; принимает крысу, ничего не отдаёт.
+	// Runs the enchanter upgrade tick; takes the rat, returns nothing.
 	@Override
 	public void tick(TamedRat rat) {
 		try {
@@ -53,17 +53,17 @@ public class EnchanterRatUpgradeItem extends BaseRatUpgradeItem implements TickR
 				rat.cookingProgress = 0;
 			}
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Крыса {} не смогла выполнить зачарование: {}", rat.getUUID(), exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Rat {} failed to enchant: {}", rat.getUUID(), exception.getMessage(), exception);
 			throw exception;
 		}
 	}
 
-	// Пытается обработать предмет в лапе; принимает крысу и режим разочарования, ничего не отдаёт.
+	// Tries to process the item in the paw; takes the rat and disenchant mode, returns nothing.
 	private void tryEnchanting(TamedRat rat, boolean disenchant) {
 		BlockPos enchantingTable = this.findNearbyEnchantingTable(rat);
 		if (enchantingTable == null) {
 			if (!rat.level().isClientSide() && rat.tickCount % 200 == 0) {
-				RatsMod.LOGGER.debug("Крыса {} не может {} предмет: рядом нет стола зачарования", rat.getUUID(), disenchant ? "разочаровать" : "зачаровать");
+				RatsMod.LOGGER.debug("Rat {} cannot {} the item: no enchanting table nearby", rat.getUUID(), disenchant ? "disenchant" : "enchant");
 			}
 			rat.cookingProgress = 0;
 			return;
@@ -85,7 +85,7 @@ public class EnchanterRatUpgradeItem extends BaseRatUpgradeItem implements TickR
 		}
 		if (burntItem.isEmpty()) {
 			if (!rat.level().isClientSide() && rat.tickCount % 200 == 0) {
-				RatsMod.LOGGER.debug("Крыса {} не может {} предмет {}: предмет в лапе не подходит", rat.getUUID(), disenchant ? "разочаровать" : "зачаровать", heldItem.getHoverName().getString());
+				RatsMod.LOGGER.debug("Rat {} cannot {} item {}: the item in the paw is not suitable", rat.getUUID(), disenchant ? "disenchant" : "enchant", heldItem.getHoverName().getString());
 			}
 			rat.cookingProgress = 0;
 		} else {
@@ -98,7 +98,7 @@ public class EnchanterRatUpgradeItem extends BaseRatUpgradeItem implements TickR
 					burntItem = EnchantmentHelper.enchantItem(rat.getRandom(), burntItem, enchantingLevel,
 							enchantments.listElements().map(holder -> (Holder<Enchantment>) holder).filter(holder -> holder.is(EnchantmentTags.IN_ENCHANTING_TABLE)));
 					if (!rat.level().isClientSide()) {
-						RatsMod.LOGGER.info("Крыса {} зачаровала предмет у стола {}: сила полок={}, уровень зачарования={}", rat.getUUID(), enchantingTable, power, enchantingLevel);
+						RatsMod.LOGGER.info("Rat {} enchanted an item at table {}: bookshelf power={}, enchantment level={}", rat.getUUID(), enchantingTable, power, enchantingLevel);
 					}
 				}
 				if (heldItem.getCount() == 1) {
@@ -107,14 +107,14 @@ public class EnchanterRatUpgradeItem extends BaseRatUpgradeItem implements TickR
 				} else if (this.depositResult(rat, burntItem)) {
 					heldItem.shrink(1);
 				} else if (!rat.level().isClientSide()) {
-					RatsMod.LOGGER.warn("Крыса {} не смогла положить результат {}: нет доступного контейнера склада", rat.getUUID(), burntItem.getHoverName().getString());
+					RatsMod.LOGGER.warn("Rat {} could not store result {}: no accessible deposit container", rat.getUUID(), burntItem.getHoverName().getString());
 				}
 				rat.cookingProgress = 0;
 			}
 		}
 	}
 
-	// Проверяет, подходит ли стек для работы колдуна; принимает крысу, стек и режим, отдаёт true/false.
+	// Checks whether a stack suits the enchanter's work; takes the rat, stack and mode, returns true/false.
 	private boolean canProcessStack(TamedRat rat, ItemStack stack, boolean disenchant) {
 		try {
 			if (stack.isEmpty()) {
@@ -125,12 +125,12 @@ public class EnchanterRatUpgradeItem extends BaseRatUpgradeItem implements TickR
 			}
 			return stack.getItem() == Items.BOOK || stack.isEnchantable() && !stack.isEnchanted();
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Крыса {} не смогла проверить предмет {} для работы колдуна", rat.getUUID(), stack, exception);
+			RatsMod.LOGGER.error("Rat {} failed to check item {} for the enchanter's work", rat.getUUID(), stack, exception);
 			throw exception;
 		}
 	}
 
-	// Ищет стол зачарования для работы крысы; принимает крысу, отдаёт позицию ближайшего стола или null.
+	// Finds an enchanting table for the rat to work at; takes the rat, returns the nearest table position or null.
 	private BlockPos findNearbyEnchantingTable(TamedRat rat) {
 		try {
 			BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
@@ -152,12 +152,12 @@ public class EnchanterRatUpgradeItem extends BaseRatUpgradeItem implements TickR
 			}
 			return best;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось найти стол зачарования для крысы {}", rat.getUUID(), exception);
+			RatsMod.LOGGER.error("Failed to find an enchanting table for rat {}", rat.getUUID(), exception);
 			throw exception;
 		}
 	}
 
-	// Считает силу книжных полок вокруг стола; принимает крысу и позицию стола, отдаёт суммарную силу.
+	// Computes the bookshelf power around the table; takes the rat and table position, returns the total power.
 	private float getEnchantingPower(TamedRat rat, BlockPos enchantingTable) {
 		try {
 			float power = 0;
@@ -169,23 +169,23 @@ public class EnchanterRatUpgradeItem extends BaseRatUpgradeItem implements TickR
 			}
 			return power;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось посчитать силу зачарования для крысы {} у стола {}", rat.getUUID(), enchantingTable, exception);
+			RatsMod.LOGGER.error("Failed to compute enchanting power for rat {} at table {}", rat.getUUID(), enchantingTable, exception);
 			throw exception;
 		}
 	}
 
-	// Переводит силу книжных полок в уровень зачарования; принимает крысу и силу полок, отдаёт уровень 1-30.
+	// Converts bookshelf power into an enchantment level; takes the rat and bookshelf power, returns a level from 1 to 30.
 	private int getEnchantingLevel(TamedRat rat, float power) {
 		try {
 			int level = 1 + Math.round(power * 2.0F) + rat.getRandom().nextInt(3);
 			return Math.max(1, Math.min(30, level));
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось посчитать уровень зачарования для крысы {} при силе полок {}", rat.getUUID(), power, exception);
+			RatsMod.LOGGER.error("Failed to compute the enchantment level for rat {} with bookshelf power {}", rat.getUUID(), power, exception);
 			throw exception;
 		}
 	}
 
-	// Кладёт результат обработки в склад крысы; принимает крысу и предмет, отдаёт true если предмет полностью принят.
+	// Puts the processed result into the rat's deposit; takes the rat and item, returns true if the item was fully accepted.
 	private boolean depositResult(TamedRat rat, ItemStack result) {
 		try {
 			if (rat.getDepositPos().isEmpty() || !rat.getDepositPos().get().dimension().equals(rat.level().dimension())) {
@@ -193,7 +193,7 @@ public class EnchanterRatUpgradeItem extends BaseRatUpgradeItem implements TickR
 			}
 			BlockEntity entity = rat.level().getBlockEntity(rat.getDepositPos().get().pos());
 			if (entity == null) {
-				RatsMod.LOGGER.warn("Крыса {} не нашла блок склада для результата зачарования в {}", rat.getUUID(), rat.getDepositPos().get().pos());
+				RatsMod.LOGGER.warn("Rat {} found no deposit block for the enchanting result at {}", rat.getUUID(), rat.getDepositPos().get().pos());
 				return false;
 			}
 			IItemHandler handler = rat.level().getCapability(Capabilities.ItemHandler.BLOCK, entity.getBlockPos(), rat.depositFacing);
@@ -206,12 +206,12 @@ public class EnchanterRatUpgradeItem extends BaseRatUpgradeItem implements TickR
 				}
 			}
 			if (handler == null) {
-				RatsMod.LOGGER.warn("Крыса {} не нашла доступный item handler у склада {}", rat.getUUID(), entity.getBlockPos());
+				RatsMod.LOGGER.warn("Rat {} found no accessible item handler at deposit {}", rat.getUUID(), entity.getBlockPos());
 				return false;
 			}
 			return ItemHandlerHelper.insertItem(handler, result.copy(), true).isEmpty() && ItemHandlerHelper.insertItem(handler, result.copy(), false).isEmpty();
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Крыса {} не смогла положить результат зачарования {}", rat.getUUID(), result.getHoverName().getString(), exception);
+			RatsMod.LOGGER.error("Rat {} failed to store enchanting result {}", rat.getUUID(), result.getHoverName().getString(), exception);
 			throw exception;
 		}
 	}

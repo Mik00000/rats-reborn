@@ -43,57 +43,57 @@ public class RatHouseBlock extends BaseEntityBlock {
 	private static final VoxelShape FULL_SHAPE = Shapes.block();
 	private static final VoxelShape CLIMBABLE_COLLISION_SHAPE = Block.box(1.0D, 0.0D, 1.0D, 15.0D, 16.0D, 15.0D);
 
-	// Создаёт блок крысиного домика; принимает свойства блока, задаёт FACING по умолчанию на север.
+	// Creates the rat house block; takes block properties, sets FACING to north by default.
 	public RatHouseBlock(BlockBehaviour.Properties properties) {
 		super(properties);
 		try {
 			this.registerDefaultState(this.getStateDefinition().any().setValue(FACING, Direction.NORTH));
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось инициализировать блок rat_house: {}", exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Failed to initialize the rat_house block: {}", exception.getMessage(), exception);
 			throw exception;
 		}
 	}
 
-	// Возвращает кодек блока для сериализации; ничего не принимает, отдаёт MapCodec.
+	// Returns the block codec for serialization; takes nothing, returns a MapCodec.
 	@Override
 	protected MapCodec<? extends RatHouseBlock> codec() {
 		return simpleCodec(RatHouseBlock::new);
 	}
 
-	// Возвращает позицию входа перед дыркой домика; принимает состояние и позицию блока, отдаёт позицию у входа.
+	// Returns the entrance position in front of the house hole; takes the block state and position, returns the position at the entrance.
 	public static BlockPos getEntryPos(BlockState state, BlockPos pos) {
 		try {
 			Direction facing = state.hasProperty(FACING) ? state.getValue(FACING) : Direction.NORTH;
 			return pos.relative(facing);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось вычислить вход домика в {}: {}", pos, exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Failed to compute the house entrance at {}: {}", pos, exception.getMessage(), exception);
 			throw exception;
 		}
 	}
 
-	// Возвращает центр входа перед домиком; принимает состояние и позицию блока, отдаёт точку движения крысы.
+	// Returns the center of the entrance in front of the house; takes the block state and position, returns the rat movement target.
 	public static Vec3 getEntryCenter(BlockState state, BlockPos pos) {
 		try {
 			return Vec3.atBottomCenterOf(getEntryPos(state, pos)).add(0.0D, 0.1D, 0.0D);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось вычислить центр входа домика в {}: {}", pos, exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Failed to compute the house entrance center at {}: {}", pos, exception.getMessage(), exception);
 			throw exception;
 		}
 	}
 
-	// Возвращает форму блока (полный куб); принимает состояние, мир, позицию и контекст столкновения.
+	// Returns the block shape (full cube); takes the state, level, position and collision context.
 	@Override
 	public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
 		return FULL_SHAPE;
 	}
 
-	// Возвращает коллизию блока (полный куб); принимает состояние, мир, позицию и контекст столкновения.
+	// Returns the block collision (full cube); takes the state, level, position and collision context.
 	@Override
 	public VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
 		return CLIMBABLE_COLLISION_SHAPE;
 	}
 
-	// Проверяет, может ли сущность использовать боковую грань домика как лестницу; принимает состояние, мир, позицию и сущность, отдаёт true около боковой грани.
+	// Checks whether an entity can use the house side face as a ladder; takes the state, level, position and entity, returns true near a side face.
 	@Override
 	public boolean isLadder(BlockState state, LevelReader level, BlockPos pos, LivingEntity entity) {
 		try {
@@ -108,12 +108,12 @@ public class RatHouseBlock extends BaseEntityBlock {
 			boolean nearHeight = entityY >= pos.getY() - 0.35D && entityY <= pos.getY() + 1.65D;
 			return insideHorizontalBounds && nearSide && nearHeight;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить лестницу домика в {} для сущности {}: {}", pos, entity == null ? "null" : entity.getUUID(), exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Failed to check the house ladder at {} for entity {}: {}", pos, entity == null ? "null" : entity.getUUID(), exception.getMessage(), exception);
 			throw exception;
 		}
 	}
 
-	// Показывает частицу над занятым домиком; принимает состояние, мир, позицию и случайный генератор, ничего не отдаёт.
+	// Shows a particle above an occupied house; takes the state, level, position and random source, returns nothing.
 	@Override
 	public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
 		try {
@@ -122,12 +122,12 @@ public class RatHouseBlock extends BaseEntityBlock {
 				level.addParticle(ParticleTypes.HAPPY_VILLAGER, entry.x, entry.y + 0.35D, entry.z, 0.0D, 0.02D, 0.0D);
 			}
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось показать индикатор занятого домика в {}: {}", pos, exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Failed to show the occupied house indicator at {}: {}", pos, exception.getMessage(), exception);
 			throw exception;
 		}
 	}
 
-	// Обрабатывает ПКМ по домику: пустой рукой достаёт крысу из домика на плечо игрока.
+	// Handles right click on the house: with an empty hand, takes the rat out of the house onto the player's shoulder.
 	@Override
 	protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
 		try {
@@ -139,16 +139,16 @@ public class RatHouseBlock extends BaseEntityBlock {
 			}
 			BlockEntity blockEntity = level.getBlockEntity(pos);
 			if (!(blockEntity instanceof RatHouseBlockEntity house)) {
-				throw new IllegalStateException("У домика нет RatHouseBlockEntity");
+				throw new IllegalStateException("The house has no RatHouseBlockEntity");
 			}
 			return house.releaseRatToPlayer(player) ? ItemInteractionResult.CONSUME : ItemInteractionResult.CONSUME;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось обработать ПКМ по rat_house в {}: {}", pos, exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Failed to handle right click on rat_house at {}: {}", pos, exception.getMessage(), exception);
 			throw exception;
 		}
 	}
 
-	// Выставляет ориентацию при установке: дырка (FACING) смотрит на игрока; принимает контекст размещения, отдаёт BlockState.
+	// Sets the orientation on placement: the hole (FACING) faces the player; takes the placement context, returns a BlockState.
 	@Nullable
 	@Override
 	public BlockState getStateForPlacement(BlockPlaceContext context) {
@@ -157,56 +157,56 @@ public class RatHouseBlock extends BaseEntityBlock {
 			Direction holeFacing = playerFacing.getOpposite();
 			return this.defaultBlockState().setValue(FACING, holeFacing);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось выставить FACING для rat_house в {}: {}", context.getClickedPos(), exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Failed to set FACING for rat_house at {}: {}", context.getClickedPos(), exception.getMessage(), exception);
 			throw exception;
 		}
 	}
 
-	// Поворачивает блок; принимает состояние и поворот, отдаёт новое состояние.
+	// Rotates the block; takes the state and rotation, returns the new state.
 	@Override
 	public BlockState rotate(BlockState state, Rotation rotation) {
 		return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
 	}
 
-	// Отражает блок; принимает состояние и зеркало, отдаёт новое состояние.
+	// Mirrors the block; takes the state and mirror, returns the new state.
 	@Override
 	public BlockState mirror(BlockState state, Mirror mirror) {
 		return state.rotate(mirror.getRotation(state.getValue(FACING)));
 	}
 
-	// Возвращает тип отрисовки — обычная JSON-модель; принимает состояние.
+	// Returns the render shape - a regular JSON model; takes the state.
 	@Override
 	public RenderShape getRenderShape(BlockState state) {
 		return RenderShape.MODEL;
 	}
 
 
-	// Возвращает тикер block entity домика; принимает мир, состояние и тип block entity.
+	// Returns the house block entity ticker; takes the level, state and block entity type.
 	@Nullable
 	@Override
 	public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
 		return createTickerHelper(type, RatsBlockEntityRegistry.RAT_HOUSE.get(), RatHouseBlockEntity::tick);
 	}
 
-	// Регистрирует свойства состояния блока; принимает строитель StateDefinition.
+	// Registers block state properties; takes the StateDefinition builder.
 	@Override
 	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
 		builder.add(FACING);
 	}
 
-	// Создаёт block entity домика; принимает позицию и состояние, отдаёт RatHouseBlockEntity или null.
+	// Creates the house block entity; takes the position and state, returns a RatHouseBlockEntity or null.
 	@Nullable
 	@Override
 	public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
 		try {
 			return new RatHouseBlockEntity(pos, state);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось создать block entity rat_house в {}: {}", pos, exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Failed to create the rat_house block entity at {}: {}", pos, exception.getMessage(), exception);
 			throw exception;
 		}
 	}
 
-	// Удаляет block entity при замене блока; принимает старое/новое состояние, мир, позицию и флаг перемещения.
+	// Removes the block entity when the block is replaced; takes the old/new state, level, position and moved flag.
 	@Override
 	protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
 		try {
@@ -220,7 +220,7 @@ public class RatHouseBlock extends BaseEntityBlock {
 			}
 			super.onRemove(state, level, pos, newState, isMoving);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось удалить rat_house в {}: {}", pos, exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Failed to remove rat_house at {}: {}", pos, exception.getMessage(), exception);
 			throw exception;
 		}
 	}

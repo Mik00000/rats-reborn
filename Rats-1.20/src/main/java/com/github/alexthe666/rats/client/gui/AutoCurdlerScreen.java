@@ -40,9 +40,9 @@ public class AutoCurdlerScreen extends AbstractContainerScreen<AutoCurdlerMenu> 
 	}
 
 	/**
-	 * Рисует заполненную область жидкости в GUI (спрайт из атласа блоков).
-	 * Параметры: стек позы, левый верх уровня жидкости (x, y), ширина и высота в пикселях, тип жидкости.
-	 * В 1.21.1 у вершин обязательны нормали — иначе краш «Missing elements in vertex: Normal».
+	 * Draws a filled fluid area in the GUI (sprite from the block atlas).
+	 * Parameters: pose stack, top-left of the fluid level (x, y), width and height in pixels, fluid type.
+	 * In 1.21.1 vertices require normals, otherwise it crashes with "Missing elements in vertex: Normal".
 	 */
 	public static void renderFluidStack(PoseStack stack, int xPosition, int yPosition, int desiredWidth, int desiredHeight, Fluid fluid) {
 		try {
@@ -94,7 +94,7 @@ public class AutoCurdlerScreen extends AbstractContainerScreen<AutoCurdlerMenu> 
 			bufferSource.endBatch(renderType);
 			RenderSystem.disableBlend();
 		} catch (Exception e) {
-			RatsMod.LOGGER.error("Не удалось отрисовать жидкость в GUI автосыроварки: {}", e.getMessage(), e);
+			RatsMod.LOGGER.error("Failed to render fluid in the auto curdler GUI: {}", e.getMessage(), e);
 		}
 	}
 
@@ -125,7 +125,7 @@ public class AutoCurdlerScreen extends AbstractContainerScreen<AutoCurdlerMenu> 
 			}
 			graphics.blit(TEXTURE, i + 29, j + 12, 0, 166, tankWidth, tankHeight);
 		} catch (Exception e) {
-			RatsMod.LOGGER.error("Не удалось отрисовать фон GUI автосыроварки: {}", e.getMessage(), e);
+			RatsMod.LOGGER.error("Failed to render the auto curdler GUI background: {}", e.getMessage(), e);
 		}
 	}
 

@@ -70,14 +70,14 @@ extends AbstractContainerMenu {
     private static Container resolveRatInventory(Inventory playerInventory, int entityId) {
         Entity entity = playerInventory.player.level().getEntity(entityId);
         if (!(entity instanceof InventoryRat)) {
-            RatsMod.LOGGER.error("\u041c\u0435\u043d\u044e \u043a\u0440\u044b\u0441\u044b: \u0441\u0443\u0449\u043d\u043e\u0441\u0442\u044c id={} \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u0430 \u0438\u043b\u0438 \u043d\u0435 InventoryRat", (Object)entityId);
-            throw new IllegalStateException("\u0421\u0443\u0449\u043d\u043e\u0441\u0442\u044c \u043a\u0440\u044b\u0441\u044b \u0434\u043b\u044f \u043c\u0435\u043d\u044e \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u0430: id=" + entityId);
+            RatsMod.LOGGER.error("Rat menu: entity id={} not found or not an InventoryRat", (Object)entityId);
+            throw new IllegalStateException("Rat entity for the menu not found: id=" + entityId);
         }
         InventoryRat inventoryRat = (InventoryRat)entity;
         SimpleContainer container = inventoryRat.getInventory();
         if (container == null) {
-            RatsMod.LOGGER.error("\u041c\u0435\u043d\u044e \u043a\u0440\u044b\u0441\u044b: \u0443 \u0441\u0443\u0449\u043d\u043e\u0441\u0442\u0438 id={} \u043d\u0435\u0442 \u0438\u043d\u0432\u0435\u043d\u0442\u0430\u0440\u044f", (Object)entityId);
-            throw new IllegalStateException("\u0418\u043d\u0432\u0435\u043d\u0442\u0430\u0440\u044c \u043a\u0440\u044b\u0441\u044b \u043e\u0442\u0441\u0443\u0442\u0441\u0442\u0432\u0443\u0435\u0442: id=" + entityId);
+            RatsMod.LOGGER.error("Rat menu: entity id={} has no inventory", (Object)entityId);
+            throw new IllegalStateException("Rat inventory is missing: id=" + entityId);
         }
         return container;
     }

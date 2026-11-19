@@ -289,28 +289,28 @@ public class AutoCurdlerBlockEntity extends BaseContainerBlockEntity implements 
 		return this.tank;
 	}
 
-	// Возвращает предметный обработчик сыроварки для указанной стороны; принимает сторону, отдаёт IItemHandler.
+	// Returns the curdler item handler for the given side; takes the side, returns an IItemHandler.
 	public IItemHandler getItemHandler(@Nullable Direction side) {
 		try {
 			if (this.remove) {
-				throw new IllegalStateException("Нельзя получить item capability удалённой сыроварки");
+				throw new IllegalStateException("Cannot get the item capability of a removed curdler");
 			}
 			return side == Direction.DOWN ? this.bottomItemHandler : this.topItemHandler;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось получить item capability сыроварки на {}", this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to get the curdler item capability at {}", this.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Возвращает жидкостный обработчик сыроварки; параметры не принимает, отдаёт IFluidHandler.
+	// Returns the curdler fluid handler; takes no parameters, returns an IFluidHandler.
 	public IFluidHandler getFluidHandler() {
 		try {
 			if (this.remove) {
-				throw new IllegalStateException("Нельзя получить fluid capability удалённой сыроварки");
+				throw new IllegalStateException("Cannot get the fluid capability of a removed curdler");
 			}
 			return this.tank;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось получить fluid capability сыроварки на {}", this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to get the curdler fluid capability at {}", this.getBlockPos(), exception);
 			throw exception;
 		}
 	}

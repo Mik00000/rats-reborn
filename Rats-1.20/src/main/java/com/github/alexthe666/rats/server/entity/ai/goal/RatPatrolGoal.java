@@ -53,7 +53,7 @@ public class RatPatrolGoal extends Goal {
 			this.nextNode = nodes.get(this.nodeIndex);
 		}
 		if (!this.nextNode.dimension().equals(this.rat.level().dimension())) {
-			RatsMod.LOGGER.warn("Крыса {}: точка патруля {} в другом измерении, пропуск", this.rat.getUUID(), this.nextNode);
+			RatsMod.LOGGER.warn("Rat {}: patrol point {} is in another dimension, skipping", this.rat.getUUID(), this.nextNode);
 			this.advanceNode(nodes);
 			return;
 		}

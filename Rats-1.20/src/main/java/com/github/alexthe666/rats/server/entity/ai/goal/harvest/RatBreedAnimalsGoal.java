@@ -84,7 +84,7 @@ public class RatBreedAnimalsGoal extends BaseRatHarvestGoal {
 		this.targetIndex = 0;
 	}
 
-	// Ищет ближайшее ещё не накормленное животное под текущую еду; принимает стек еды, отдаёт животное или null.
+	// Finds the nearest not-yet-fed animal for the current food; takes the food stack, returns an animal or null.
 	private Animal findNextFeedTarget(ItemStack food) {
 		try {
 			if (food.isEmpty()) {
@@ -99,7 +99,7 @@ public class RatBreedAnimalsGoal extends BaseRatHarvestGoal {
 			}
 			return null;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось найти животное для кормления у крысы {}", this.rat.getUUID(), exception);
+			RatsMod.LOGGER.error("Failed to find an animal to feed for rat {}", this.rat.getUUID(), exception);
 			throw exception;
 		}
 	}

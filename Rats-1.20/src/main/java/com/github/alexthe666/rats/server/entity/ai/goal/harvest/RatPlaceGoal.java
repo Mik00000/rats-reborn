@@ -52,12 +52,12 @@ public class RatPlaceGoal extends BaseRatHarvestGoal {
 				this.placeHeldBlock();
 			}
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Крыса {} не смогла разместить блок в {}", this.rat.getUUID(), this.getTargetBlock(), exception);
+			RatsMod.LOGGER.error("Rat {} failed to place a block at {}", this.rat.getUUID(), this.getTargetBlock(), exception);
 			throw exception;
 		}
 	}
 
-	// Размещает блок из лапы крысы; принимает текущее состояние цели из поля goal, ничего не возвращает.
+	// Places a block from the rat's paw; takes the current target state from the goal field, returns nothing.
 	private void placeHeldBlock() {
 		try {
 			ItemStack stack = this.rat.getItemInHand(InteractionHand.MAIN_HAND);
@@ -65,7 +65,7 @@ public class RatPlaceGoal extends BaseRatHarvestGoal {
 			BlockPos moveToPos = this.getTargetBlock();
 			this.rat.moveSmoothlyTo(moveToPos.getX() + 0.5D, moveToPos.getY(), moveToPos.getZ() + 0.5D, this.rat.getHungerAdjustedWorkSpeed(1.25D));
 			if (!this.rat.level().getBlockState(moveToPos).canBeReplaced() || !RatUtils.canRatPlaceBlock(this.rat.level(), moveToPos, this.rat)) {
-				RatsMod.LOGGER.warn("Крыса {} не может поставить {} в {}: место занято или защищено", this.rat.getUUID(), stack.getHoverName().getString(), moveToPos);
+				RatsMod.LOGGER.warn("Rat {} cannot place {} at {}: the spot is occupied or protected", this.rat.getUUID(), stack.getHoverName().getString(), moveToPos);
 				this.setTargetBlock(null);
 				this.stop();
 				return;
@@ -78,7 +78,7 @@ public class RatPlaceGoal extends BaseRatHarvestGoal {
 				BlockPlaceContext itemusecontext = new BlockPlaceContext(this.rat.level(), null, InteractionHand.MAIN_HAND, placeStack, raytrace);
 				BlockState placementState = blockItem.getBlock().getStateForPlacement(itemusecontext);
 				if (placementState == null || !placementState.canSurvive(this.rat.level(), moveToPos)) {
-					RatsMod.LOGGER.warn("Крыса {} не может поставить {} в {}: состояние блока не выживает", this.rat.getUUID(), stack.getHoverName().getString(), moveToPos);
+					RatsMod.LOGGER.warn("Rat {} cannot place {} at {}: the block state does not survive", this.rat.getUUID(), stack.getHoverName().getString(), moveToPos);
 					this.setTargetBlock(null);
 					this.stop();
 					return;
@@ -94,7 +94,7 @@ public class RatPlaceGoal extends BaseRatHarvestGoal {
 				this.stop();
 			}
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Крыса {} не смогла завершить размещение блока {}", this.rat.getUUID(), this.getTargetBlock(), exception);
+			RatsMod.LOGGER.error("Rat {} failed to finish placing block {}", this.rat.getUUID(), this.getTargetBlock(), exception);
 			throw exception;
 		}
 	}

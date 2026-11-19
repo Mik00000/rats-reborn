@@ -74,7 +74,7 @@ public class RatsMod {
 	public static final Set<Item> RATLANTIS_SURVIVAL_ITEMS = new HashSet<>();
 	private static final List<Pair<String, Component>> MOB_CACHE = new ArrayList<>();
 
-	// Создаёт главный объект мода; принимает шину событий и контейнер мода, регистрирует реестры и совместимости.
+	// Creates the main mod object; takes the event bus and mod container, registers registries and compat.
 	public RatsMod(IEventBus bus, ModContainer modContainer) {
 		ICEANDFIRE_LOADED = ModList.get().isLoaded("iceandfire");
 		CREATE_LOADED = ModList.get().isLoaded("create");
@@ -122,12 +122,12 @@ public class RatsMod {
 	}
 
 	/**
-	 * Регистрирует встроенный набор данных Ratlantis для экрана создания мира.
-	 * Параметры: {@code event} — событие NeoForge при сборке репозитория паков.
-	 * Путь должен совпадать с каталогом в JAR: {@code data/minecraft/datapacks/ratlantis}.
+	 * Registers the built-in Ratlantis data pack for the world creation screen.
+	 * Parameters: {@code event} - the NeoForge event fired while building the pack repository.
+	 * The path must match the folder in the JAR: {@code data/minecraft/datapacks/ratlantis}.
 	 */
 	public void addRatlantisDatapack(AddPackFindersEvent event) {
-		// Ratlantis по умолчанию не подключается: измерение убрано, контент перенесён во вкладку Rats.
+		// Ratlantis is not enabled by default: the dimension was removed and its content moved to the Rats tab.
 	}
 
 	public void reloadConfigs(ModConfigEvent event) {
@@ -180,7 +180,7 @@ public class RatsMod {
 		}
 	}
 
-	// Регистрирует предметы Ratlantis, оставшиеся в выживании с обычными подсказками.
+	// Registers Ratlantis items that stay in survival with the regular tooltips.
 	private static void registerRatlantisSurvivalItems(Item... items) {
 		for (Item item : items) {
 			RATLANTIS_SURVIVAL_ITEMS.add(item);
@@ -226,13 +226,13 @@ public class RatsMod {
 	//1.18.2 version used, and modified, so it works in 1.19.4
 	//additions: a StructureProcessorList parameter to allow us to add a processor. (original code always used an empty processor, but some houses actually use processors)
 	private void addBuildingToPool(Registry<StructureTemplatePool> templatePoolRegistry, Registry<StructureProcessorList> processorListRegistry, ResourceLocation poolRL, String nbtPieceRL, int weight, ResourceKey<StructureProcessorList> processor) {
-		// port 1.21: вставка в пулы деревень переносится в JSON worldgen/template_pool
-		LOGGER.debug("Rats: пропуск runtime-вставки {} в {} (порт 1.21)", nbtPieceRL, poolRL);
+		// port 1.21: village pool injection moved to JSON worldgen/template_pool
+		LOGGER.debug("Rats: skipping runtime injection of {} into {} (1.21 port)", nbtPieceRL, poolRL);
 	}
 
 	/**
-	 * Кэш id мобов для GUI фильтра: без создания сущностей (избегаем крашей сторонних модов при entityType.create).
-	 * Параметры: уровень (не null на клиенте с миром). Отдаёт отсортированный список пар id + имя.
+	 * Mob id cache for the filter GUI: no entities are created (avoids third-party mod crashes in entityType.create).
+	 * Parameters: level (non-null on a client with a world). Returns a sorted list of id + name pairs.
 	 */
 	public static List<Pair<String, Component>> getCachedMobList(@Nullable Level level) {
 		if (level == null) {
@@ -252,11 +252,11 @@ public class RatsMod {
 					}
 					unsortedCache.add(Pair.of(holder.key().location().toString(), entityType.getDescription()));
 				} catch (Throwable e) {
-					LOGGER.error("Не удалось добавить тип сущности {} в кэш фильтра мобов: {}", holder.key().location(), e.getMessage(), e);
+					LOGGER.error("Failed to add entity type {} to the mob filter cache: {}", holder.key().location(), e.getMessage(), e);
 				}
 			}
 			MOB_CACHE.addAll(unsortedCache.stream().sorted(Comparator.comparing(o -> o.getSecond().getString())).toList());
-			LOGGER.debug("В кэш фильтра мобов записано {} id.", MOB_CACHE.size());
+			LOGGER.debug("Wrote {} ids to the mob filter cache.", MOB_CACHE.size());
 		}
 		return MOB_CACHE;
 	}

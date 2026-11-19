@@ -72,7 +72,7 @@ public class RatStaffItem extends LoreTagItem {
             }
          }
       } catch (RuntimeException var11) {
-         RatsMod.LOGGER.error("Игрок {} не смог открыть посох крысы по жидкости", player.getUUID(), var11);
+         RatsMod.LOGGER.error("Player {} failed to open the rat staff on a fluid", player.getUUID(), var11);
          throw var11;
       }
    }

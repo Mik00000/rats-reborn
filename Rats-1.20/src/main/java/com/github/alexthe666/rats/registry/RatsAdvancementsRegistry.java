@@ -12,7 +12,7 @@ public class RatsAdvancementsRegistry {
 
 	public static BlackDeathSummonedTrigger BLACK_DEATH_SUMMONED;
 
-	// Регистрирует триггеры достижений на этапе RegisterEvent, до заморозки реестра.
+	// Registers advancement triggers during RegisterEvent, before the registry is frozen.
 	@SubscribeEvent
 	public static void registerTriggers(RegisterEvent event) {
 		if (!event.getRegistryKey().equals(Registries.TRIGGER_TYPE)) {

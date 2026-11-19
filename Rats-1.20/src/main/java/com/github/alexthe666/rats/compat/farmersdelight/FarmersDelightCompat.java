@@ -54,12 +54,12 @@ import java.util.function.Predicate;
 public final class FarmersDelightCompat {
 	private static final int COOKING_POT_INPUT_SLOTS = 6;
 
-	// Запрещает создание сервиса совместимости; параметров нет, ничего не отдаёт.
+	// Prevents instantiating the compat service; no parameters, returns nothing.
 	private FarmersDelightCompat() {
-		throw new IllegalStateException("Сервис совместимости Farmer's Delight не создаётся как объект");
+		throw new IllegalStateException("The Farmer's Delight compat service cannot be instantiated");
 	}
 
-	// Проверяет, является ли блок рабочим блоком Farmer's Delight; принимает сущность блока, отдаёт true для плиты, котла или доски.
+	// Checks whether the block is a Farmer's Delight work block; takes the block entity, returns true for a stove, cooking pot or board.
 	public static boolean isSupportedWorkBlock(BlockEntity blockEntity) {
 		try {
 			return blockEntity instanceof StoveBlockEntity
@@ -67,12 +67,12 @@ public final class FarmersDelightCompat {
 					|| blockEntity instanceof CuttingBoardBlockEntity
 					|| blockEntity instanceof SkilletBlockEntity;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить рабочий блок Farmer's Delight {}", blockEntity, exception);
+			RatsMod.LOGGER.error("Failed to check Farmer's Delight work block {}", blockEntity, exception);
 			throw exception;
 		}
 	}
 
-	// Выполняет один цикл работы шефа с Farmer's Delight; принимает крысу и три точки, отдаёт true если действие выполнено.
+	// Runs one chef work cycle with Farmer's Delight; takes the rat and three points, returns true if an action was performed.
 	public static boolean tryRunChefCycle(TamedRat rat, BlockPos workPos, BlockPos pickupPos, BlockPos depositPos) {
 		try {
 			BlockEntity blockEntity = rat.level().getBlockEntity(workPos);
@@ -88,15 +88,15 @@ public final class FarmersDelightCompat {
 			if (blockEntity instanceof CuttingBoardBlockEntity board) {
 				return tryRunCuttingBoardCycle(rat, board, pickupPos, depositPos);
 			}
-			RatsMod.LOGGER.debug("Крыса {} не работает с Farmer's Delight: блок {} не поддержан", rat.getUUID(), workPos);
+			RatsMod.LOGGER.debug("Rat {} does not work with Farmer's Delight: block {} is not supported", rat.getUUID(), workPos);
 			return false;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Крыса {} не смогла выполнить цикл Farmer's Delight у блока {}", rat.getUUID(), workPos, exception);
+			RatsMod.LOGGER.error("Rat {} failed to run the Farmer's Delight cycle at block {}", rat.getUUID(), workPos, exception);
 			throw exception;
 		}
 	}
 
-	// Обрабатывает кухонную плиту; принимает крысу, плиту и точки сундуков, отдаёт true если снят результат или поставлен новый предмет.
+	// Handles the stove; takes the rat, stove and chest points, returns true if a result was taken or a new item placed.
 	private static boolean tryRunStoveCycle(TamedRat rat, StoveBlockEntity stove, BlockPos pickupPos, BlockPos depositPos) {
 		try {
 			FdFilter filter = FdFilter.fromRat(rat);
@@ -105,16 +105,16 @@ public final class FarmersDelightCompat {
 			}
 			BlockState state = rat.level().getBlockState(stove.getBlockPos());
 			if (!state.hasProperty(AbstractStoveBlock.LIT) || !state.getValue(AbstractStoveBlock.LIT)) {
-				RatsMod.LOGGER.debug("Крыса {} не кладёт предмет на плиту FD {}: плита не нагрета", rat.getUUID(), stove.getBlockPos());
+				RatsMod.LOGGER.debug("Rat {} does not place an item on FD stove {}: the stove is not heated", rat.getUUID(), stove.getBlockPos());
 				return false;
 			}
 			if (stove.isFull()) {
-				RatsMod.LOGGER.debug("Крыса {} не кладёт предмет на плиту FD {}: все места заняты", rat.getUUID(), stove.getBlockPos());
+				RatsMod.LOGGER.debug("Rat {} does not place an item on FD stove {}: all spots are taken", rat.getUUID(), stove.getBlockPos());
 				return false;
 			}
-			Optional<InventoryView> pickup = resolveInventory(rat.level(), pickupPos, rat.pickupFacing, rat, "забор для плиты FD");
+			Optional<InventoryView> pickup = resolveInventory(rat.level(), pickupPos, rat.pickupFacing, rat, "pickup for FD stove");
 			if (pickup.isEmpty()) {
-				RatsMod.LOGGER.debug("Крыса {} не нашла сундук забора для плиты FD {}", rat.getUUID(), pickupPos);
+				RatsMod.LOGGER.debug("Rat {} did not find a pickup chest for FD stove {}", rat.getUUID(), pickupPos);
 				return false;
 			}
 			for (int slot = 0; slot < pickup.get().handler().getSlots(); slot++) {
@@ -130,34 +130,34 @@ public final class FarmersDelightCompat {
 				if (output.isEmpty() || !filter.allowsProcessing(candidate, output)) {
 					continue;
 				}
-				if (!RatInventoryAccess.canInsert(rat.level(), depositPos, rat.depositFacing, output, rat, "проверка склада для результата плиты FD")) {
-					RatsMod.LOGGER.debug("Крыса {} не кладёт {} на плиту FD {}: склад {} не примет {}", rat.getUUID(), candidate, stove.getBlockPos(), depositPos, output);
+				if (!RatInventoryAccess.canInsert(rat.level(), depositPos, rat.depositFacing, output, rat, "deposit check for FD stove result")) {
+					RatsMod.LOGGER.debug("Rat {} does not place {} on FD stove {}: deposit {} will not accept {}", rat.getUUID(), candidate, stove.getBlockPos(), depositPos, output);
 					return false;
 				}
-				ItemStack extracted = extractExact(pickup.get(), slot, 1, stack -> ItemStack.isSameItemSameComponents(stack, candidate), rat, "забор сырья для плиты FD");
+				ItemStack extracted = extractExact(pickup.get(), slot, 1, stack -> ItemStack.isSameItemSameComponents(stack, candidate), rat, "raw ingredient pickup for FD stove");
 				if (extracted.isEmpty()) {
 					return false;
 				}
 				ItemStack oneItem = extracted.copyWithCount(1);
 				boolean placed = stove.placeFood(rat, oneItem, recipe.get());
 				if (!placed) {
-					returnToPickupOrThrow(rat, pickupPos, extracted, "возврат сырья после отказа плиты FD");
-					RatsMod.LOGGER.debug("Крыса {} не смогла положить {} на плиту FD {}", rat.getUUID(), extracted, stove.getBlockPos());
+					returnToPickupOrThrow(rat, pickupPos, extracted, "returning ingredient after FD stove refusal");
+					RatsMod.LOGGER.debug("Rat {} failed to place {} on FD stove {}", rat.getUUID(), extracted, stove.getBlockPos());
 					return false;
 				}
 				markChanged(stove);
-				RatsMod.LOGGER.debug("Крыса {} положила {} на плиту FD {}, ожидаемый результат {}", rat.getUUID(), extracted, stove.getBlockPos(), output);
+				RatsMod.LOGGER.debug("Rat {} placed {} on FD stove {}, expected result {}", rat.getUUID(), extracted, stove.getBlockPos(), output);
 				return true;
 			}
-			RatsMod.LOGGER.debug("Крыса {} не нашла подходящее сырьё для плиты FD в {}", rat.getUUID(), pickupPos);
+			RatsMod.LOGGER.debug("Rat {} found no suitable ingredient for FD stove in {}", rat.getUUID(), pickupPos);
 			return false;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Крыса {} не смогла обработать плиту FD {}", rat.getUUID(), stove.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Rat {} failed to handle FD stove {}", rat.getUUID(), stove.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Забирает готовый предмет с плиты; принимает крысу, плиту, склад и фильтр, отдаёт true если предмет перенесён.
+	// Takes a finished item off the stove; takes the rat, stove, deposit and filter, returns true if the item was moved.
 	private static boolean tryCollectFinishedStoveItem(TamedRat rat, StoveBlockEntity stove, BlockPos depositPos, FdFilter filter) {
 		try {
 			ItemStackHandler items = stove.getItems();
@@ -167,36 +167,36 @@ public final class FarmersDelightCompat {
 					continue;
 				}
 				if (filter.isBlacklisted(stack)) {
-					RatsMod.LOGGER.debug("Крыса {} не снимает {} с плиты FD {}: результат в чёрном списке", rat.getUUID(), stack, stove.getBlockPos());
+					RatsMod.LOGGER.debug("Rat {} does not take {} off FD stove {}: result is blacklisted", rat.getUUID(), stack, stove.getBlockPos());
 					continue;
 				}
-				if (!RatInventoryAccess.canInsert(rat.level(), depositPos, rat.depositFacing, stack.copyWithCount(1), rat, "проверка склада для готовой плиты FD")) {
-					RatsMod.LOGGER.debug("Крыса {} не снимает {} с плиты FD {}: склад {} полон", rat.getUUID(), stack, stove.getBlockPos(), depositPos);
+				if (!RatInventoryAccess.canInsert(rat.level(), depositPos, rat.depositFacing, stack.copyWithCount(1), rat, "deposit check for finished FD stove")) {
+					RatsMod.LOGGER.debug("Rat {} does not take {} off FD stove {}: deposit {} is full", rat.getUUID(), stack, stove.getBlockPos(), depositPos);
 					return false;
 				}
 				ItemStack extracted = items.extractItem(slot, 1, false);
-				ItemStack remaining = RatInventoryAccess.insert(rat.level(), depositPos, rat.depositFacing, extracted.copy(), rat, "сдача результата плиты FD");
+				ItemStack remaining = RatInventoryAccess.insert(rat.level(), depositPos, rat.depositFacing, extracted.copy(), rat, "delivering FD stove result");
 				if (!remaining.isEmpty()) {
 					ItemStack rollback = ItemHandlerHelper.insertItem(items, extracted, false);
 					if (!rollback.isEmpty()) {
-						throw new IllegalStateException("Склад отказал после симуляции, а вернуть результат плиты не удалось: " + rollback);
+						throw new IllegalStateException("The deposit refused after simulation and the stove result could not be returned: " + rollback);
 					}
 					return false;
 				}
 				markChanged(stove);
-				RatsMod.LOGGER.debug("Крыса {} сняла {} с плиты FD {} и отнесла в {}", rat.getUUID(), extracted, stove.getBlockPos(), depositPos);
+				RatsMod.LOGGER.debug("Rat {} took {} off FD stove {} and carried it to {}", rat.getUUID(), extracted, stove.getBlockPos(), depositPos);
 				return true;
 			}
 			return false;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Крыса {} не смогла снять результат с плиты FD {}", rat.getUUID(), stove.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Rat {} failed to take the result off FD stove {}", rat.getUUID(), stove.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Обрабатывает кухонный котёл; принимает крысу, котёл и точки сундуков, отдаёт true если подана порция или заложен рецепт.
+	// Handles the cooking pot; takes the rat, pot and chest points, returns true if a serving was taken or a recipe loaded.
 
-	// Обрабатывает сковороду FD; принимает крысу, сковороду и сундуки, отдаёт true если предмет заложен или готовый результат сдан.
+	// Handles the FD skillet; takes the rat, skillet and chests, returns true if an item was loaded or a finished result delivered.
 	private static boolean tryRunSkilletCycle(TamedRat rat, SkilletBlockEntity skillet, BlockPos pickupPos, BlockPos depositPos) {
 		try {
 			FdFilter filter = FdFilter.fromRat(rat);
@@ -205,18 +205,18 @@ public final class FarmersDelightCompat {
 			}
 			BlockState state = rat.level().getBlockState(skillet.getBlockPos());
 			if (state.hasProperty(SkilletBlock.WATERLOGGED) && state.getValue(SkilletBlock.WATERLOGGED)) {
-				RatsMod.LOGGER.debug("Крыса {} не кладёт предмет на сковороду FD {}: сковорода залита водой", rat.getUUID(), skillet.getBlockPos());
+				RatsMod.LOGGER.debug("Rat {} does not place an item in FD skillet {}: the skillet is waterlogged", rat.getUUID(), skillet.getBlockPos());
 				return false;
 			}
 			if (!skillet.isHeated()) {
-				RatsMod.LOGGER.debug("Крыса {} не кладёт предмет на сковороду FD {}: сковорода не нагрета", rat.getUUID(), skillet.getBlockPos());
+				RatsMod.LOGGER.debug("Rat {} does not place an item in FD skillet {}: the skillet is not heated", rat.getUUID(), skillet.getBlockPos());
 				return false;
 			}
 			if (skillet.hasStoredStack()) {
-				RatsMod.LOGGER.debug("Крыса {} ждёт готовку на сковороде FD {}: внутри уже есть {}", rat.getUUID(), skillet.getBlockPos(), skillet.getStoredStack());
+				RatsMod.LOGGER.debug("Rat {} is waiting for FD skillet {} to cook: it already contains {}", rat.getUUID(), skillet.getBlockPos(), skillet.getStoredStack());
 				return false;
 			}
-			Optional<InventoryView> pickup = resolveInventory(rat.level(), pickupPos, rat.pickupFacing, rat, "забор для сковороды FD");
+			Optional<InventoryView> pickup = resolveInventory(rat.level(), pickupPos, rat.pickupFacing, rat, "pickup for FD skillet");
 			if (pickup.isEmpty()) {
 				return false;
 			}
@@ -229,34 +229,34 @@ public final class FarmersDelightCompat {
 				if (output.isEmpty() || !filter.allowsProcessing(candidate, output)) {
 					continue;
 				}
-				if (!RatInventoryAccess.canInsert(rat.level(), depositPos, rat.depositFacing, output, rat, "проверка склада для результата сковороды FD")) {
-					RatsMod.LOGGER.debug("Крыса {} не кладёт {} на сковороду FD {}: склад {} не примет {}", rat.getUUID(), candidate, skillet.getBlockPos(), depositPos, output);
+				if (!RatInventoryAccess.canInsert(rat.level(), depositPos, rat.depositFacing, output, rat, "deposit check for FD skillet result")) {
+					RatsMod.LOGGER.debug("Rat {} does not place {} in FD skillet {}: deposit {} will not accept {}", rat.getUUID(), candidate, skillet.getBlockPos(), depositPos, output);
 					return false;
 				}
-				ItemStack extracted = extractExact(pickup.get(), slot, 1, stack -> ItemStack.isSameItemSameComponents(stack, candidate), rat, "забор сырья для сковороды FD");
+				ItemStack extracted = extractExact(pickup.get(), slot, 1, stack -> ItemStack.isSameItemSameComponents(stack, candidate), rat, "raw ingredient pickup for FD skillet");
 				if (extracted.isEmpty()) {
 					return false;
 				}
 				ItemStack oneItem = extracted.copyWithCount(1);
 				ItemStack remaining = skillet.addItemToCook(oneItem, null);
 				if (!remaining.isEmpty()) {
-					returnToPickupOrThrow(rat, pickupPos, extracted, "возврат сырья после отказа сковороды FD");
-					RatsMod.LOGGER.debug("Крыса {} не смогла положить {} на сковороду FD {}", rat.getUUID(), extracted, skillet.getBlockPos());
+					returnToPickupOrThrow(rat, pickupPos, extracted, "returning ingredient after FD skillet refusal");
+					RatsMod.LOGGER.debug("Rat {} failed to place {} in FD skillet {}", rat.getUUID(), extracted, skillet.getBlockPos());
 					return false;
 				}
 				markChanged(skillet);
-				RatsMod.LOGGER.debug("Крыса {} положила {} на сковороду FD {}, ожидаемый результат {}", rat.getUUID(), extracted, skillet.getBlockPos(), output);
+				RatsMod.LOGGER.debug("Rat {} placed {} in FD skillet {}, expected result {}", rat.getUUID(), extracted, skillet.getBlockPos(), output);
 				return true;
 			}
-			RatsMod.LOGGER.debug("Крыса {} не нашла подходящее сырьё для сковороды FD в {}", rat.getUUID(), pickupPos);
+			RatsMod.LOGGER.debug("Rat {} found no suitable ingredient for FD skillet in {}", rat.getUUID(), pickupPos);
 			return false;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Крыса {} не смогла обработать сковороду FD {}", rat.getUUID(), skillet.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Rat {} failed to handle FD skillet {}", rat.getUUID(), skillet.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Забирает готовый предмет, который сковорода FD выбросила в мир; принимает крысу, сковороду, склад и фильтр, отдаёт true если результат сдан.
+	// Picks up a finished item the FD skillet dropped into the world; takes the rat, skillet, deposit and filter, returns true if the result was delivered.
 	private static boolean tryCollectDroppedSkilletResult(TamedRat rat, SkilletBlockEntity skillet, BlockPos depositPos, FdFilter filter) {
 		try {
 			AABB searchBox = new AABB(skillet.getBlockPos()).inflate(1.0D, 0.75D, 1.0D);
@@ -267,13 +267,13 @@ public final class FarmersDelightCompat {
 					continue;
 				}
 				ItemStack single = stack.copyWithCount(1);
-				if (!RatInventoryAccess.canInsert(rat.level(), depositPos, rat.depositFacing, single, rat, "проверка склада для выпавшей сковороды FD")) {
-					RatsMod.LOGGER.debug("Крыса {} не забирает {} у сковороды FD {}: склад {} не примет предмет", rat.getUUID(), single, skillet.getBlockPos(), depositPos);
+				if (!RatInventoryAccess.canInsert(rat.level(), depositPos, rat.depositFacing, single, rat, "deposit check for dropped FD skillet result")) {
+					RatsMod.LOGGER.debug("Rat {} does not take {} from FD skillet {}: deposit {} will not accept the item", rat.getUUID(), single, skillet.getBlockPos(), depositPos);
 					return false;
 				}
-				ItemStack remaining = RatInventoryAccess.insert(rat.level(), depositPos, rat.depositFacing, single.copy(), rat, "сдача результата сковороды FD");
+				ItemStack remaining = RatInventoryAccess.insert(rat.level(), depositPos, rat.depositFacing, single.copy(), rat, "delivering FD skillet result");
 				if (!remaining.isEmpty()) {
-					throw new IllegalStateException("Склад отказал после симуляции результата сковороды FD, остаток: " + remaining);
+					throw new IllegalStateException("The deposit refused after simulating the FD skillet result, remainder: " + remaining);
 				}
 				stack.shrink(1);
 				if (stack.isEmpty()) {
@@ -281,17 +281,17 @@ public final class FarmersDelightCompat {
 				} else {
 					entity.setItem(stack);
 				}
-				RatsMod.LOGGER.debug("Крыса {} забрала {} у сковороды FD {} и отнесла в {}", rat.getUUID(), single, skillet.getBlockPos(), depositPos);
+				RatsMod.LOGGER.debug("Rat {} took {} from FD skillet {} and carried it to {}", rat.getUUID(), single, skillet.getBlockPos(), depositPos);
 				return true;
 			}
 			return false;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Крыса {} не смогла забрать результат сковороды FD {}", rat.getUUID(), skillet.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Rat {} failed to take the FD skillet result {}", rat.getUUID(), skillet.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Возвращает результат рецепта костра для сковороды; принимает мир и сырьё, отдаёт готовый стек или пустой стек.
+	// Returns the campfire recipe result for the skillet; takes the level and ingredient, returns the cooked stack or an empty stack.
 	private static ItemStack getCampfireCookingResult(Level level, ItemStack input) {
 		try {
 			Optional<RecipeHolder<CampfireCookingRecipe>> recipe = level.getRecipeManager().getRecipeFor(RecipeType.CAMPFIRE_COOKING, new SingleRecipeInput(input.copyWithCount(1)), level);
@@ -300,12 +300,12 @@ public final class FarmersDelightCompat {
 			}
 			return recipe.get().value().getResultItem(level.registryAccess()).copy();
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось найти рецепт костра FD для {}", input, exception);
+			RatsMod.LOGGER.error("Failed to find an FD campfire recipe for {}", input, exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет, является ли предмет результатом рецепта костра; принимает мир и стек, отдаёт true для готовых предметов сковороды.
+	// Checks whether the item is a campfire recipe result; takes the level and stack, returns true for finished skillet items.
 	private static boolean isCampfireCookingResult(Level level, ItemStack stack) {
 		try {
 			List<RecipeHolder<CampfireCookingRecipe>> recipes = level.getRecipeManager().getAllRecipesFor(RecipeType.CAMPFIRE_COOKING);
@@ -317,7 +317,7 @@ public final class FarmersDelightCompat {
 			}
 			return false;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить результат костра FD {}", stack, exception);
+			RatsMod.LOGGER.error("Failed to check FD campfire result {}", stack, exception);
 			throw exception;
 		}
 	}
@@ -329,48 +329,48 @@ public final class FarmersDelightCompat {
 				return true;
 			}
 			if (!pot.isHeated()) {
-				RatsMod.LOGGER.debug("Крыса {} не загружает котёл FD {}: котёл не нагрет", rat.getUUID(), pot.getBlockPos());
+				RatsMod.LOGGER.debug("Rat {} does not load FD cooking pot {}: the pot is not heated", rat.getUUID(), pot.getBlockPos());
 				return false;
 			}
 			if (!isCookingPotInputClear(pot)) {
-				RatsMod.LOGGER.debug("Крыса {} ждёт котёл FD {}: внутри уже есть ингредиенты или блюдо", rat.getUUID(), pot.getBlockPos());
+				RatsMod.LOGGER.debug("Rat {} is waiting for FD cooking pot {}: it already contains ingredients or a meal", rat.getUUID(), pot.getBlockPos());
 				return false;
 			}
 			if (!filter.hasWhitelist()) {
-				RatsMod.LOGGER.debug("Крыса {} не готовит в котле FD {}: для котла нужна цель-рецепт в белом списке", rat.getUUID(), pot.getBlockPos());
+				RatsMod.LOGGER.debug("Rat {} does not cook in FD cooking pot {}: the pot needs a whitelisted target recipe", rat.getUUID(), pot.getBlockPos());
 				return false;
 			}
-			Optional<InventoryView> pickup = resolveInventory(rat.level(), pickupPos, rat.pickupFacing, rat, "забор для котла FD");
+			Optional<InventoryView> pickup = resolveInventory(rat.level(), pickupPos, rat.pickupFacing, rat, "pickup for FD cooking pot");
 			if (pickup.isEmpty()) {
 				return false;
 			}
 			Optional<CookingPotPlan> plan = findCookingPotPlan(rat, pot, pickup.get(), depositPos, filter);
 			if (plan.isEmpty()) {
-				RatsMod.LOGGER.debug("Крыса {} не нашла полный набор для целевого рецепта котла FD у {}", rat.getUUID(), pickupPos);
+				RatsMod.LOGGER.debug("Rat {} did not find a full set for the target FD cooking pot recipe at {}", rat.getUUID(), pickupPos);
 				return false;
 			}
-			List<ItemStack> extracted = extractPlans(pickup.get(), plan.get().ingredients(), rat, "забор ингредиентов для котла FD");
+			List<ItemStack> extracted = extractPlans(pickup.get(), plan.get().ingredients(), rat, "ingredient pickup for FD cooking pot");
 			if (extracted.size() != plan.get().ingredients().size()) {
-				throw new IllegalStateException("Не удалось извлечь полный набор ингредиентов котла FD для " + plan.get().recipeId());
+				throw new IllegalStateException("Failed to extract the full FD cooking pot ingredient set for " + plan.get().recipeId());
 			}
 			try {
 				insertCookingPotIngredients(pot, extracted, rat);
 			} catch (RuntimeException exception) {
 				for (ItemStack stack : extracted) {
-					returnToPickupOrThrow(rat, pickupPos, stack, "возврат ингредиентов котла FD");
+					returnToPickupOrThrow(rat, pickupPos, stack, "returning FD cooking pot ingredients");
 				}
 				throw exception;
 			}
 			markChanged(pot);
-			RatsMod.LOGGER.debug("Крыса {} заложила рецепт котла FD {} в {}", rat.getUUID(), plan.get().recipeId(), pot.getBlockPos());
+			RatsMod.LOGGER.debug("Rat {} loaded FD cooking pot recipe {} into {}", rat.getUUID(), plan.get().recipeId(), pot.getBlockPos());
 			return true;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Крыса {} не смогла обработать котёл FD {}", rat.getUUID(), pot.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Rat {} failed to handle FD cooking pot {}", rat.getUUID(), pot.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Подаёт готовую порцию из котла; принимает крысу, котёл, сундуки и фильтр, отдаёт true если порция снята.
+	// Serves a finished portion from the pot; takes the rat, pot, chests and filter, returns true if a portion was taken.
 	private static boolean tryServeCookingPotMeal(TamedRat rat, CookingPotBlockEntity pot, BlockPos pickupPos, BlockPos depositPos, FdFilter filter) {
 		try {
 			ItemStack meal = pot.getMeal();
@@ -378,52 +378,52 @@ public final class FarmersDelightCompat {
 				return false;
 			}
 			if (filter.isBlacklisted(meal)) {
-				RatsMod.LOGGER.debug("Крыса {} не снимает блюдо {} из котла FD {}: результат в чёрном списке", rat.getUUID(), meal, pot.getBlockPos());
+				RatsMod.LOGGER.debug("Rat {} does not take meal {} from FD cooking pot {}: result is blacklisted", rat.getUUID(), meal, pot.getBlockPos());
 				return false;
 			}
 			ItemStack container = pot.getContainer().copyWithCount(1);
 			if (container.isEmpty()) {
-				RatsMod.LOGGER.debug("Крыса {} не снимает блюдо {} из котла FD {}: у блюда нет контейнера для подачи", rat.getUUID(), meal, pot.getBlockPos());
+				RatsMod.LOGGER.debug("Rat {} does not take meal {} from FD cooking pot {}: the meal has no serving container", rat.getUUID(), meal, pot.getBlockPos());
 				return false;
 			}
 			if (filter.isBlacklisted(container)) {
-				RatsMod.LOGGER.debug("Крыса {} не снимает блюдо из котла FD {}: контейнер {} в чёрном списке", rat.getUUID(), pot.getBlockPos(), container);
+				RatsMod.LOGGER.debug("Rat {} does not take the meal from FD cooking pot {}: container {} is blacklisted", rat.getUUID(), pot.getBlockPos(), container);
 				return false;
 			}
-			if (!RatInventoryAccess.canInsert(rat.level(), depositPos, rat.depositFacing, meal.copyWithCount(1), rat, "проверка склада для блюда котла FD")) {
-				RatsMod.LOGGER.debug("Крыса {} не снимает блюдо {} из котла FD {}: склад {} не примет результат", rat.getUUID(), meal, pot.getBlockPos(), depositPos);
+			if (!RatInventoryAccess.canInsert(rat.level(), depositPos, rat.depositFacing, meal.copyWithCount(1), rat, "deposit check for FD cooking pot meal")) {
+				RatsMod.LOGGER.debug("Rat {} does not take meal {} from FD cooking pot {}: deposit {} will not accept the result", rat.getUUID(), meal, pot.getBlockPos(), depositPos);
 				return false;
 			}
-			Optional<InventoryView> pickup = resolveInventory(rat.level(), pickupPos, rat.pickupFacing, rat, "забор контейнера для котла FD");
+			Optional<InventoryView> pickup = resolveInventory(rat.level(), pickupPos, rat.pickupFacing, rat, "container pickup for FD cooking pot");
 			if (pickup.isEmpty()) {
 				return false;
 			}
 			Optional<InventoryPlan> containerPlan = reserveSingle(pickup.get(), stack -> ItemStack.isSameItemSameComponents(stack, container), filter::allowsContainer);
 			if (containerPlan.isEmpty()) {
-				RatsMod.LOGGER.debug("Крыса {} не снимает блюдо {} из котла FD {}: нет контейнера {}", rat.getUUID(), meal, pot.getBlockPos(), container);
+				RatsMod.LOGGER.debug("Rat {} does not take meal {} from FD cooking pot {}: no container {}", rat.getUUID(), meal, pot.getBlockPos(), container);
 				return false;
 			}
-			ItemStack extractedContainer = extractPlan(pickup.get(), containerPlan.get(), rat, "забор контейнера для котла FD");
+			ItemStack extractedContainer = extractPlan(pickup.get(), containerPlan.get(), rat, "container pickup for FD cooking pot");
 			ItemStack served = pot.useHeldItemOnMeal(extractedContainer);
 			if (served.isEmpty()) {
-				returnToPickupOrThrow(rat, pickupPos, container, "возврат контейнера после отказа котла FD");
-				RatsMod.LOGGER.debug("Крыса {} не смогла снять порцию из котла FD {}", rat.getUUID(), pot.getBlockPos());
+				returnToPickupOrThrow(rat, pickupPos, container, "returning the container after FD cooking pot refusal");
+				RatsMod.LOGGER.debug("Rat {} failed to take a portion from FD cooking pot {}", rat.getUUID(), pot.getBlockPos());
 				return false;
 			}
-			ItemStack remaining = RatInventoryAccess.insert(rat.level(), depositPos, rat.depositFacing, served.copy(), rat, "сдача блюда котла FD");
+			ItemStack remaining = RatInventoryAccess.insert(rat.level(), depositPos, rat.depositFacing, served.copy(), rat, "delivering FD cooking pot meal");
 			if (!remaining.isEmpty()) {
-				throw new IllegalStateException("Склад отказал после симуляции подачи котла FD, остаток: " + remaining);
+				throw new IllegalStateException("The deposit refused after simulating FD cooking pot serving, remainder: " + remaining);
 			}
 			markChanged(pot);
-			RatsMod.LOGGER.debug("Крыса {} сняла {} из котла FD {} и отнесла в {}", rat.getUUID(), served, pot.getBlockPos(), depositPos);
+			RatsMod.LOGGER.debug("Rat {} took {} from FD cooking pot {} and carried it to {}", rat.getUUID(), served, pot.getBlockPos(), depositPos);
 			return true;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Крыса {} не смогла снять блюдо из котла FD {}", rat.getUUID(), pot.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Rat {} failed to take the meal from FD cooking pot {}", rat.getUUID(), pot.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Ищет транзакционный план котла; принимает крысу, котёл, сундук, склад и фильтр, отдаёт найденный план или пусто.
+	// Finds a transactional cooking pot plan; takes the rat, pot, chest, deposit and filter, returns the plan found or empty.
 	private static Optional<CookingPotPlan> findCookingPotPlan(TamedRat rat, CookingPotBlockEntity pot, InventoryView pickup, BlockPos depositPos, FdFilter filter) {
 		try {
 			List<RecipeHolder<CookingPotRecipe>> recipes = rat.level().getRecipeManager().getAllRecipesFor(ModRecipeTypes.COOKING.get());
@@ -435,100 +435,100 @@ public final class FarmersDelightCompat {
 				}
 				ItemStack container = recipe.getOutputContainer().copyWithCount(1);
 				if (!container.isEmpty() && !filter.allowsContainer(container)) {
-					RatsMod.LOGGER.debug("Крыса {} пропускает рецепт котла FD {}: контейнер {} запрещён", rat.getUUID(), holder.id(), container);
+					RatsMod.LOGGER.debug("Rat {} skips FD cooking pot recipe {}: container {} is forbidden", rat.getUUID(), holder.id(), container);
 					continue;
 				}
 				List<InventoryPlan> ingredients = reserveIngredients(pickup, recipe.getIngredients(), stack -> filter.allowsIngredientForTargetRecipe(stack));
 				if (ingredients.size() != recipe.getIngredients().size()) {
-					RatsMod.LOGGER.debug("Крыса {} не собрала полный набор ингредиентов для рецепта котла FD {}", rat.getUUID(), holder.id());
+					RatsMod.LOGGER.debug("Rat {} did not gather a full ingredient set for FD cooking pot recipe {}", rat.getUUID(), holder.id());
 					continue;
 				}
 				if (!container.isEmpty() && reserveSingle(pickup, stack -> ItemStack.isSameItemSameComponents(stack, container), filter::allowsContainer).isEmpty()) {
-					RatsMod.LOGGER.debug("Крыса {} не нашла контейнер {} для рецепта котла FD {}", rat.getUUID(), container, holder.id());
+					RatsMod.LOGGER.debug("Rat {} did not find container {} for FD cooking pot recipe {}", rat.getUUID(), container, holder.id());
 					continue;
 				}
 				if (!matchesCookingPotRecipe(recipe, ingredients, rat.level())) {
-					RatsMod.LOGGER.debug("Крыса {} собрала ингредиенты, но рецепт котла FD {} не совпал при проверке", rat.getUUID(), holder.id());
+					RatsMod.LOGGER.debug("Rat {} gathered the ingredients, but FD cooking pot recipe {} did not match on verification", rat.getUUID(), holder.id());
 					continue;
 				}
-				if (!RatInventoryAccess.canInsert(rat.level(), depositPos, rat.depositFacing, result, rat, "проверка склада для рецепта котла FD")) {
-					RatsMod.LOGGER.debug("Крыса {} не готовит рецепт котла FD {}: склад {} не примет {}", rat.getUUID(), holder.id(), depositPos, result);
+				if (!RatInventoryAccess.canInsert(rat.level(), depositPos, rat.depositFacing, result, rat, "deposit check for FD cooking pot recipe")) {
+					RatsMod.LOGGER.debug("Rat {} does not cook FD cooking pot recipe {}: deposit {} will not accept {}", rat.getUUID(), holder.id(), depositPos, result);
 					continue;
 				}
 				return Optional.of(new CookingPotPlan(holder.id().toString(), ingredients));
 			}
 			return Optional.empty();
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Крыса {} не смогла подобрать рецепт котла FD {}", rat.getUUID(), pot.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Rat {} failed to pick an FD cooking pot recipe {}", rat.getUUID(), pot.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Обрабатывает разделочную доску; принимает крысу, доску и точки сундуков, отдаёт true если предмет нарезан.
+	// Handles the cutting board; takes the rat, board and chest points, returns true if an item was cut.
 	private static boolean tryRunCuttingBoardCycle(TamedRat rat, CuttingBoardBlockEntity board, BlockPos pickupPos, BlockPos depositPos) {
 		try {
 			if (!board.isEmpty()) {
-				RatsMod.LOGGER.debug("Крыса {} не работает с доской FD {}: доска занята предметом {}", rat.getUUID(), board.getBlockPos(), board.getStoredItem());
+				RatsMod.LOGGER.debug("Rat {} does not work with FD cutting board {}: the board holds item {}", rat.getUUID(), board.getBlockPos(), board.getStoredItem());
 				return false;
 			}
 			FdFilter filter = FdFilter.fromRat(rat);
-			Optional<InventoryView> pickup = resolveInventory(rat.level(), pickupPos, rat.pickupFacing, rat, "забор для доски FD");
+			Optional<InventoryView> pickup = resolveInventory(rat.level(), pickupPos, rat.pickupFacing, rat, "pickup for FD cutting board");
 			if (pickup.isEmpty()) {
 				return false;
 			}
 			Optional<CuttingBoardPlan> plan = findCuttingBoardPlan(rat, pickup.get(), depositPos, filter);
 			if (plan.isEmpty()) {
-				RatsMod.LOGGER.debug("Крыса {} не нашла полный набор для доски FD в {}", rat.getUUID(), pickupPos);
+				RatsMod.LOGGER.debug("Rat {} did not find a full set for FD cutting board in {}", rat.getUUID(), pickupPos);
 				return false;
 			}
-			ItemStack ingredient = extractPlan(pickup.get(), plan.get().ingredient(), rat, "забор ингредиента для доски FD");
+			ItemStack ingredient = extractPlan(pickup.get(), plan.get().ingredient(), rat, "ingredient pickup for FD cutting board");
 			ItemStack tool;
 			try {
-				tool = extractPlan(pickup.get(), plan.get().tool(), rat, "забор ножа для доски FD");
+				tool = extractPlan(pickup.get(), plan.get().tool(), rat, "knife pickup for FD cutting board");
 			} catch (RuntimeException exception) {
-				returnToPickupOrThrow(rat, pickupPos, ingredient, "возврат ингредиента после отказа ножа FD");
+				returnToPickupOrThrow(rat, pickupPos, ingredient, "returning the ingredient after FD knife refusal");
 				throw exception;
 			}
 			boolean ingredientConsumed = false;
 			try {
 				ItemStack leftover = board.addItem(ingredient.copy());
 				if (!leftover.isEmpty()) {
-					throw new IllegalStateException("Доска FD отказала после симуляции, остаток: " + leftover);
+					throw new IllegalStateException("FD cutting board refused after simulation, remainder: " + leftover);
 				}
 				ItemStack stored = board.removeItem();
 				if (stored.isEmpty()) {
-					throw new IllegalStateException("Доска FD не вернула предмет для нарезки");
+					throw new IllegalStateException("FD cutting board did not return the item to cut");
 				}
 				ingredientConsumed = true;
 				damageToolOrBreak(rat, tool);
 				for (ItemStack output : plan.get().outputs()) {
-					ItemStack remaining = RatInventoryAccess.insert(rat.level(), depositPos, rat.depositFacing, output.copy(), rat, "сдача результата доски FD");
+					ItemStack remaining = RatInventoryAccess.insert(rat.level(), depositPos, rat.depositFacing, output.copy(), rat, "delivering FD cutting board result");
 					if (!remaining.isEmpty()) {
-						throw new IllegalStateException("Склад отказал после симуляции доски FD, остаток: " + remaining);
+						throw new IllegalStateException("The deposit refused after simulating the FD cutting board, remainder: " + remaining);
 					}
 				}
 				if (!tool.isEmpty()) {
-					returnToPickupOrThrow(rat, pickupPos, tool, "возврат ножа после доски FD");
+					returnToPickupOrThrow(rat, pickupPos, tool, "returning the knife after FD cutting board");
 				}
 				markChanged(board);
-				RatsMod.LOGGER.debug("Крыса {} нарезала {} на доске FD {} по рецепту {}", rat.getUUID(), stored, board.getBlockPos(), plan.get().recipeId());
+				RatsMod.LOGGER.debug("Rat {} cut {} on FD cutting board {} using recipe {}", rat.getUUID(), stored, board.getBlockPos(), plan.get().recipeId());
 				return true;
 			} catch (RuntimeException exception) {
 				if (!ingredientConsumed) {
-					returnToPickupOrThrow(rat, pickupPos, ingredient, "возврат ингредиента после ошибки доски FD");
+					returnToPickupOrThrow(rat, pickupPos, ingredient, "returning the ingredient after an FD cutting board error");
 				}
 				if (!tool.isEmpty()) {
-					returnToPickupOrThrow(rat, pickupPos, tool, "возврат ножа после ошибки доски FD");
+					returnToPickupOrThrow(rat, pickupPos, tool, "returning the knife after an FD cutting board error");
 				}
 				throw exception;
 			}
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Крыса {} не смогла обработать доску FD {}", rat.getUUID(), board.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Rat {} failed to handle FD cutting board {}", rat.getUUID(), board.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Ищет транзакционный план доски; принимает крысу, сундук, склад и фильтр, отдаёт план или пусто.
+	// Finds a transactional cutting board plan; takes the rat, chest, deposit and filter, returns the plan or empty.
 	private static Optional<CuttingBoardPlan> findCuttingBoardPlan(TamedRat rat, InventoryView pickup, BlockPos depositPos, FdFilter filter) {
 		try {
 			List<RecipeHolder<CuttingBoardRecipe>> recipes = rat.level().getRecipeManager().getAllRecipesFor(ModRecipeTypes.CUTTING.get());
@@ -545,26 +545,26 @@ public final class FarmersDelightCompat {
 				}
 				Optional<InventoryPlan> tool = reserveSingle(pickup, stack -> recipe.getTool().test(stack), stack -> filter.allowsTool(stack) && !samePlanItem(ingredient.get(), stack));
 				if (tool.isEmpty()) {
-					RatsMod.LOGGER.debug("Крыса {} не нашла нож или инструмент для рецепта доски FD {}", rat.getUUID(), holder.id());
+					RatsMod.LOGGER.debug("Rat {} did not find a knife or tool for FD cutting board recipe {}", rat.getUUID(), holder.id());
 					continue;
 				}
 				if (!matchesCuttingBoardRecipe(recipe, ingredient.get().stack(), tool.get().stack(), rat.level())) {
 					continue;
 				}
-				if (!canInsertAll(rat, depositPos, outputs, "проверка склада для результата доски FD")) {
-					RatsMod.LOGGER.debug("Крыса {} не режет рецепт доски FD {}: склад {} не примет результат", rat.getUUID(), holder.id(), depositPos);
+				if (!canInsertAll(rat, depositPos, outputs, "deposit check for FD cutting board result")) {
+					RatsMod.LOGGER.debug("Rat {} does not cut FD cutting board recipe {}: deposit {} will not accept the result", rat.getUUID(), holder.id(), depositPos);
 					continue;
 				}
 				return Optional.of(new CuttingBoardPlan(holder.id().toString(), ingredient.get(), tool.get(), outputs));
 			}
 			return Optional.empty();
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Крыса {} не смогла подобрать рецепт доски FD", rat.getUUID(), exception);
+			RatsMod.LOGGER.error("Rat {} failed to pick an FD cutting board recipe", rat.getUUID(), exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет, пусты ли входные слоты котла; принимает котёл, отдаёт true только если можно загрузить новый рецепт.
+	// Checks whether the pot input slots are empty; takes the pot, returns true only if a new recipe can be loaded.
 	private static boolean isCookingPotInputClear(CookingPotBlockEntity pot) {
 		try {
 			ItemStackHandler inventory = pot.getInventory();
@@ -578,29 +578,29 @@ public final class FarmersDelightCompat {
 			}
 			return true;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить занятость котла FD {}", pot.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to check whether FD cooking pot {} is occupied", pot.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Вставляет ингредиенты в котёл; принимает котёл, список стеков и крысу, ничего не отдаёт.
+	// Inserts ingredients into the pot; takes the pot, a list of stacks and the rat, returns nothing.
 	private static void insertCookingPotIngredients(CookingPotBlockEntity pot, List<ItemStack> ingredients, TamedRat rat) {
 		try {
 			ItemStackHandler inventory = pot.getInventory();
 			for (int index = 0; index < ingredients.size(); index++) {
 				ItemStack remaining = inventory.insertItem(index, ingredients.get(index).copy(), false);
 				if (!remaining.isEmpty()) {
-					throw new IllegalStateException("Котёл FD отказал ингредиенту " + ingredients.get(index) + ", остаток: " + remaining);
+					throw new IllegalStateException("FD cooking pot refused ingredient " + ingredients.get(index) + ", remainder: " + remaining);
 				}
 			}
-			RatsMod.LOGGER.debug("Крыса {} загрузила {} ингредиентов в котёл FD {}", rat.getUUID(), ingredients.size(), pot.getBlockPos());
+			RatsMod.LOGGER.debug("Rat {} loaded {} ingredients into FD cooking pot {}", rat.getUUID(), ingredients.size(), pot.getBlockPos());
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Крыса {} не смогла загрузить ингредиенты в котёл FD {}", rat.getUUID(), pot.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Rat {} failed to load ingredients into FD cooking pot {}", rat.getUUID(), pot.getBlockPos(), exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет рецепт котла на выбранных ингредиентах; принимает рецепт, планы и мир, отдаёт true при совпадении.
+	// Checks the pot recipe against the selected ingredients; takes the recipe, plans and level, returns true on a match.
 	private static boolean matchesCookingPotRecipe(CookingPotRecipe recipe, List<InventoryPlan> ingredients, Level level) {
 		try {
 			ItemStackHandler handler = new ItemStackHandler(COOKING_POT_INPUT_SLOTS);
@@ -609,22 +609,22 @@ public final class FarmersDelightCompat {
 			}
 			return recipe.matches(new RecipeWrapper(handler), level);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить рецепт котла FD", exception);
+			RatsMod.LOGGER.error("Failed to check the FD cooking pot recipe", exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет рецепт доски на выбранных предмете и инструменте; принимает рецепт, предмет, инструмент и мир, отдаёт true при совпадении.
+	// Checks the board recipe against the selected item and tool; takes the recipe, item, tool and level, returns true on a match.
 	private static boolean matchesCuttingBoardRecipe(CuttingBoardRecipe recipe, ItemStack item, ItemStack tool, Level level) {
 		try {
 			return recipe.matches(new CuttingBoardRecipeInput(item.copy(), tool.copy()), level);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось проверить рецепт доски FD", exception);
+			RatsMod.LOGGER.error("Failed to check the FD cutting board recipe", exception);
 			throw exception;
 		}
 	}
 
-	// Получает результаты доски; принимает рецепт, отдаёт список стеков без пустых значений.
+	// Gets the board results; takes the recipe, returns a list of non-empty stacks.
 	private static List<ItemStack> getCuttingBoardOutputs(CuttingBoardRecipe recipe) {
 		try {
 			List<ItemStack> outputs = new ArrayList<>();
@@ -635,12 +635,12 @@ public final class FarmersDelightCompat {
 			}
 			return outputs;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось прочитать результаты рецепта доски FD", exception);
+			RatsMod.LOGGER.error("Failed to read FD cutting board recipe results", exception);
 			throw exception;
 		}
 	}
 
-	// Резервирует ингредиенты по списку Ingredient; принимает сундук, ингредиенты и фильтр, отдаёт планы извлечения.
+	// Reserves ingredients from an Ingredient list; takes the chest, ingredients and filter, returns extraction plans.
 	private static List<InventoryPlan> reserveIngredients(InventoryView inventory, NonNullList<Ingredient> ingredients, Predicate<ItemStack> allowed) {
 		try {
 			List<VirtualSlot> virtualSlots = createVirtualSlots(inventory);
@@ -654,22 +654,22 @@ public final class FarmersDelightCompat {
 			}
 			return plans;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось зарезервировать ингредиенты FD", exception);
+			RatsMod.LOGGER.error("Failed to reserve FD ingredients", exception);
 			throw exception;
 		}
 	}
 
-	// Резервирует один предмет из сундука; принимает сундук, условие предмета и фильтр, отдаёт план или пусто.
+	// Reserves one item from the chest; takes the chest, item condition and filter, returns a plan or empty.
 	private static Optional<InventoryPlan> reserveSingle(InventoryView inventory, Predicate<ItemStack> matcher, Predicate<ItemStack> allowed) {
 		try {
 			return reserveFromVirtualSlots(inventory, createVirtualSlots(inventory), matcher, allowed);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось зарезервировать предмет FD", exception);
+			RatsMod.LOGGER.error("Failed to reserve FD item", exception);
 			throw exception;
 		}
 	}
 
-	// Резервирует предмет из виртуальных слотов; принимает сундук, слоты, условие и фильтр, отдаёт план или пусто.
+	// Reserves an item from virtual slots; takes the chest, slots, condition and filter, returns a plan or empty.
 	private static Optional<InventoryPlan> reserveFromVirtualSlots(InventoryView inventory, List<VirtualSlot> virtualSlots, Predicate<ItemStack> matcher, Predicate<ItemStack> allowed) {
 		try {
 			for (VirtualSlot virtualSlot : virtualSlots) {
@@ -683,12 +683,12 @@ public final class FarmersDelightCompat {
 			}
 			return Optional.empty();
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось выбрать виртуальный слот FD", exception);
+			RatsMod.LOGGER.error("Failed to pick an FD virtual slot", exception);
 			throw exception;
 		}
 	}
 
-	// Создаёт снимок инвентаря; принимает представление сундука, отдаёт виртуальные слоты.
+	// Creates an inventory snapshot; takes the chest view, returns virtual slots.
 	private static List<VirtualSlot> createVirtualSlots(InventoryView inventory) {
 		try {
 			List<VirtualSlot> slots = new ArrayList<>();
@@ -700,12 +700,12 @@ public final class FarmersDelightCompat {
 			}
 			return slots;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось создать снимок инвентаря FD со стороны {}", inventory.side(), exception);
+			RatsMod.LOGGER.error("Failed to snapshot the FD inventory from side {}", inventory.side(), exception);
 			throw exception;
 		}
 	}
 
-	// Извлекает набор планов; принимает сундук, планы, крысу и действие, отдаёт извлечённые стеки.
+	// Extracts a set of plans; takes the chest, plans, rat and action, returns the extracted stacks.
 	private static List<ItemStack> extractPlans(InventoryView inventory, List<InventoryPlan> plans, TamedRat rat, String action) {
 		try {
 			List<ItemStack> extracted = new ArrayList<>();
@@ -714,42 +714,42 @@ public final class FarmersDelightCompat {
 			}
 			return extracted;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Крыса {} не смогла извлечь набор предметов FD для {}", rat.getUUID(), action, exception);
+			RatsMod.LOGGER.error("Rat {} failed to extract the FD item set for {}", rat.getUUID(), action, exception);
 			throw exception;
 		}
 	}
 
-	// Извлекает один план; принимает сундук, план, крысу и действие, отдаёт извлечённый стек.
+	// Extracts one plan; takes the chest, plan, rat and action, returns the extracted stack.
 	private static ItemStack extractPlan(InventoryView inventory, InventoryPlan plan, TamedRat rat, String action) {
 		try {
 			return extractExact(inventory, plan.slot(), plan.stack().getCount(), stack -> ItemStack.isSameItemSameComponents(stack, plan.stack()), rat, action);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Крыса {} не смогла извлечь план {} для {}", rat.getUUID(), plan, action, exception);
+			RatsMod.LOGGER.error("Rat {} failed to extract plan {} for {}", rat.getUUID(), plan, action, exception);
 			throw exception;
 		}
 	}
 
-	// Извлекает точный предмет из слота; принимает сундук, слот, количество, проверку, крысу и действие, отдаёт стек.
+	// Extracts an exact item from a slot; takes the chest, slot, count, check, rat and action, returns the stack.
 	private static ItemStack extractExact(InventoryView inventory, int slot, int amount, Predicate<ItemStack> matcher, TamedRat rat, String action) {
 		try {
 			ItemStack current = inventory.handler().getStackInSlot(slot);
 			if (current.isEmpty() || !matcher.test(current)) {
-				throw new IllegalStateException("Слот " + slot + " изменился перед извлечением FD для " + action + ": " + current);
+				throw new IllegalStateException("Slot " + slot + " changed before FD extraction for " + action + ": " + current);
 			}
 			ItemStack simulated = inventory.handler().extractItem(slot, amount, true);
 			if (simulated.getCount() != amount || !matcher.test(simulated)) {
-				throw new IllegalStateException("Слот " + slot + " не отдаёт нужный предмет FD для " + action + ": " + simulated);
+				throw new IllegalStateException("Slot " + slot + " does not provide the required FD item for " + action + ": " + simulated);
 			}
 			ItemStack extracted = inventory.handler().extractItem(slot, amount, false);
-			RatsMod.LOGGER.debug("Крыса {} забрала {} из слота {} со стороны {} для {}", rat.getUUID(), extracted, slot, inventory.side(), action);
+			RatsMod.LOGGER.debug("Rat {} took {} from slot {} on side {} for {}", rat.getUUID(), extracted, slot, inventory.side(), action);
 			return extracted;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Крыса {} не смогла извлечь предмет FD из слота {} для {}", rat.getUUID(), slot, action, exception);
+			RatsMod.LOGGER.error("Rat {} failed to extract an FD item from slot {} for {}", rat.getUUID(), slot, action, exception);
 			throw exception;
 		}
 	}
 
-	// Ищет доступный инвентарь блока; принимает мир, позицию, сторону, крысу и действие, отдаёт обработчик с выбранной стороной.
+	// Finds an accessible block inventory; takes the level, position, side, rat and action, returns a handler with the chosen side.
 	private static Optional<InventoryView> resolveInventory(Level level, BlockPos pos, Direction preferredSide, TamedRat rat, String action) {
 		try {
 			for (Direction side : orderedSides(preferredSide)) {
@@ -758,15 +758,15 @@ public final class FarmersDelightCompat {
 					return Optional.of(new InventoryView(handler, side));
 				}
 			}
-			RatsMod.LOGGER.debug("Крыса {} не нашла инвентарь {} для {}", rat.getUUID(), pos, action);
+			RatsMod.LOGGER.debug("Rat {} did not find inventory {} for {}", rat.getUUID(), pos, action);
 			return Optional.empty();
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Крыса {} не смогла найти инвентарь {} для {}", rat.getUUID(), pos, action, exception);
+			RatsMod.LOGGER.error("Rat {} could not find inventory {} for {}", rat.getUUID(), pos, action, exception);
 			throw exception;
 		}
 	}
 
-	// Формирует порядок сторон; принимает предпочитаемую сторону, отдаёт массив направлений.
+	// Builds the side order; takes the preferred side, returns an array of directions.
 	private static Direction[] orderedSides(Direction preferredSide) {
 		try {
 			Direction[] directions = Direction.values();
@@ -780,12 +780,12 @@ public final class FarmersDelightCompat {
 			}
 			return ordered;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось собрать порядок сторон FD для {}", preferredSide, exception);
+			RatsMod.LOGGER.error("Failed to build the FD side order for {}", preferredSide, exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет вставку всех результатов в склад; принимает крысу, склад, стеки и действие, отдаёт true если каждый стек принят.
+	// Checks inserting all results into the deposit; takes the rat, deposit, stacks and action, returns true if every stack is accepted.
 	private static boolean canInsertAll(TamedRat rat, BlockPos depositPos, List<ItemStack> stacks, String action) {
 		try {
 			for (ItemStack stack : stacks) {
@@ -795,12 +795,12 @@ public final class FarmersDelightCompat {
 			}
 			return true;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Крыса {} не смогла проверить вставку результатов FD в {}", rat.getUUID(), depositPos, exception);
+			RatsMod.LOGGER.error("Rat {} failed to check inserting FD results into {}", rat.getUUID(), depositPos, exception);
 			throw exception;
 		}
 	}
 
-	// Возвращает предмет в сундук забора или сообщает жёсткую ошибку; принимает крысу, сундук, стек и действие, ничего не отдаёт.
+	// Returns the item to the pickup chest or reports a hard error; takes the rat, chest, stack and action, returns nothing.
 	private static void returnToPickupOrThrow(TamedRat rat, BlockPos pickupPos, ItemStack stack, String action) {
 		try {
 			if (stack.isEmpty()) {
@@ -808,15 +808,15 @@ public final class FarmersDelightCompat {
 			}
 			ItemStack remaining = RatInventoryAccess.insert(rat.level(), pickupPos, rat.pickupFacing, stack.copy(), rat, action);
 			if (!remaining.isEmpty()) {
-				throw new IllegalStateException("Не удалось вернуть предмет FD в сундук забора, остаток: " + remaining);
+				throw new IllegalStateException("Failed to return the FD item to the pickup chest, remainder: " + remaining);
 			}
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Крыса {} не смогла вернуть предмет {} в {}", rat.getUUID(), stack, pickupPos, exception);
+			RatsMod.LOGGER.error("Rat {} failed to return item {} to {}", rat.getUUID(), stack, pickupPos, exception);
 			throw exception;
 		}
 	}
 
-	// Тратит прочность инструмента; принимает крысу и инструмент, изменяет стек и ничего не отдаёт.
+	// Uses tool durability; takes the rat and the tool, modifies the stack and returns nothing.
 	private static void damageToolOrBreak(TamedRat rat, ItemStack tool) {
 		try {
 			if (tool.isDamageableItem()) {
@@ -826,22 +826,22 @@ public final class FarmersDelightCompat {
 				rat.setItemInHand(InteractionHand.MAIN_HAND, previousHand);
 			}
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Крыса {} не смогла потратить прочность инструмента FD {}", rat.getUUID(), tool, exception);
+			RatsMod.LOGGER.error("Rat {} failed to use durability of FD tool {}", rat.getUUID(), tool, exception);
 			throw exception;
 		}
 	}
 
-	// Сравнивает план с предметом; принимает план и стек, отдаёт true если это тот же предмет.
+	// Compares a plan with an item; takes the plan and stack, returns true if it is the same item.
 	private static boolean samePlanItem(InventoryPlan plan, ItemStack stack) {
 		try {
 			return ItemStack.isSameItemSameComponents(plan.stack(), stack);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось сравнить план FD {} со стеком {}", plan, stack, exception);
+			RatsMod.LOGGER.error("Failed to compare FD plan {} with stack {}", plan, stack, exception);
 			throw exception;
 		}
 	}
 
-	// Помечает блок изменённым; принимает сущность блока, ничего не отдаёт.
+	// Marks the block as changed; takes the block entity, returns nothing.
 	private static void markChanged(BlockEntity blockEntity) {
 		try {
 			blockEntity.setChanged();
@@ -850,7 +850,7 @@ public final class FarmersDelightCompat {
 				blockEntity.getLevel().sendBlockUpdated(blockEntity.getBlockPos(), state, state, 3);
 			}
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось пометить блок FD {} изменённым", blockEntity.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to mark FD block {} as changed", blockEntity.getBlockPos(), exception);
 			throw exception;
 		}
 	}
@@ -871,49 +871,49 @@ public final class FarmersDelightCompat {
 	}
 
 	private record FdFilter(boolean whitelistPresent, Set<String> whitelistIds, Set<String> blacklistIds) {
-		// Создаёт фильтр из улучшений крысы; принимает крысу, отдаёт снимок белого и чёрного списка.
+		// Builds a filter from the rat's upgrades; takes the rat, returns a snapshot of the whitelist and blacklist.
 		private static FdFilter fromRat(TamedRat rat) {
 			try {
 				Set<String> whitelist = readFilterIds(rat, RatsItemRegistry.RAT_UPGRADE_WHITELIST.get());
 				Set<String> blacklist = readFilterIds(rat, RatsItemRegistry.RAT_UPGRADE_BLACKLIST.get());
 				return new FdFilter(RatUpgradeUtils.hasUpgrade(rat, RatsItemRegistry.RAT_UPGRADE_WHITELIST.get()), whitelist, blacklist);
 			} catch (RuntimeException exception) {
-				RatsMod.LOGGER.error("Крыса {} не смогла прочитать списки FD", rat.getUUID(), exception);
+				RatsMod.LOGGER.error("Rat {} failed to read the FD lists", rat.getUUID(), exception);
 				throw exception;
 			}
 		}
 
-		// Сообщает, включён ли белый список; параметров нет, отдаёт true при наличии улучшения whitelist.
+		// Reports whether the whitelist is enabled; no parameters, returns true if a whitelist upgrade is present.
 		private boolean hasWhitelist() {
 			try {
 				return this.whitelistPresent;
 			} catch (RuntimeException exception) {
-				RatsMod.LOGGER.error("Не удалось проверить наличие whitelist FD", exception);
+				RatsMod.LOGGER.error("Failed to check for the FD whitelist", exception);
 				throw exception;
 			}
 		}
 
-		// Проверяет предмет в белом списке; принимает стек, отдаёт true если его идентификатор записан.
+		// Checks whether an item is whitelisted; takes the stack, returns true if its id is listed.
 		private boolean isWhitelisted(ItemStack stack) {
 			try {
 				return this.whitelistIds.contains(getItemId(stack));
 			} catch (RuntimeException exception) {
-				RatsMod.LOGGER.error("Не удалось проверить whitelist FD для {}", stack, exception);
+				RatsMod.LOGGER.error("Failed to check the FD whitelist for {}", stack, exception);
 				throw exception;
 			}
 		}
 
-		// Проверяет предмет в чёрном списке; принимает стек, отдаёт true если его идентификатор записан.
+		// Checks whether an item is blacklisted; takes the stack, returns true if its id is listed.
 		private boolean isBlacklisted(ItemStack stack) {
 			try {
 				return this.blacklistIds.contains(getItemId(stack));
 			} catch (RuntimeException exception) {
-				RatsMod.LOGGER.error("Не удалось проверить blacklist FD для {}", stack, exception);
+				RatsMod.LOGGER.error("Failed to check the FD blacklist for {}", stack, exception);
 				throw exception;
 			}
 		}
 
-		// Проверяет вход и выход рецепта плиты или доски; принимает вход и выход, отдаёт true если операция разрешена.
+		// Checks the input and output of a stove or board recipe; takes the input and output, returns true if the operation is allowed.
 		private boolean allowsProcessing(ItemStack input, ItemStack output) {
 			try {
 				if (this.isBlacklisted(input) || this.isBlacklisted(output)) {
@@ -924,12 +924,12 @@ public final class FarmersDelightCompat {
 				}
 				return this.isWhitelisted(output) || this.isWhitelisted(input);
 			} catch (RuntimeException exception) {
-				RatsMod.LOGGER.error("Не удалось проверить обработку FD для входа {} и выхода {}", input, output, exception);
+				RatsMod.LOGGER.error("Failed to check FD processing for input {} and output {}", input, output, exception);
 				throw exception;
 			}
 		}
 
-		// Проверяет ингредиент обычного рецепта; принимает стек и признак целевого выхода, отдаёт true если ингредиент можно брать.
+		// Checks an ingredient of a regular recipe; takes the stack and a target-output flag, returns true if the ingredient may be taken.
 		private boolean allowsIngredient(ItemStack stack, boolean outputTargeted) {
 			try {
 				if (this.isBlacklisted(stack)) {
@@ -937,34 +937,34 @@ public final class FarmersDelightCompat {
 				}
 				return !this.whitelistPresent || outputTargeted || this.isWhitelisted(stack);
 			} catch (RuntimeException exception) {
-				RatsMod.LOGGER.error("Не удалось проверить ингредиент FD {}", stack, exception);
+				RatsMod.LOGGER.error("Failed to check FD ingredient {}", stack, exception);
 				throw exception;
 			}
 		}
 
-		// Проверяет ингредиент целевого рецепта котла; принимает стек, отдаёт true если он не запрещён blacklist.
+		// Checks an ingredient of the target pot recipe; takes the stack, returns true if it is not blacklisted.
 		private boolean allowsIngredientForTargetRecipe(ItemStack stack) {
 			try {
 				return !this.isBlacklisted(stack);
 			} catch (RuntimeException exception) {
-				RatsMod.LOGGER.error("Не удалось проверить ингредиент целевого рецепта FD {}", stack, exception);
+				RatsMod.LOGGER.error("Failed to check FD target recipe ingredient {}", stack, exception);
 				throw exception;
 			}
 		}
 
-		// Проверяет контейнер блюда; принимает стек, отдаёт true если контейнер не в blacklist.
+		// Checks a meal container; takes the stack, returns true if the container is not blacklisted.
 		private boolean allowsContainer(ItemStack stack) {
 			try {
 				return !this.isBlacklisted(stack);
 			} catch (RuntimeException exception) {
-				RatsMod.LOGGER.error("Не удалось проверить контейнер FD {}", stack, exception);
+				RatsMod.LOGGER.error("Failed to check FD container {}", stack, exception);
 				throw exception;
 			}
 		}
 
-		// Проверяет инструмент доски; принимает стек, отдаёт true если инструмент не в blacklist.
+		// Checks a board tool; takes the stack, returns true if the tool is not blacklisted.
 
-		// Проверяет готовый результат сковороды; принимает стек, отдаёт true если фильтры разрешают сдачу.
+		// Checks a finished skillet result; takes the stack, returns true if the filters allow delivering it.
 		private boolean allowsCollectedResult(ItemStack stack) {
 			try {
 				if (this.isBlacklisted(stack)) {
@@ -972,7 +972,7 @@ public final class FarmersDelightCompat {
 				}
 				return !this.whitelistPresent || this.isWhitelisted(stack);
 			} catch (RuntimeException exception) {
-				RatsMod.LOGGER.error("Не удалось проверить готовый результат FD {}", stack, exception);
+				RatsMod.LOGGER.error("Failed to check FD finished result {}", stack, exception);
 				throw exception;
 			}
 		}
@@ -981,12 +981,12 @@ public final class FarmersDelightCompat {
 			try {
 				return !this.isBlacklisted(stack);
 			} catch (RuntimeException exception) {
-				RatsMod.LOGGER.error("Не удалось проверить инструмент FD {}", stack, exception);
+				RatsMod.LOGGER.error("Failed to check FD tool {}", stack, exception);
 				throw exception;
 			}
 		}
 
-		// Читает идентификаторы предметов из улучшения списка; принимает крысу и предмет улучшения, отдаёт набор id.
+		// Reads item ids from a list upgrade; takes the rat and the upgrade item, returns a set of ids.
 		private static Set<String> readFilterIds(TamedRat rat, net.minecraft.world.item.Item upgradeItem) {
 			try {
 				ItemStack upgrade = RatUpgradeUtils.getUpgrade(rat, upgradeItem);
@@ -1007,17 +1007,17 @@ public final class FarmersDelightCompat {
 				}
 				return ids;
 			} catch (RuntimeException exception) {
-				RatsMod.LOGGER.error("Крыса {} не смогла прочитать список улучшения {}", rat.getUUID(), upgradeItem, exception);
+				RatsMod.LOGGER.error("Rat {} failed to read the list of upgrade {}", rat.getUUID(), upgradeItem, exception);
 				throw exception;
 			}
 		}
 
-		// Получает идентификатор предмета; принимает стек, отдаёт строку вида namespace:path.
+		// Gets an item id; takes the stack, returns a namespace:path string.
 		private static String getItemId(ItemStack stack) {
 			try {
 				return Objects.requireNonNull(BuiltInRegistries.ITEM.getKey(stack.getItem())).toString();
 			} catch (RuntimeException exception) {
-				RatsMod.LOGGER.error("Не удалось получить идентификатор предмета FD {}", stack, exception);
+				RatsMod.LOGGER.error("Failed to get FD item id {}", stack, exception);
 				throw exception;
 			}
 		}

@@ -108,7 +108,7 @@ public abstract class BaseRatHarvestGoal extends Goal implements RatWorkGoal {
 		return false;
 	}
 
-	// Кеширует результат поиска подбираемых предметов; принимает стек в лапах и результат, ничего не отдаёт.
+	// Caches the pickup item search result; takes the stack in the paws and the result, returns nothing.
 	private void cacheHoldableItemsResult(ItemStack handStack, boolean hasItems) {
 		this.cachedHoldableHandStack = handStack.copyWithCount(Math.min(1, handStack.getCount()));
 		this.cachedHoldableItemsAround = hasItems;
@@ -125,7 +125,7 @@ public abstract class BaseRatHarvestGoal extends Goal implements RatWorkGoal {
 		return this.rat.getBoundingBox().inflate(RatConfig.defaultRatRadius);
 	}
 
-	// Ищет ближайший подходящий блок без промежуточного списка; принимает проверку позиции, отдаёт позицию или null.
+	// Finds the nearest suitable block without an intermediate list; takes a position check, returns a position or null.
 	@Nullable
 	protected BlockPos findNearestBlockInRadius(Predicate<BlockPos> predicate) {
 		try {
@@ -145,12 +145,12 @@ public abstract class BaseRatHarvestGoal extends Goal implements RatWorkGoal {
 			}
 			return best;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось найти ближайший рабочий блок для крысы {}", this.rat.getUUID(), exception);
-			throw new IllegalStateException("Не удалось найти ближайший рабочий блок для крысы " + this.rat.getUUID(), exception);
+			RatsMod.LOGGER.error("Failed to find the nearest work block for rat {}", this.rat.getUUID(), exception);
+			throw new IllegalStateException("Failed to find the nearest work block for the rat " + this.rat.getUUID(), exception);
 		}
 	}
 
-	// Считает квадрат расстояния до блока; принимает позицию, отдаёт расстояние без извлечения корня.
+	// Computes the squared distance to a block; takes the position, returns the distance without taking the root.
 	private double distanceToSqr(BlockPos pos) {
 		double deltaX = this.rat.getX() - (pos.getX() + 0.5D);
 		double deltaY = this.rat.getY() + this.rat.getEyeHeight() - (pos.getY() + 0.5D);

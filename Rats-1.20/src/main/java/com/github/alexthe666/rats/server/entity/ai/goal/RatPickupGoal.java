@@ -67,7 +67,7 @@ public class RatPickupGoal extends Goal implements RatWorkGoal {
 			if (pickupEntity == null) {
 				return false;
 			}
-			if (!RatInventoryAccess.canExtract(this.rat.level(), pickupEntity.getBlockPos(), this.rat.pickupFacing, this.rat, "забор предметов")) {
+			if (!RatInventoryAccess.canExtract(this.rat.level(), pickupEntity.getBlockPos(), this.rat.pickupFacing, this.rat, "item pickup")) {
 				return false;
 			}
 		} else if (this.type == PickupType.ENERGY) {
@@ -147,7 +147,7 @@ public class RatPickupGoal extends Goal implements RatWorkGoal {
 	private void executeTask(BlockEntity entity) {
 		if (this.type == PickupType.INVENTORY) {
 			int extractSize = RatUpgradeUtils.hasUpgrade(this.rat, RatsItemRegistry.RAT_UPGRADE_PLATTER.get()) ? 64 : 1;
-			ItemStack stack = RatInventoryAccess.extract(this.rat.level(), entity.getBlockPos(), this.rat.pickupFacing, this.rat, extractSize, "забор предметов");
+			ItemStack stack = RatInventoryAccess.extract(this.rat.level(), entity.getBlockPos(), this.rat.pickupFacing, this.rat, extractSize, "item pickup");
 			if (!stack.isEmpty()) {
 				ItemStack duplicate = stack.copy();
 				if (!this.rat.getItemInHand(InteractionHand.MAIN_HAND).isEmpty() && !this.rat.level().isClientSide()) {
@@ -166,7 +166,7 @@ public class RatPickupGoal extends Goal implements RatWorkGoal {
 						recievedEnergy = storage.extractEnergy(howMuchWeWant, false);
 					}
 				} catch (RuntimeException exception) {
-					RatsMod.LOGGER.error("Крыса {} не смогла забрать энергию из блока {}", this.rat.getUUID(), entity.getBlockPos(), exception);
+					RatsMod.LOGGER.error("Rat {} failed to take energy from block {}", this.rat.getUUID(), entity.getBlockPos(), exception);
 					throw exception;
 				}
 				if (recievedEnergy > 0) {
@@ -206,7 +206,7 @@ public class RatPickupGoal extends Goal implements RatWorkGoal {
 						}
 					}
 				} catch (RuntimeException exception) {
-					RatsMod.LOGGER.error("Крыса {} не смогла забрать жидкость из блока {}", this.rat.getUUID(), entity.getBlockPos(), exception);
+					RatsMod.LOGGER.error("Rat {} failed to take fluid from block {}", this.rat.getUUID(), entity.getBlockPos(), exception);
 					throw exception;
 				}
 				if (drainedStack != null) {
@@ -225,7 +225,7 @@ public class RatPickupGoal extends Goal implements RatWorkGoal {
 		}
 	}
 
-	// Ищет жидкостный обработчик блока; принимает позицию и предпочитаемую сторону, отдаёт найденный IFluidHandler или null.
+	// Finds a block fluid handler; takes the position and preferred side, returns the IFluidHandler found or null.
 	private IFluidHandler resolveFluidHandler(BlockPos pos, Direction preferredSide) {
 		try {
 			IFluidHandler handler = this.rat.level().getCapability(Capabilities.FluidHandler.BLOCK, pos, preferredSide);
@@ -238,18 +238,18 @@ public class RatPickupGoal extends Goal implements RatWorkGoal {
 				}
 				handler = this.rat.level().getCapability(Capabilities.FluidHandler.BLOCK, pos, direction);
 				if (handler != null) {
-					RatsMod.LOGGER.debug("Крыса {} использует сторону {} для забора жидкости из {}, потому что сторона {} не дала обработчик", this.rat.getUUID(), direction, pos, preferredSide);
+					RatsMod.LOGGER.debug("Rat {} uses side {} to take fluid from {} because side {} provided no handler", this.rat.getUUID(), direction, pos, preferredSide);
 					return handler;
 				}
 			}
 			return null;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Крыса {} не смогла найти жидкостный обработчик для забора из {}", this.rat.getUUID(), pos, exception);
+			RatsMod.LOGGER.error("Rat {} could not find a fluid handler to take from {}", this.rat.getUUID(), pos, exception);
 			throw exception;
 		}
 	}
 
-	// Проверяет, можно ли забрать жидкость из блока-источника; принимает позицию, отдаёт true только для чистого source-блока.
+	// Checks whether fluid can be taken from a source block; takes the position, returns true only for a clean source block.
 	private boolean canDrainSourceFluid(BlockPos pos) {
 		try {
 			if (this.type != PickupType.FLUID || pos == null) {
@@ -259,16 +259,16 @@ public class RatPickupGoal extends Goal implements RatWorkGoal {
 			FluidState fluidState = state.getFluidState();
 			return fluidState.isSource() && !fluidState.isEmpty();
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Крыса {} не смогла проверить источник жидкости {}", this.rat.getUUID(), pos, exception);
+			RatsMod.LOGGER.error("Rat {} failed to check fluid source {}", this.rat.getUUID(), pos, exception);
 			throw exception;
 		}
 	}
 
-	// Забирает жидкость из блока-источника; принимает позицию источника, обновляет переносимую жидкость крысы.
+	// Takes fluid from a source block; takes the source position, updates the fluid the rat carries.
 	private void drainSourceFluidBlock(BlockPos pos) {
 		try {
 			if (!this.canDrainSourceFluid(pos)) {
-				RatsMod.LOGGER.warn("Крыса {} не нашла жидкость-источник в {}", this.rat.getUUID(), pos);
+				RatsMod.LOGGER.warn("Rat {} found no source fluid at {}", this.rat.getUUID(), pos);
 				return;
 			}
 			int currentAmount = this.rat.transportingFluid.isEmpty() ? 0 : this.rat.transportingFluid.getAmount();
@@ -279,7 +279,7 @@ public class RatPickupGoal extends Goal implements RatWorkGoal {
 			FluidState fluidState = this.rat.level().getFluidState(pos);
 			FluidStack drainedStack = new FluidStack(fluidState.getType(), Math.min(FluidType.BUCKET_VOLUME, wantedAmount));
 			if (!this.rat.transportingFluid.isEmpty() && !this.rat.transportingFluid.isFluidEqual(drainedStack)) {
-				RatsMod.LOGGER.warn("Крыса {} не может смешать {} с {}", this.rat.getUUID(), drainedStack.getHoverName().getString(), this.rat.transportingFluid.getHoverName().getString());
+				RatsMod.LOGGER.warn("Rat {} cannot mix {} with {}", this.rat.getUUID(), drainedStack.getHoverName().getString(), this.rat.transportingFluid.getHoverName().getString());
 				return;
 			}
 			this.rat.level().setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
@@ -293,7 +293,7 @@ public class RatPickupGoal extends Goal implements RatWorkGoal {
 			}
 			this.rat.playSound(SoundEvents.BUCKET_FILL, 1, 1);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Крыса {} не смогла забрать жидкость из источника {}", this.rat.getUUID(), pos, exception);
+			RatsMod.LOGGER.error("Rat {} failed to take fluid from source {}", this.rat.getUUID(), pos, exception);
 			throw exception;
 		}
 	}

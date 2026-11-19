@@ -42,7 +42,7 @@ public class RatsBEWLR extends BlockEntityWithoutLevelRenderer {
 	}
 
 	/**
-	 * Рендер блока-предмета в инвентаре/руке; для GUI масштабирует модель под ячейку 16×16.
+	 * Renders a block item in inventory/hand; for the GUI it scales the model to a 16x16 slot.
 	 */
 	@Override
 	public void renderByItem(ItemStack stack, ItemDisplayContext context, PoseStack ms, MultiBufferSource buffer, int light, int overlay) {
@@ -83,11 +83,11 @@ public class RatsBEWLR extends BlockEntityWithoutLevelRenderer {
 			Minecraft.getInstance().getBlockEntityRenderDispatcher().renderItem(entity, ms, buffer, light, overlay);
 			ms.popPose();
 		} catch (Exception e) {
-			RatsMod.LOGGER.error("Ошибка BEWLR для предмета {}: {}", stack, e.getMessage(), e);
+			RatsMod.LOGGER.error("BEWLR error for item {}: {}", stack, e.getMessage(), e);
 		}
 	}
 
-	// Рендерит 3D-модель иглу в инвентаре; принимает предмет, контекст, матрицы, буфер, свет и overlay, ничего не возвращает.
+	// Renders the 3D igloo model in the inventory; takes the item, context, matrices, buffer, light and overlay, returns nothing.
 	private void renderIglooItem(RatIglooItem item, ItemDisplayContext context, PoseStack ms, MultiBufferSource buffer, int light, int overlay) {
 		try {
 			ms.pushPose();
@@ -96,12 +96,12 @@ public class RatsBEWLR extends BlockEntityWithoutLevelRenderer {
 			this.igloo.renderToBuffer(ms, consumer, light, overlay, this.packColor(RatColorUtil.getDyeRgb(item.color), 1.0F));
 			ms.popPose();
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Ошибка рендера иглу в инвентаре: {}", exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Error rendering the igloo in the inventory: {}", exception.getMessage(), exception);
 			throw exception;
 		}
 	}
 
-	// Рендерит 3D-модель гамака в инвентаре; принимает предмет, контекст, матрицы, буфер, свет и overlay, ничего не возвращает.
+	// Renders the 3D hammock model in the inventory; takes the item, context, matrices, buffer, light and overlay, returns nothing.
 	private void renderHammockItem(RatHammockItem item, ItemDisplayContext context, PoseStack ms, MultiBufferSource buffer, int light, int overlay) {
 		try {
 			ms.pushPose();
@@ -110,12 +110,12 @@ public class RatsBEWLR extends BlockEntityWithoutLevelRenderer {
 			this.hammock.renderToBuffer(ms, consumer, light, overlay, this.packColor(RatColorUtil.getDyeRgb(item.color), 1.0F));
 			ms.popPose();
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Ошибка рендера гамака в инвентаре: {}", exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Error rendering the hammock in the inventory: {}", exception.getMessage(), exception);
 			throw exception;
 		}
 	}
 
-	// Рендерит 3D-модель трубы в инвентаре; принимает контекст, матрицы, буфер, свет и overlay, ничего не возвращает.
+	// Renders the 3D tube model in the inventory; takes the context, matrices, buffer, light and overlay, returns nothing.
 	private void renderTubeItem(ItemDisplayContext context, PoseStack ms, MultiBufferSource buffer, int light, int overlay) {
 		try {
 			ms.pushPose();
@@ -131,12 +131,12 @@ public class RatsBEWLR extends BlockEntityWithoutLevelRenderer {
 			Minecraft.getInstance().getBlockRenderer().renderSingleBlock(state, ms, buffer, light, overlay);
 			ms.popPose();
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Ошибка рендера трубы в инвентаре: {}", exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Error rendering the tube in the inventory: {}", exception.getMessage(), exception);
 			throw exception;
 		}
 	}
 
-	// Готовит позу для 3D-декора клетки; принимает контекст, матрицы и масштаб, ничего не возвращает.
+	// Prepares the pose for 3D cage decorations; takes the context, matrices and scale, returns nothing.
 	private void prepareDecorationPose(ItemDisplayContext context, PoseStack ms, float scale) {
 		try {
 			ms.translate(0.5F, 1.5F, 0.5F);
@@ -146,12 +146,12 @@ public class RatsBEWLR extends BlockEntityWithoutLevelRenderer {
 				ms.mulPose(Axis.YP.rotationDegrees(35));
 			}
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Ошибка подготовки позы декора в инвентаре: {}", exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Error preparing the decoration pose in the inventory: {}", exception.getMessage(), exception);
 			throw exception;
 		}
 	}
 
-	// Упаковывает цвет модели; принимает RGB и прозрачность, отдаёт ARGB int.
+	// Packs a model color; takes RGB and alpha, returns an ARGB int.
 	private int packColor(float[] rgb, float alpha) {
 		try {
 			int r = (int) (rgb[0] * 255.0F);
@@ -160,7 +160,7 @@ public class RatsBEWLR extends BlockEntityWithoutLevelRenderer {
 			int a = (int) (alpha * 255.0F);
 			return (a << 24) | (r << 16) | (g << 8) | b;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Ошибка упаковки цвета декора: {}", exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Error packing the decoration color: {}", exception.getMessage(), exception);
 			throw exception;
 		}
 	}

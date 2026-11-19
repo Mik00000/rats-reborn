@@ -344,7 +344,7 @@ public class PlagueDoctor extends AbstractVillager implements RangedAttackMob {
 		this.level().addFreshEntity(entitypotion);
 	}
 
-	// Превращение в чёрную смерть от молнии: level — мир, lightning — удар.
+	// Turning into the Black Death from lightning: level - the world, lightning - the strike.
 	@Override
 	public void thunderHit(ServerLevel level, LightningBolt lightning) {
 		if (!RatConfig.blackDeathLightning || !this.isAlive() || level.getCurrentDifficultyAt(this.blockPosition()).getDifficulty() == Difficulty.PEACEFUL) {
@@ -362,7 +362,7 @@ public class PlagueDoctor extends AbstractVillager implements RangedAttackMob {
 				death.setCustomName(this.getCustomName());
 			}
 			if (!level.addFreshEntity(death)) {
-				RatsMod.LOGGER.error("thunderHit: не удалось заспавнить BlackDeath в {}", this.blockPosition());
+				RatsMod.LOGGER.error("thunderHit: failed to spawn BlackDeath at {}", this.blockPosition());
 				return;
 			}
 			for (ServerPlayer player : level.getEntitiesOfClass(ServerPlayer.class, new AABB(death.blockPosition()).inflate(16.0D))) {
@@ -370,7 +370,7 @@ public class PlagueDoctor extends AbstractVillager implements RangedAttackMob {
 			}
 			this.discard();
 		} catch (Exception e) {
-			RatsMod.LOGGER.error("thunderHit: ошибка превращения PlagueDoctor в BlackDeath: {}", e.getMessage(), e);
+			RatsMod.LOGGER.error("thunderHit: error turning PlagueDoctor into BlackDeath: {}", e.getMessage(), e);
 		}
 	}
 

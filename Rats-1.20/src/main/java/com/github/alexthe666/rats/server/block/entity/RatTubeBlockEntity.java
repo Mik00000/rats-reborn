@@ -25,7 +25,7 @@ public class RatTubeBlockEntity extends BlockEntity {
 		super(RatsBlockEntityRegistry.RAT_TUBE.get(), pos, state);
 	}
 
-	// Тик block entity трубы; сущности не застревают в блоке — движение ведёт RatTubeMoveControl.
+	// Tube block entity tick; entities do not get stuck in the block - movement is driven by RatTubeMoveControl.
 	public static void tick(Level level, BlockPos pos, BlockState state, RatTubeBlockEntity te) {
 		try {
 			if (!level.isClientSide() && state.getBlock() instanceof RatTubeBlock) {
@@ -36,7 +36,7 @@ public class RatTubeBlockEntity extends BlockEntity {
 				}
 			}
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Ошибка тика трубы в {}: {}", pos, exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Tube tick error at {}: {}", pos, exception.getMessage(), exception);
 			throw exception;
 		}
 	}
@@ -72,7 +72,7 @@ public class RatTubeBlockEntity extends BlockEntity {
 		color = compound.getInt("TubeColor");
 	}
 
-	// Запоминает сторону крепления-входа без открытия прохода; принимает сторону и флаг активности.
+	// Remembers the side of the entrance fitting without opening a passage; takes the side and an active flag.
 	public void setEntranceData(Direction side, boolean active) {
 		if (active) {
 			this.opening = side;
@@ -82,7 +82,7 @@ public class RatTubeBlockEntity extends BlockEntity {
 		}
 	}
 
-	// Сбрасывает крепление-вход; ничего не принимает.
+	// Resets the entrance fitting; takes nothing.
 	public void clearEntranceMount() {
 		this.opening = null;
 		this.isNode = false;

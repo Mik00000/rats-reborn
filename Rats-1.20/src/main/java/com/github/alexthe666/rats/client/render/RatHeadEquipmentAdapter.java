@@ -43,7 +43,7 @@ public final class RatHeadEquipmentAdapter {
 		try {
 			ratModel.translateToHead(poseStack);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Ошибка переноса матрицы в голову крысы: {}", exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Error moving the matrix to the rat head: {}", exception.getMessage(), exception);
 			throw exception;
 		}
 	}
@@ -62,7 +62,7 @@ public final class RatHeadEquipmentAdapter {
 				applyRatHatItemOffsets(itemStack, poseStack);
 			}
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Ошибка позы шляпы на крысе {}: {}", rat.getUUID(), exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Error posing the hat on rat {}: {}", rat.getUUID(), exception.getMessage(), exception);
 			throw exception;
 		}
 	}
@@ -80,7 +80,7 @@ public final class RatHeadEquipmentAdapter {
 				poseStack.translate(0.0F, RAT_VANILLA_HELMET_LIFT, 0.0F);
 			}
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Ошибка позы шлема на крысе {}: {}", rat.getUUID(), exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Error posing the helmet on rat {}: {}", rat.getUUID(), exception.getMessage(), exception);
 			throw exception;
 		}
 	}
@@ -90,7 +90,7 @@ public final class RatHeadEquipmentAdapter {
 			applyRatHelmetPose(rat, itemStack, poseStack);
 			poseStack.translate(0.0D, -0.05D, 0.0D);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Ошибка позы предметного шлема на крысе {}: {}", rat.getUUID(), exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Error posing the item helmet on rat {}: {}", rat.getUUID(), exception.getMessage(), exception);
 			throw exception;
 		}
 	}
@@ -108,7 +108,7 @@ public final class RatHeadEquipmentAdapter {
 				applyPlayerHatItemOffsets(itemStack, poseStack);
 			}
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Ошибка позы шляпы на игроке для {}: {}", itemStack.getItem(), exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Error posing the hat on the player for {}: {}", itemStack.getItem(), exception.getMessage(), exception);
 			throw exception;
 		}
 	}
@@ -119,7 +119,7 @@ public final class RatHeadEquipmentAdapter {
 			hatModel.head.yRot = parent.head.yRot;
 			hatModel.head.zRot = parent.head.zRot;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Ошибка синхронизации поворота головы шляпы игрока: {}", exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Error syncing the player hat head rotation: {}", exception.getMessage(), exception);
 			throw exception;
 		}
 	}
@@ -132,7 +132,7 @@ public final class RatHeadEquipmentAdapter {
 				helmetModel.head.zRot = staticRat.head.rotateAngleZ;
 			}
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Ошибка синхронизации поворота головы шлема крысы: {}", exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Error syncing the rat helmet head rotation: {}", exception.getMessage(), exception);
 			throw exception;
 		}
 	}
@@ -144,7 +144,7 @@ public final class RatHeadEquipmentAdapter {
 			}
 			return IClientItemExtensions.of(itemStack).getHumanoidArmorModel(entity, itemStack, EquipmentSlot.HEAD, fallback);
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось получить модель шлема {}: {}", itemStack.getItem(), exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Failed to get helmet model {}: {}", itemStack.getItem(), exception.getMessage(), exception);
 			throw exception;
 		}
 	}
@@ -155,7 +155,7 @@ public final class RatHeadEquipmentAdapter {
 			model.head.visible = true;
 			model.hat.visible = true;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Ошибка подготовки модели шлема к отрисовке: {}", exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Error preparing the helmet model for rendering: {}", exception.getMessage(), exception);
 			throw exception;
 		}
 	}
@@ -164,7 +164,7 @@ public final class RatHeadEquipmentAdapter {
 		try {
 			return itemStack.getItem() instanceof ArmorItem armor && armor.getEquipmentSlot() == EquipmentSlot.HEAD;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Ошибка проверки шлема {}: {}", itemStack.getItem(), exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Error checking helmet {}: {}", itemStack.getItem(), exception.getMessage(), exception);
 			throw exception;
 		}
 	}
@@ -176,7 +176,7 @@ public final class RatHeadEquipmentAdapter {
 	public static ResourceLocation resolveHelmetTexture(Entity entity, ItemStack itemStack, EquipmentSlot slot, @Nullable String overlaySuffix) {
 		try {
 			if (!(itemStack.getItem() instanceof ArmorItem armorItem)) {
-				throw new IllegalStateException("Предмет не является бронёй: " + itemStack.getItem());
+				throw new IllegalStateException("Item is not armor: " + itemStack.getItem());
 			}
 			if (armorItem instanceof HatItem) {
 				ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(armorItem);
@@ -186,8 +186,8 @@ public final class RatHeadEquipmentAdapter {
 			var material = armorItem.getMaterial().value();
 			var layers = material.layers();
 			if (layers.isEmpty()) {
-				RatsMod.LOGGER.error("У материала брони {} нет слоёв текстуры", BuiltInRegistries.ITEM.getKey(armorItem));
-				throw new IllegalStateException("Материал брони без слоёв текстуры: " + BuiltInRegistries.ITEM.getKey(armorItem));
+				RatsMod.LOGGER.error("Armor material {} has no texture layers", BuiltInRegistries.ITEM.getKey(armorItem));
+				throw new IllegalStateException("Armor material without texture layers: " + BuiltInRegistries.ITEM.getKey(armorItem));
 			}
 			ArmorMaterial.Layer layer = layers.getFirst();
 			boolean inner = false;
@@ -212,7 +212,7 @@ public final class RatHeadEquipmentAdapter {
 			}
 			return base.withPath(path + "_" + overlaySuffix + ".png");
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Ошибка разрешения текстуры шлема {}: {}", itemStack.getItem(), exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Error resolving helmet texture {}: {}", itemStack.getItem(), exception.getMessage(), exception);
 			throw exception;
 		}
 	}

@@ -30,7 +30,7 @@ public class OreRatNuggetItem extends Item {
 		return InteractionResult.PASS;
 	}
 
-	// Читает OreItem из NBT кусочка; принимает стек, запасной стек и реестр, отдаёт исходную руду.
+	// Reads the OreItem from the chunk NBT; takes the stack, fallback stack and registry, returns the source ore.
 	public static ItemStack getStoredItem(ItemStack poopItem, ItemStack fallback, HolderLookup.Provider provider) {
 		try {
 			CompoundTag poopTag = RatsItemStackData.getTag(poopItem);
@@ -43,12 +43,12 @@ public class OreRatNuggetItem extends Item {
 			}
 			return fallback;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Ошибка чтения руды из кусочка {}: {}", poopItem.getItem(), exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Error reading ore from chunk {}: {}", poopItem.getItem(), exception.getMessage(), exception);
 			throw exception;
 		}
 	}
 
-	// Возвращает предмет-источник для плавки: NBT кусочка или сам переданный стек (блок руды в лапе крысы).
+	// Returns the source item for smelting: the chunk NBT or the given stack itself (an ore block in the rat's paw).
 	public static ItemStack resolveOreSource(ItemStack stack, HolderLookup.Provider provider) {
 		try {
 			if (stack.isEmpty()) {
@@ -57,12 +57,12 @@ public class OreRatNuggetItem extends Item {
 			ItemStack stored = getStoredItem(stack, ItemStack.EMPTY, provider);
 			return stored.isEmpty() ? stack : stored;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Ошибка определения источника руды для {}: {}", stack.getItem(), exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Error determining the ore source for {}: {}", stack.getItem(), exception.getMessage(), exception);
 			throw exception;
 		}
 	}
 
-	// Возвращает результат плавки для кусочка или блока руды; принимает уровень и стек, отдаёт слиток или EMPTY.
+	// Returns the smelting result for an ore chunk or block; takes the level and stack, returns an ingot or EMPTY.
 	public static ItemStack getIngot(Level level, ItemStack nuggetStack) {
 		try {
 			ItemStack ore = resolveOreSource(nuggetStack, level.registryAccess());
@@ -77,12 +77,12 @@ public class OreRatNuggetItem extends Item {
 			}
 			return ItemStack.EMPTY;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Ошибка плавки руды {}: {}", nuggetStack.getItem(), exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Error smelting ore {}: {}", nuggetStack.getItem(), exception.getMessage(), exception);
 			throw exception;
 		}
 	}
 
-	// Упаковывает результат плавки в кусочек руды с NBT; принимает ресурс и реестр, отдаёт стек кусочка.
+	// Packs the smelting result into an ore chunk with NBT; takes the resource and registry, returns the chunk stack.
 	public static ItemStack saveResourceToNugget(ItemStack resource, HolderLookup.Provider provider) {
 		try {
 			ItemStack stack = new ItemStack(RatsItemRegistry.RAT_NUGGET_ORE.get());
@@ -91,7 +91,7 @@ public class OreRatNuggetItem extends Item {
 			RatsItemStackData.setTag(stack, nuggetTag);
 			return stack;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Ошибка упаковки руды в кусочек {}: {}", resource.getItem(), exception.getMessage(), exception);
+			RatsMod.LOGGER.error("Error packing ore into chunk {}: {}", resource.getItem(), exception.getMessage(), exception);
 			throw exception;
 		}
 	}

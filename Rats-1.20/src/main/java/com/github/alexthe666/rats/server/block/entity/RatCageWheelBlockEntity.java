@@ -143,15 +143,15 @@ public class RatCageWheelBlockEntity extends DecoratedRatCageBlockEntity {
 		}
 	}
 
-	// Возвращает энергетический накопитель колеса; параметры не принимает, отдаёт IEnergyStorage.
+	// Returns the wheel energy storage; takes no parameters, returns an IEnergyStorage.
 	public IEnergyStorage getEnergyStorage() {
 		try {
 			if (this.isRemoved()) {
-				throw new IllegalStateException("Нельзя получить energy capability удалённого колеса");
+				throw new IllegalStateException("Cannot get the energy capability of a removed wheel");
 			}
 			return this.energyStorage;
 		} catch (RuntimeException exception) {
-			RatsMod.LOGGER.error("Не удалось получить energy capability колеса на {}", this.getBlockPos(), exception);
+			RatsMod.LOGGER.error("Failed to get the wheel energy capability at {}", this.getBlockPos(), exception);
 			throw exception;
 		}
 	}

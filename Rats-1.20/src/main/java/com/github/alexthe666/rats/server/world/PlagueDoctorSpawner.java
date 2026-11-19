@@ -30,16 +30,16 @@ public class PlagueDoctorSpawner implements CustomSpawner {
 	private int spawnChance;
 
 	/**
-	 * Создаёт спавнер чумного доктора для указанного уровня.
-	 * Параметры: {@code level} — серверный уровень (обычно верхний мир).
-	 * Значения задержки берутся из {@link PlagueDoctorWorldData} или задаются по умолчанию.
+	 * Creates the plague doctor spawner for the given level.
+	 * Parameters: {@code level} - the server level (usually the overworld).
+	 * Delay values are taken from {@link PlagueDoctorWorldData} or set to defaults.
 	 */
 	public PlagueDoctorSpawner(ServerLevel level) {
 		try {
 			this.tickDelay = 1200;
 			PlagueDoctorWorldData worldinfo = PlagueDoctorWorldData.get(level);
 			if (worldinfo == null) {
-				LOGGER.warn("PlagueDoctorWorldData недоступен при создании спавнера для {}, используются значения по умолчанию", level.dimension().location());
+				LOGGER.warn("PlagueDoctorWorldData is not available when creating the spawner for {}, using default values", level.dimension().location());
 				this.spawnDelay = 24000;
 				this.spawnChance = 25;
 				return;
@@ -53,7 +53,7 @@ public class PlagueDoctorSpawner implements CustomSpawner {
 				worldinfo.setDoctorSpawnChance(this.spawnChance);
 			}
 		} catch (Exception e) {
-			LOGGER.error("Ошибка инициализации PlagueDoctorSpawner: {}", e.getMessage(), e);
+			LOGGER.error("PlagueDoctorSpawner initialization error: {}", e.getMessage(), e);
 			this.tickDelay = 1200;
 			this.spawnDelay = 24000;
 			this.spawnChance = 25;
